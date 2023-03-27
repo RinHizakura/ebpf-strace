@@ -7,14 +7,11 @@
 #include "vmlinux.h"
 /* clang-format on */
 #include <bpf/bpf_helpers.h>
-#include "syscall.h"
+#include "syscall/syscall_nr.h"
 #include "utils.h"
+#include "syscall/syscall_ent.h"
 
 pid_t select_pid = 0;
-
-typedef struct {
-    __u64 id;
-} syscall_ent_t;
 
 struct {
     __uint(type, BPF_MAP_TYPE_RINGBUF);
@@ -27,7 +24,7 @@ struct {
     {                            \
         bpf_printk("%s", #call); \
     }
-#include "syscall_tbl.h"
+#include "syscall/syscall_tbl.h"
 #undef __SYSCALL
 
 SEC("raw_tracepoint/sys_enter")
@@ -49,7 +46,7 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
     case nr:                \
         call##_enter();     \
         break;
-#include "syscall_tbl.h"
+#include "syscall/syscall_tbl.h"
 #undef __SYSCALL
     default:
         break;

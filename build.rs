@@ -125,13 +125,13 @@ fn main() -> Result<()> {
 
     // Generate the syscall-related file automatically
     generate(
-        "src/bpf/syscall_tbl.h",
+        "src/bpf/syscall/syscall_tbl.h",
         gen_syscall_tbl_h,
         None::<Box<dyn Fn(&mut File) -> Result<()>>>,
         None::<Box<dyn Fn(&mut File) -> Result<()>>>,
     )?;
     generate(
-        "src/bpf/syscall.h",
+        "src/bpf/syscall/syscall_nr.h",
         gen_syscall_h,
         Some(gen_syscall_h_prologue),
         Some(gen_syscall_h_epilogue),

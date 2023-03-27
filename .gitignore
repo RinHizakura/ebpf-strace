@@ -1,6 +1,6 @@
 target
 
 src/bpf/.output
-src/bpf/syscall_tbl.h
-src/bpf/syscall.h
+src/bpf/syscall/syscall_tbl.h
+src/bpf/syscall/syscall_nr.h
 src/syscall.rs

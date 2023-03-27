@@ -15,6 +15,6 @@ run: $(BIN)
 
 clean:
 	cargo clean
-	$(RM) src/bpf/syscall_tbl.h
-	$(RM) src/bpf/syscall.h
+	$(RM) src/bpf/syscall/syscall_tbl.h
+	$(RM) src/bpf/syscall/syscall.h
 	$(RM) src/syscall.rs
