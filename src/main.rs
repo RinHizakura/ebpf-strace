@@ -64,15 +64,25 @@ fn main() -> Result<()> {
     if args.len() == 0 {
         return Err(anyhow!("Command cannot be empty"));
     }
-    let pid = spawn(args)?;
-    skel.bss().select_pid = pid;
 
-    /* Attach tracepoint handler */
-    let _tracepoint = skel.progs_mut().sys_enter().attach()?;
+    match fork() {
+        0 => {
+            /* FIXME: We should do exec after attach the tracepoint.
+             * However this is a bad workaround :( */
+            let hundred_millis = std::time::Duration::from_millis(100);
+            std::thread::sleep(hundred_millis);
+            execvp(&args)?;
+            unreachable!();
+        }
+        child_pid => {
+            skel.bss().select_pid = child_pid;
+           /* Attach tracepoint handler */
+            let _tracepoint = skel.attach()?;
+        }
+    };
 
     /* Run `sudo cat /sys/kernel/debug/tracing/trace_pipe` to
      * see output of the BPF programs */
-
     let running = Arc::new(AtomicBool::new(true));
     let r = running.clone();
     ctrlc::set_handler(move || {

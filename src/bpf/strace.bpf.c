@@ -6,10 +6,11 @@
 // We must include this
 #include "vmlinux.h"
 /* clang-format on */
+#include <bpf/bpf_core_read.h>
 #include <bpf/bpf_helpers.h>
+#include "syscall/syscall_ent.h"
 #include "syscall/syscall_nr.h"
 #include "utils.h"
-#include "syscall/syscall_ent.h"
 
 pid_t select_pid = 0;
 
@@ -19,10 +20,14 @@ struct {
 } syscall_record SEC(".maps");
 
 /* Generate the default syscall enter handler */
-#define __SYSCALL(nr, call)      \
-    static void call##_enter()   \
-    {                            \
-        bpf_printk("%s", #call); \
+#define __SYSCALL(nr, call)            \
+    static void call##_enter()         \
+    {                                  \
+        bpf_printk("enter/%s", #call); \
+    }                                  \
+    static void call##_exit()          \
+    {                                  \
+        bpf_printk("exit/%s", #call);  \
     }
 #include "syscall/syscall_tbl.h"
 #undef __SYSCALL
@@ -61,6 +66,31 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
     }
     ent->id = id;
     bpf_ringbuf_submit(ent, 0);
+
+    return 0;
+}
+
+SEC("raw_tracepoint/sys_exit")
+int sys_exit(struct bpf_raw_tracepoint_args *args)
+{
+    __u64 cur_pid = (bpf_get_current_pid_tgid() >> 32);
+    if (select_pid == 0 || select_pid != cur_pid)
+        return 0;
+
+    struct pt_regs *pt_regs = (struct pt_regs *) args->args[0];
+    long ret = args->args[1];
+
+    __u64 id = BPF_CORE_READ(pt_regs, orig_ax);
+    switch (id) {
+#define __SYSCALL(nr, call) \
+    case nr:                \
+        call##_exit();      \
+        break;
+#include "syscall/syscall_tbl.h"
+#undef __SYSCALL
+    default:
+        break;
+    }
 
     return 0;
 }

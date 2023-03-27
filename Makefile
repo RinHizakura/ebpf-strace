@@ -13,6 +13,9 @@ $(BIN):
 run: $(BIN)
 	sudo $(BIN) echo hello 1>/dev/null
 
+check:
+	sudo cat /sys/kernel/debug/tracing/trace_pipe
+
 clean:
 	cargo clean
 	$(RM) src/bpf/syscall/syscall_tbl.h
