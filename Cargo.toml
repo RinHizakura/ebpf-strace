@@ -1,0 +1,19 @@
+[package]
+name = "ebpf-strace"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+utils = { path = "./utils" }
+anyhow = "1.0"
+ctrlc = "3.1"
+libc = "0.2.140"
+libbpf-rs = "0.19"
+plain = "0.2.3"
+lazy_static = "1.4.0"
+
+[build-dependencies]
+anyhow = "1.0"
+libbpf-cargo = "0.13"
