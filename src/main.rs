@@ -72,12 +72,12 @@ fn main() -> Result<()> {
             let hundred_millis = std::time::Duration::from_millis(100);
             std::thread::sleep(hundred_millis);
             execvp(&args)?;
-            unreachable!();
         }
         child_pid => {
-            skel.bss().select_pid = child_pid;
-           /* Attach tracepoint handler */
+            /* Attach tracepoint handler */
             let _tracepoint = skel.attach()?;
+
+            skel.bss().select_pid = child_pid;
         }
     };
 
