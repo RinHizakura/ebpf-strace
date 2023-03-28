@@ -13,6 +13,11 @@
 #include "utils.h"
 
 pid_t select_pid = 0;
+/* FIXME: The instance allow us to store some information
+ * at sys_enter and collect the remaining information at sys_exit.
+ * It assumes that the sys_exit of a system call will always come
+ * right after its sys_enter. Is this always correct? */
+DEFINE_BPF_MAP(g_ent, BPF_MAP_TYPE_ARRAY, u32, syscall_ent_t, 1);
 
 struct {
     __uint(type, BPF_MAP_TYPE_RINGBUF);
@@ -57,15 +62,12 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
         break;
     }
 
-    syscall_ent_t *ent =
-        bpf_ringbuf_reserve(&syscall_record, sizeof(syscall_ent_t), 0);
-    if (!ent) {
-        /* FIXME: Drop the syscall directly. Any better approach to guarantee
-         * to record the syscall on ring buffer?*/
-        return 0;
-    }
+    u32 index = 0;
+    syscall_ent_t *ent = bpf_g_ent_lookup_elem(&index);
+    if (!ent)
+        return -1;
+
     ent->id = id;
-    bpf_ringbuf_submit(ent, 0);
 
     return 0;
 }
@@ -91,6 +93,22 @@ int sys_exit(struct bpf_raw_tracepoint_args *args)
     default:
         break;
     }
+
+    u32 index = 0;
+    syscall_ent_t *ent = bpf_g_ent_lookup_elem(&index);
+    if (!ent || (ent->id != id))
+        return -1;
+    ent->ret = ret;
+
+    syscall_ent_t *ringbuf_ent =
+        bpf_ringbuf_reserve(&syscall_record, sizeof(syscall_ent_t), 0);
+    if (!ringbuf_ent) {
+        /* FIXME: Drop the syscall directly. Any better approach to guarantee
+         * to record the syscall on ring buffer?*/
+        return 0;
+    }
+    memcpy(ringbuf_ent, ent, sizeof(syscall_ent_t));
+    bpf_ringbuf_submit(ringbuf_ent, 0);
 
     return 0;
 }

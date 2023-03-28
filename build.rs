@@ -137,7 +137,7 @@ fn main() -> Result<()> {
         Some(gen_syscall_h_epilogue),
     )?;
     generate(
-        "src/syscall.rs",
+        "src/syscall_tbl.rs",
         gen_syscall_rs,
         Some(gen_syscall_rs_prologue),
         Some(gen_syscall_rs_epilogue),

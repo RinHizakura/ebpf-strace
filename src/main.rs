@@ -1,8 +1,7 @@
 use crate::sys::*;
-use crate::syscall::*;
+use crate::syscall::syscall_ent_handler;
 use anyhow::{anyhow, Result};
 use libbpf_rs::RingBufferBuilder;
-use plain::Plain;
 use std::env;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -11,6 +10,7 @@ use utils::bump_memlock_rlimit;
 
 mod sys;
 mod syscall;
+mod syscall_tbl;
 mod syscall_desc;
 
 #[path = "bpf/.output/strace.skel.rs"]
@@ -32,27 +32,6 @@ fn load_ebpf_prog() -> Result<StraceSkel<'static>> {
     let open_skel = builder.open()?;
     /* Load & verify BPF programs */
     open_skel.load().map_err(anyhow::Error::msg)
-}
-
-/* This should be synchronized with the structure
- * syscall_ent_t in strace.bpf.c */
-#[repr(C)]
-struct SyscallEnt {
-    id: u64,
-}
-
-unsafe impl Plain for SyscallEnt {}
-fn syscall_ent_handler(bytes: &[u8]) -> i32 {
-    let result = plain::from_bytes::<SyscallEnt>(bytes);
-    if result.is_err() {
-        return -1;
-    }
-    let ent = result.unwrap();
-
-    let syscall = &SYSCALLS[ent.id as usize];
-    eprintln!("{}", syscall.name);
-
-    0
 }
 
 fn main() -> Result<()> {

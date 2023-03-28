@@ -1,13 +1,16 @@
 OUT = target/debug
 BIN = $(OUT)/ebpf-strace
 
+SRCS = $(shell find ./src -name '*.c')
+SRCS += $(shell find ./src -name '*.rs')
+
 all: $(BIN) $(GIT_HOOKS)
 
 $(GIT_HOOKS):
 	@scripts/install-git-hooks
 	@echo
 
-$(BIN):
+$(BIN): $(SRCS)
 	cargo build
 
 run: $(BIN)
@@ -20,4 +23,4 @@ clean:
 	cargo clean
 	$(RM) src/bpf/syscall/syscall_tbl.h
 	$(RM) src/bpf/syscall/syscall.h
-	$(RM) src/syscall.rs
+	$(RM) src/syscall_tbl.rs
