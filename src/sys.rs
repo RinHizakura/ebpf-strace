@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Result};
-use libc::{execvp as __execvp, fork as __fork};
+use libc::{execvp as __execvp, fork as __fork, getpid as __getpid};
 use std::ffi::CString;
 use std::io::Error;
 
@@ -34,4 +34,8 @@ pub fn execvp(cmd: &Vec<String>) -> Result<()> {
 
 pub fn fork() -> i32 {
     unsafe { __fork() }
+}
+
+pub fn getpid() -> i32 {
+    unsafe { __getpid() }
 }

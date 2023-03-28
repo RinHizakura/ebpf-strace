@@ -57,6 +57,8 @@ fn syscall_ent_handler(bytes: &[u8]) -> i32 {
 
 fn main() -> Result<()> {
     let mut skel = load_ebpf_prog()?;
+    /* Attach tracepoint handler */
+    let _tracepoint = skel.attach()?;
 
     /* Spawn a thread to run the executable, and then trace it
      * in our eBPF code. */
@@ -67,18 +69,14 @@ fn main() -> Result<()> {
 
     match fork() {
         0 => {
-            /* FIXME: We should do exec after attach the tracepoint.
-             * However this is a bad workaround :( */
-            let hundred_millis = std::time::Duration::from_millis(100);
-            std::thread::sleep(hundred_millis);
+            let pid = getpid();
+            /* We have to set select_pid by child process
+             * itself because only it knows when it is going
+             * to do execvp. */
+            skel.bss().select_pid = pid;
             execvp(&args)?;
         }
-        child_pid => {
-            /* Attach tracepoint handler */
-            let _tracepoint = skel.attach()?;
-
-            skel.bss().select_pid = child_pid;
-        }
+        _ => {}
     };
 
     /* Run `sudo cat /sys/kernel/debug/tracing/trace_pipe` to
