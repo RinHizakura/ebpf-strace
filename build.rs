@@ -56,7 +56,7 @@ fn gen_syscall_h_epilogue(target: &mut File) -> Result<()> {
     Ok(())
 }
 
-fn gen_syscall_rs_prologue(target: &mut File) -> Result<()> {
+fn gen_syscall_tbl_rs_prologue(target: &mut File) -> Result<()> {
     let s4 = " ".repeat(4);
 
     target.write_all(b"use crate::syscall_desc::*;\n")?;
@@ -67,7 +67,7 @@ fn gen_syscall_rs_prologue(target: &mut File) -> Result<()> {
     Ok(())
 }
 
-fn gen_syscall_rs(target: &mut File, line: Vec<&str>) -> Result<()> {
+fn gen_syscall_tbl_rs(target: &mut File, line: Vec<&str>) -> Result<()> {
     let s8 = " ".repeat(8);
     let syscall_name = line[0];
     let syscall_id = line[1];
@@ -83,13 +83,34 @@ fn gen_syscall_rs(target: &mut File, line: Vec<&str>) -> Result<()> {
     Ok(())
 }
 
-fn gen_syscall_rs_epilogue(target: &mut File) -> Result<()> {
+fn gen_syscall_tbl_rs_epilogue(target: &mut File) -> Result<()> {
     let s4 = " ".repeat(4);
     target.write_all(format!("{s4}];\n").as_bytes())?;
     target.write_all(b"}\n")?;
 
     Ok(())
 }
+
+fn gen_syscall_nr_rs_prologue(target: &mut File) -> Result<()> {
+    target.write_all(b"#![allow(dead_code)]\n")?;
+    Ok(())
+}
+
+fn gen_syscall_nr_rs(target: &mut File, line: Vec<&str>) -> Result<()> {
+    let syscall_name = line[0];
+    let syscall_id = line[1];
+
+    target.write_all(
+        format!(
+            "pub const SYS_{}: u64 = {};\n",
+            syscall_name,
+            syscall_id,
+        )
+        .as_bytes(),
+    )?;
+    Ok(())
+}
+
 
 fn generate<F, F2, F3>(path: &str, main_f: F, pro_f: Option<F2>, epi_f: Option<F3>) -> Result<()>
 where
@@ -138,9 +159,15 @@ fn main() -> Result<()> {
     )?;
     generate(
         "src/syscall_tbl.rs",
-        gen_syscall_rs,
-        Some(gen_syscall_rs_prologue),
-        Some(gen_syscall_rs_epilogue),
+        gen_syscall_tbl_rs,
+        Some(gen_syscall_tbl_rs_prologue),
+        Some(gen_syscall_tbl_rs_epilogue),
+    )?;
+    generate(
+        "src/syscall_nr.rs",
+        gen_syscall_nr_rs,
+        Some(gen_syscall_nr_rs_prologue),
+        None::<Box<dyn Fn(&mut File) -> Result<()>>>,
     )?;
 
     let skel = Path::new("src/bpf/.output/strace.skel.rs");

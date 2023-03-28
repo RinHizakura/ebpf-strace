@@ -11,6 +11,7 @@ use utils::bump_memlock_rlimit;
 mod sys;
 mod syscall;
 mod syscall_tbl;
+mod syscall_nr;
 mod syscall_desc;
 
 #[path = "bpf/.output/strace.skel.rs"]

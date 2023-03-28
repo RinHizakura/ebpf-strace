@@ -4,3 +4,4 @@ src/bpf/.output
 src/bpf/syscall/syscall_tbl.h
 src/bpf/syscall/syscall_nr.h
 src/syscall_tbl.rs
+src/syscall_nr.rs
