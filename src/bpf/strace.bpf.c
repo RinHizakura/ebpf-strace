@@ -26,16 +26,35 @@ struct {
 
 /* Generate the default syscall enter handler */
 #define __SYSCALL(nr, call)            \
-    static void call##_enter()         \
+    static void call##_enter_debug()   \
     {                                  \
         bpf_printk("enter/%s", #call); \
     }                                  \
-    static void call##_exit()          \
+    static void call##_exit_debug()    \
     {                                  \
         bpf_printk("exit/%s", #call);  \
     }
 #include "syscall/syscall_tbl.h"
 #undef __SYSCALL
+
+static void sys_enter_default(syscall_ent_t *ent, __u64 id)
+{
+    ent->id = id;
+}
+
+static void sys_enter_read(syscall_ent_t *ent,
+                           __u64 id,
+                           int fd,
+                           void *buf,
+                           size_t count)
+{
+    sys_enter_default(ent, id);
+
+    read_args_t *read = &ent->read;
+    read->fd = fd;
+    memset(read->buf, 0, sizeof(read->buf));
+    read->count = count;
+}
 
 SEC("raw_tracepoint/sys_enter")
 int sys_enter(struct bpf_raw_tracepoint_args *args)
@@ -52,9 +71,9 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
      */
     __u64 id = args->args[1];
     switch (id) {
-#define __SYSCALL(nr, call) \
-    case nr:                \
-        call##_enter();     \
+#define __SYSCALL(nr, call)   \
+    case nr:                  \
+        call##_enter_debug(); \
         break;
 #include "syscall/syscall_tbl.h"
 #undef __SYSCALL
@@ -67,7 +86,15 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
     if (!ent)
         return -1;
 
-    ent->id = id;
+    /* TODO: take the arguements from register */
+    switch (id) {
+    case SYS_READ:
+        sys_enter_read(ent, id, 0, NULL, 0);
+        break;
+    default:
+        sys_enter_default(ent, id);
+        break;
+    }
 
     return 0;
 }
@@ -84,9 +111,9 @@ int sys_exit(struct bpf_raw_tracepoint_args *args)
 
     __u64 id = BPF_CORE_READ(pt_regs, orig_ax);
     switch (id) {
-#define __SYSCALL(nr, call) \
-    case nr:                \
-        call##_exit();      \
+#define __SYSCALL(nr, call)  \
+    case nr:                 \
+        call##_exit_debug(); \
         break;
 #include "syscall/syscall_tbl.h"
 #undef __SYSCALL

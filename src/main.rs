@@ -10,9 +10,9 @@ use utils::bump_memlock_rlimit;
 
 mod sys;
 mod syscall;
-mod syscall_tbl;
-mod syscall_nr;
 mod syscall_desc;
+mod syscall_nr;
+mod syscall_tbl;
 
 #[path = "bpf/.output/strace.skel.rs"]
 #[cfg_attr(rustfmt, rustfmt_skip)]

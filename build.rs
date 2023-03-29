@@ -101,16 +101,10 @@ fn gen_syscall_nr_rs(target: &mut File, line: Vec<&str>) -> Result<()> {
     let syscall_id = line[1];
 
     target.write_all(
-        format!(
-            "pub const SYS_{}: u64 = {};\n",
-            syscall_name,
-            syscall_id,
-        )
-        .as_bytes(),
+        format!("pub const SYS_{}: u64 = {};\n", syscall_name, syscall_id,).as_bytes(),
     )?;
     Ok(())
 }
-
 
 fn generate<F, F2, F3>(path: &str, main_f: F, pro_f: Option<F2>, epi_f: Option<F3>) -> Result<()>
 where
