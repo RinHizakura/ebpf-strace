@@ -37,13 +37,13 @@ struct {
 #include "syscall/syscall_tbl.h"
 #undef __SYSCALL
 
-static void sys_enter_default(syscall_ent_t *ent, __u64 id)
+static void sys_enter_default(syscall_ent_t *ent, u64 id)
 {
     ent->id = id;
 }
 
 static void sys_enter_read(syscall_ent_t *ent,
-                           __u64 id,
+                           u64 id,
                            int fd,
                            void *buf,
                            size_t count)
@@ -62,14 +62,14 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
     /* We'll only hook the pid which is specified by BPF loader.
      * Note that the return value of "bpf_get_current_pid_tgid" will
      * be "(u64) task->tgid << 32 | task->pid" */
-    __u64 cur_pid = (bpf_get_current_pid_tgid() >> 32);
+    u64 cur_pid = (bpf_get_current_pid_tgid() >> 32);
     if (select_pid == 0 || select_pid != cur_pid)
         return 0;
 
     /* Reference to the TP_PROTO macro for sys_enter under
      * https://elixir.bootlin.com/linux/latest/source/include/trace/events/syscalls.h
      */
-    __u64 id = args->args[1];
+    u64 id = args->args[1];
     switch (id) {
 #define __SYSCALL(nr, call)   \
     case nr:                  \
@@ -86,10 +86,19 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
     if (!ent)
         return -1;
 
-    /* TODO: take the arguements from register */
+    /* According to x86_64 abi:  User-level applications use as integer
+     * registers for passing the sequence %rdi, %rsi, %rdx, %rcx, %r8 and %r9.
+     * The kernel interface uses %rdi, %rsi, %rdx, %r10, %r8 and %r9. */
+    struct pt_regs *pt_regs = (struct pt_regs *)args->args[0];
+    u64 di = BPF_CORE_READ(pt_regs, di);
+    u64 si = BPF_CORE_READ(pt_regs, si);
+    u64 dx = BPF_CORE_READ(pt_regs, dx);
+    u64 r10 = BPF_CORE_READ(pt_regs, r10);
+    u64 r8 = BPF_CORE_READ(pt_regs, r8);
+    u64 r9 = BPF_CORE_READ(pt_regs, r9);
     switch (id) {
     case SYS_READ:
-        sys_enter_read(ent, id, 0, NULL, 0);
+        sys_enter_read(ent, id, di, (void *)si, dx);
         break;
     default:
         sys_enter_default(ent, id);
@@ -102,14 +111,14 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
 SEC("raw_tracepoint/sys_exit")
 int sys_exit(struct bpf_raw_tracepoint_args *args)
 {
-    __u64 cur_pid = (bpf_get_current_pid_tgid() >> 32);
+    u64 cur_pid = (bpf_get_current_pid_tgid() >> 32);
     if (select_pid == 0 || select_pid != cur_pid)
         return 0;
 
     struct pt_regs *pt_regs = (struct pt_regs *) args->args[0];
     long ret = args->args[1];
 
-    __u64 id = BPF_CORE_READ(pt_regs, orig_ax);
+    u64 id = BPF_CORE_READ(pt_regs, orig_ax);
     switch (id) {
 #define __SYSCALL(nr, call)  \
     case nr:                 \
