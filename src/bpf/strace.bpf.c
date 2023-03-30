@@ -24,7 +24,7 @@ struct {
     __uint(max_entries, 4096);
 } syscall_record SEC(".maps");
 
-/* Generate the default syscall enter handler */
+/* Generate the default syscall enter and exit debug function */
 #define __SYSCALL(nr, call)            \
     static void call##_enter_debug()   \
     {                                  \
