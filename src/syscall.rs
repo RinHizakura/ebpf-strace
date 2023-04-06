@@ -3,7 +3,7 @@ use crate::syscall_tbl::*;
 use plain::Plain;
 
 /* This should be synchronized with the structure
- * syscall_ent_t in strace.bpf.c */
+ * syscall_ent_t in syscall/strace_ent.h */
 #[repr(C)]
 struct ReadArgs {
     fd: i32,
