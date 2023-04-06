@@ -1,16 +1,26 @@
 use crate::syscall_nr::*;
 use crate::syscall_tbl::*;
 use plain::Plain;
+use std::str::from_utf8;
 
+const BUF_SIZE: usize = 32;
 /* This should be synchronized with the structure
  * syscall_ent_t in syscall/strace_ent.h */
 #[repr(C)]
 struct ReadArgs {
     fd: i32,
-    buf: [u8; 32],
+    buf: [u8; BUF_SIZE],
     count: usize,
 }
 unsafe impl Plain for ReadArgs {}
+
+#[repr(C)]
+struct WriteArgs {
+    fd: i32,
+    buf: [u8; BUF_SIZE],
+    count: usize,
+}
+unsafe impl Plain for WriteArgs {}
 
 #[repr(C)]
 struct SyscallEnt {
@@ -24,12 +34,26 @@ fn handle_read_args(args: &[u8]) {
     let size = std::mem::size_of::<ReadArgs>();
     let slice = &args[0..size];
     let read = plain::from_bytes::<ReadArgs>(slice).expect("Fail to cast bytes to ReadArgs");
-    eprint!("({}, {}, {})", read.fd, read.buf[0], read.count);
+
+    let extra = if read.count > (BUF_SIZE - 1) { "..." } else { "" };
+    /* FIXME: Get the read content correctly */
+    eprint!("({}, {:?} {}, {})", read.fd, read.buf, extra, read.count);
+}
+
+fn handle_write_args(args: &[u8]) {
+    let size = std::mem::size_of::<WriteArgs>();
+    let slice = &args[0..size];
+    let write = plain::from_bytes::<WriteArgs>(slice).expect("Fail to cast bytes to WriteArgs");
+
+    let extra = if write.count > (BUF_SIZE - 1) { "..." } else { "" };
+    let s = from_utf8(&write.buf[0..write.count]).unwrap();
+    eprint!("({}, {} {}, {})", write.fd, s, extra, write.count);
 }
 
 fn handle_args(id: u64, args: &[u8]) {
     match id {
         SYS_READ => handle_read_args(args),
+        SYS_WRITE => handle_write_args(args),
         _ => eprint!("()"),
     }
 }

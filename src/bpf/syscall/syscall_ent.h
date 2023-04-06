@@ -19,6 +19,13 @@ typedef struct {
 } read_args_t;
 static_assert(sizeof(read_args_t) <= sizeof(args_t));
 
+typedef struct {
+    int fd;
+    u8 buf[BUF_SIZE];
+    size_t count;
+} write_args_t;
+static_assert(sizeof(write_args_t) <= sizeof(args_t));
+
 /* FIXME: This structure is designed to be used in
  * both C and Rust. However, this is not pretty :( */
 typedef struct {
@@ -31,6 +38,7 @@ typedef struct {
          * the structure layout between C and Rust code. */
         args_t args;
         read_args_t read;
+        write_args_t write;
     };
 } syscall_ent_t;
 

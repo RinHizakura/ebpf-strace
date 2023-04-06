@@ -52,8 +52,30 @@ static void sys_enter_read(syscall_ent_t *ent,
 
     read_args_t *read = &ent->read;
     read->fd = fd;
-    memset(read->buf, 0, sizeof(read->buf));
     read->count = count;
+
+    memset(read->buf, 0xff, sizeof(read->buf));
+    /* minus 1 for the tail '\0' */
+    size_t cpy_count = count > (BUF_SIZE - 1) ? (BUF_SIZE - 1) : count;
+    bpf_core_read_user(read->buf, cpy_count, buf);
+}
+
+static void sys_enter_write(syscall_ent_t *ent,
+                           u64 id,
+                           int fd,
+                           void *buf,
+                           size_t count)
+{
+    sys_enter_default(ent, id);
+
+    write_args_t *write = &ent->write;
+    write->fd = fd;
+    write->count = count;
+
+    memset(write->buf, 0xff, sizeof(write->buf));
+    /* minus 1 for the tail '\0' */
+    size_t cpy_count = count > (BUF_SIZE - 1) ? (BUF_SIZE - 1) : count;
+    bpf_core_read_user(write->buf, cpy_count, buf);
 }
 
 SEC("raw_tracepoint/sys_enter")
@@ -99,6 +121,9 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
     switch (id) {
     case SYS_READ:
         sys_enter_read(ent, id, di, (void *)si, dx);
+        break;
+    case SYS_WRITE:
+        sys_enter_write(ent, id, di, (void *)si, dx);
         break;
     default:
         sys_enter_default(ent, id);

@@ -31,4 +31,12 @@
         return bpf_map_delete_elem(&the_map, k);                             \
     }
 
+#ifndef memset
+#define memset(dest, chr, n) __builtin_memset((dest), (chr), (n))
+#endif
+
+#ifndef memcpy
+#define memcpy(dest, src, n) __builtin_memcpy((dest), (src), (n))
+#endif
+
 #endif
