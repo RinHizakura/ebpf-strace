@@ -1,5 +1,9 @@
-use crate::syscall_nr::*;
-use crate::syscall_tbl::*;
+mod syscall_desc;
+mod syscall_nr;
+mod syscall_tbl;
+
+use crate::syscall::syscall_nr::*;
+use crate::syscall::syscall_tbl::*;
 use plain::Plain;
 use std::str::from_utf8;
 

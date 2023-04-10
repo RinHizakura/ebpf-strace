@@ -23,5 +23,5 @@ clean:
 	cargo clean
 	$(RM) src/bpf/syscall/syscall_tbl.h
 	$(RM) src/bpf/syscall/syscall.h
-	$(RM) src/syscall_tbl.rs
-	$(RM) src/syscall_nr.rs
+	$(RM) src/syscall/syscall_tbl.rs
+	$(RM) src/syscall/syscall_nr.rs

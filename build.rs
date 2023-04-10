@@ -5,7 +5,7 @@ use std::path::Path;
 
 use libbpf_cargo::SkeletonBuilder;
 
-const SYSCALL_SRC: &str = "./src/syscall.tbl";
+const SYSCALL_SRC: &str = "./src/syscall/syscall.tbl";
 const SKEL_SRC: &str = "./src/bpf/strace.bpf.c";
 
 fn open_read(path: &str) -> Result<File> {
@@ -59,7 +59,7 @@ fn gen_syscall_h_epilogue(target: &mut File) -> Result<()> {
 fn gen_syscall_tbl_rs_prologue(target: &mut File) -> Result<()> {
     let s4 = " ".repeat(4);
 
-    target.write_all(b"use crate::syscall_desc::*;\n")?;
+    target.write_all(b"use crate::syscall::syscall_desc::*;\n")?;
     target.write_all(b"lazy_static! {\n")?;
     target
         .write_all(format!("{s4}pub static ref SYSCALLS: Vec<SyscallDesc> = vec![\n").as_bytes())?;
@@ -152,13 +152,13 @@ fn main() -> Result<()> {
         Some(gen_syscall_h_epilogue),
     )?;
     generate(
-        "src/syscall_tbl.rs",
+        "src/syscall/syscall_tbl.rs",
         gen_syscall_tbl_rs,
         Some(gen_syscall_tbl_rs_prologue),
         Some(gen_syscall_tbl_rs_epilogue),
     )?;
     generate(
-        "src/syscall_nr.rs",
+        "src/syscall/syscall_nr.rs",
         gen_syscall_nr_rs,
         Some(gen_syscall_nr_rs_prologue),
         None::<Box<dyn Fn(&mut File) -> Result<()>>>,
