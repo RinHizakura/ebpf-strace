@@ -36,7 +36,6 @@ fn handle_read_args(args: &[u8]) {
     let read = plain::from_bytes::<ReadArgs>(slice).expect("Fail to cast bytes to ReadArgs");
 
     let extra = if read.count > (BUF_SIZE - 1) { "..." } else { "" };
-    /* FIXME: Get the read content correctly */
     eprint!("({}, {:?} {}, {})", read.fd, read.buf, extra, read.count);
 }
 
@@ -46,7 +45,8 @@ fn handle_write_args(args: &[u8]) {
     let write = plain::from_bytes::<WriteArgs>(slice).expect("Fail to cast bytes to WriteArgs");
 
     let extra = if write.count > (BUF_SIZE - 1) { "..." } else { "" };
-    let s = from_utf8(&write.buf[0..write.count]).unwrap();
+    let count = if write.count > (BUF_SIZE - 1) { BUF_SIZE } else { write.count };
+    let s = from_utf8(&write.buf[0..count]).unwrap();
     eprint!("({}, {} {}, {})", write.fd, s, extra, write.count);
 }
 

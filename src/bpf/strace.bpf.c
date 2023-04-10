@@ -54,10 +54,10 @@ static void sys_enter_read(syscall_ent_t *ent,
     read->fd = fd;
     read->count = count;
 
-    memset(read->buf, 0xff, sizeof(read->buf));
-    /* minus 1 for the tail '\0' */
-    size_t cpy_count = count > (BUF_SIZE - 1) ? (BUF_SIZE - 1) : count;
-    bpf_core_read_user(read->buf, cpy_count, buf);
+    /* Record the address of buffer first but don't read the
+     * content directly. Because the read syscall hasn't
+     * fill the buffer yet when entering syscall. */
+    read->buf_addr = buf;
 }
 
 static void sys_enter_write(syscall_ent_t *ent,
@@ -133,6 +133,37 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
     return 0;
 }
 
+static void sys_exit_default(syscall_ent_t *ent, u64 ret)
+{
+    ent->ret = ret;
+}
+
+static void sys_exit_read(syscall_ent_t *ent, u64 ret) {
+    sys_exit_default(ent, ret);
+
+    read_args_t *read = &ent->read;
+    void *buf = read->buf_addr;
+    size_t count = read->count;
+
+    memset(read->buf, 0, sizeof(read->buf));
+    /* minus 1 for the tail '\0' */
+    size_t cpy_count = count > (BUF_SIZE - 1) ? (BUF_SIZE - 1) : count;
+    bpf_core_read_user(read->buf, cpy_count, buf);
+}
+
+static void submit_syscall(syscall_ent_t *ent)
+{
+    syscall_ent_t *ringbuf_ent =
+        bpf_ringbuf_reserve(&syscall_record, sizeof(syscall_ent_t), 0);
+    if (!ringbuf_ent) {
+        /* FIXME: Drop the syscall directly. Any better approach to guarantee
+         * to record the syscall on ring buffer?*/
+        return;
+    }
+    memcpy(ringbuf_ent, ent, sizeof(syscall_ent_t));
+    bpf_ringbuf_submit(ringbuf_ent, 0);
+}
+
 SEC("raw_tracepoint/sys_exit")
 int sys_exit(struct bpf_raw_tracepoint_args *args)
 {
@@ -159,18 +190,17 @@ int sys_exit(struct bpf_raw_tracepoint_args *args)
     syscall_ent_t *ent = bpf_g_ent_lookup_elem(&index);
     if (!ent || (ent->id != id))
         return -1;
-    ent->ret = ret;
 
-    syscall_ent_t *ringbuf_ent =
-        bpf_ringbuf_reserve(&syscall_record, sizeof(syscall_ent_t), 0);
-    if (!ringbuf_ent) {
-        /* FIXME: Drop the syscall directly. Any better approach to guarantee
-         * to record the syscall on ring buffer?*/
-        return 0;
+    switch (id) {
+    case SYS_READ:
+        sys_exit_read(ent, ret);
+        break;
+    default:
+        sys_exit_default(ent, ret);
+        break;
     }
-    memcpy(ringbuf_ent, ent, sizeof(syscall_ent_t));
-    bpf_ringbuf_submit(ringbuf_ent, 0);
 
+    submit_syscall(ent);
     return 0;
 }
 char LICENSE[] SEC("license") = "GPL";

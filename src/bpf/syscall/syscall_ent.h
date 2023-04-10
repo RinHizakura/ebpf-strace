@@ -14,7 +14,10 @@ typedef struct {
 
 typedef struct {
     int fd;
-    u8 buf[BUF_SIZE];
+    union {
+        void *buf_addr;
+        u8 buf[BUF_SIZE];
+    };
     size_t count;
 } read_args_t;
 static_assert(sizeof(read_args_t) <= sizeof(args_t));
