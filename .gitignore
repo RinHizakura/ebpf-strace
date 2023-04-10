@@ -1,7 +1,7 @@
 target
 
-src/bpf/.output
-src/bpf/syscall/syscall_tbl.h
-src/bpf/syscall/syscall_nr.h
+bpf/.output
+bpf/syscall/syscall_tbl.h
+bpf/syscall/syscall_nr.h
 src/syscall/syscall_tbl.rs
 src/syscall/syscall_nr.rs

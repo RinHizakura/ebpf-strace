@@ -21,7 +21,7 @@ check:
 
 clean:
 	cargo clean
-	$(RM) src/bpf/syscall/syscall_tbl.h
-	$(RM) src/bpf/syscall/syscall.h
+	$(RM) bpf/syscall/syscall_tbl.h
+	$(RM) bpf/syscall/syscall_nr.h
 	$(RM) src/syscall/syscall_tbl.rs
 	$(RM) src/syscall/syscall_nr.rs

@@ -5,8 +5,8 @@ use std::path::Path;
 
 use libbpf_cargo::SkeletonBuilder;
 
-const SYSCALL_SRC: &str = "./src/syscall/syscall.tbl";
-const SKEL_SRC: &str = "./src/bpf/strace.bpf.c";
+const SYSCALL_SRC: &str = "src/syscall/syscall.tbl";
+const SKEL_SRC: &str = "bpf/strace.bpf.c";
 
 fn open_read(path: &str) -> Result<File> {
     let file = OpenOptions::new().read(true).open(path)?;
@@ -134,19 +134,19 @@ where
 
 fn main() -> Result<()> {
     // FIXME: Is it possible to output to env!("OUT_DIR")?
-    std::env::set_var("BPF_OUT_DIR", "src/bpf/.output");
+    std::env::set_var("BPF_OUT_DIR", "bpf/.output");
 
-    create_dir_all("src/bpf/.output")?;
+    create_dir_all("bpf/.output")?;
 
     // Generate the syscall-related file automatically
     generate(
-        "src/bpf/syscall/syscall_tbl.h",
+        "bpf/syscall/syscall_tbl.h",
         gen_syscall_tbl_h,
         None::<Box<dyn Fn(&mut File) -> Result<()>>>,
         None::<Box<dyn Fn(&mut File) -> Result<()>>>,
     )?;
     generate(
-        "src/bpf/syscall/syscall_nr.h",
+        "bpf/syscall/syscall_nr.h",
         gen_syscall_h,
         Some(gen_syscall_h_prologue),
         Some(gen_syscall_h_epilogue),
@@ -164,7 +164,7 @@ fn main() -> Result<()> {
         None::<Box<dyn Fn(&mut File) -> Result<()>>>,
     )?;
 
-    let skel = Path::new("src/bpf/.output/strace.skel.rs");
+    let skel = Path::new("bpf/.output/strace.skel.rs");
     SkeletonBuilder::new()
         .source(SKEL_SRC)
         .clang_args("-I.")

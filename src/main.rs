@@ -11,7 +11,7 @@ use utils::bump_memlock_rlimit;
 mod sys;
 mod syscall;
 
-#[path = "bpf/.output/strace.skel.rs"]
+#[path = "../bpf/.output/strace.skel.rs"]
 #[cfg_attr(rustfmt, rustfmt_skip)]
 mod strace;
 use strace::*;
