@@ -6,7 +6,7 @@ use std::env;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
-use crate::utils::bump_memlock_rlimit;
+use crate::utils::bump_memlock_rlimit::*;
 
 mod sys;
 mod syscall;

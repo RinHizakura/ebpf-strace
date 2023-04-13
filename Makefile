@@ -14,7 +14,7 @@ $(BIN): $(SRCS)
 	cargo build
 
 run: $(BIN)
-	sudo $(BIN) echo hello 1>/dev/null
+	sudo $(BIN) cat README.md 1>/dev/null
 
 check:
 	sudo cat /sys/kernel/debug/tracing/trace_pipe
