@@ -16,7 +16,9 @@ fn format_io_buf(buf: &[u8; BUF_SIZE], count: usize) {
             eprint!("\\n");
         }
         else {
-            eprint!("\\{}", c);
+            /* Print it as octal(base-8) like what
+             * strace do by default */
+            eprint!("\\{:o}", c);
         }
     }
     eprint!("\"{}, ", extra);
