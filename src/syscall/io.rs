@@ -1,7 +1,26 @@
 use crate::syscall::common::BUF_SIZE;
-use std::str::from_utf8;
-use std::fmt;
 use plain::Plain;
+
+fn format_io_buf(buf: &[u8; BUF_SIZE], count: usize) {
+    let extra = if count > (BUF_SIZE - 1) { "..." } else { "" };
+    let count = count.min(BUF_SIZE);
+    eprint!("\"");
+    for byte in &buf[0..count] {
+        let c = *byte;
+        /* TODO: cover all possible special character */
+        if (c as char).is_ascii_graphic() || (c as char) == ' ' {
+            eprint!("{}", c as char);
+        } else if (c as char) == '\n' {
+            eprint!("\\n");
+        } else if (c as char) == '\t' {
+            eprint!("\\n");
+        }
+        else {
+            eprint!("\\{}", c);
+        }
+    }
+    eprint!("\"{}, ", extra);
+}
 
 /* This should be synchronized with the structure
  * syscall_ent_t in syscall/strace_ent.h */
@@ -12,22 +31,6 @@ struct ReadArgs {
     count: usize,
 }
 unsafe impl Plain for ReadArgs {}
-impl fmt::Display for ReadArgs {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let extra = if self.count > (BUF_SIZE - 1) { "..." } else { "" };
-        write!(f, "{}, ", self.fd)?;
-        write!(f, "\"")?;
-        for c in self.buf {
-            if (c as char).is_ascii_graphic() || (c as char).is_whitespace() {
-                write!(f, "{}", c as char)?;
-            } else {
-                write!(f, "\\{}", c)?;
-            }
-        }
-        write!(f, "\"{}, ", extra)?;
-        write!(f, "{}", self.count)
-    }
-}
 
 #[repr(C)]
 struct WriteArgs {
@@ -36,22 +39,15 @@ struct WriteArgs {
     count: usize,
 }
 unsafe impl Plain for WriteArgs {}
-impl fmt::Display for WriteArgs {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let extra = if self.count > (BUF_SIZE - 1) { "..." } else { "" };
-        let count = if self.count > (BUF_SIZE - 1) { BUF_SIZE } else { self.count };
-        let s = from_utf8(&self.buf[0..count]).unwrap();
-        write!(f, "{}, \"{}\"{}, {}", self.fd, s, extra, self.count)
 
-    }
-}
-
-pub(super) fn handle_read_args(args: &[u8]) {
+pub(super) fn handle_read_args(args: &[u8], read_cnt: usize) {
     let size = std::mem::size_of::<ReadArgs>();
     let slice = &args[0..size];
     let read = plain::from_bytes::<ReadArgs>(slice).expect("Fail to cast bytes to ReadArgs");
 
-    eprint!("({})", read);
+    eprint!("({}, ", read.fd);
+    format_io_buf(&read.buf, read_cnt);
+    eprint!("{})", read.count)
 }
 
 pub(super) fn handle_write_args(args: &[u8]) {
@@ -59,5 +55,7 @@ pub(super) fn handle_write_args(args: &[u8]) {
     let slice = &args[0..size];
     let write = plain::from_bytes::<WriteArgs>(slice).expect("Fail to cast bytes to WriteArgs");
 
-    eprint!("({})", write);
+    eprint!("({}, ", write.fd);
+    format_io_buf(&write.buf, write.count);
+    eprint!("{})", write.count);
 }

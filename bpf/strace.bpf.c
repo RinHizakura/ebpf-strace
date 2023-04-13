@@ -72,7 +72,7 @@ static void sys_enter_write(syscall_ent_t *ent,
     write->fd = fd;
     write->count = count;
 
-    memset(write->buf, 0xff, sizeof(write->buf));
+    memset(write->buf, 0, sizeof(write->buf));
     /* minus 1 for the tail '\0' */
     size_t cpy_count = count > (BUF_SIZE - 1) ? (BUF_SIZE - 1) : count;
     bpf_core_read_user(write->buf, cpy_count, buf);
