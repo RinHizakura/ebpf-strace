@@ -14,8 +14,7 @@ fn format_io_buf(buf: &[u8; BUF_SIZE], count: usize) {
             eprint!("\\n");
         } else if (c as char) == '\t' {
             eprint!("\\n");
-        }
-        else {
+        } else {
             /* Print it as octal(base-8) like what
              * strace do by default */
             eprint!("\\{:o}", c);

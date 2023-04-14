@@ -61,10 +61,10 @@ static void sys_enter_read(syscall_ent_t *ent,
 }
 
 static void sys_enter_write(syscall_ent_t *ent,
-                           u64 id,
-                           int fd,
-                           void *buf,
-                           size_t count)
+                            u64 id,
+                            int fd,
+                            void *buf,
+                            size_t count)
 {
     sys_enter_default(ent, id);
 
@@ -111,7 +111,7 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
     /* According to x86_64 abi:  User-level applications use as integer
      * registers for passing the sequence %rdi, %rsi, %rdx, %rcx, %r8 and %r9.
      * The kernel interface uses %rdi, %rsi, %rdx, %r10, %r8 and %r9. */
-    struct pt_regs *pt_regs = (struct pt_regs *)args->args[0];
+    struct pt_regs *pt_regs = (struct pt_regs *) args->args[0];
     u64 di = BPF_CORE_READ(pt_regs, di);
     u64 si = BPF_CORE_READ(pt_regs, si);
     u64 dx = BPF_CORE_READ(pt_regs, dx);
@@ -120,10 +120,10 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
     u64 r9 = BPF_CORE_READ(pt_regs, r9);
     switch (id) {
     case SYS_READ:
-        sys_enter_read(ent, id, di, (void *)si, dx);
+        sys_enter_read(ent, id, di, (void *) si, dx);
         break;
     case SYS_WRITE:
-        sys_enter_write(ent, id, di, (void *)si, dx);
+        sys_enter_write(ent, id, di, (void *) si, dx);
         break;
     default:
         sys_enter_default(ent, id);
@@ -138,7 +138,8 @@ static void sys_exit_default(syscall_ent_t *ent, u64 ret)
     ent->ret = ret;
 }
 
-static void sys_exit_read(syscall_ent_t *ent, u64 ret) {
+static void sys_exit_read(syscall_ent_t *ent, u64 ret)
+{
     sys_exit_default(ent, ret);
 
     read_args_t *read = &ent->read;

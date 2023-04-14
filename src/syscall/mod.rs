@@ -1,12 +1,12 @@
+mod common;
+mod io;
 mod syscall_desc;
 mod syscall_nr;
 mod syscall_tbl;
-mod io;
-mod common;
 
+use crate::syscall::io::*;
 use crate::syscall::syscall_nr::*;
 use crate::syscall::syscall_tbl::*;
-use crate::syscall::io::*;
 use plain::Plain;
 
 #[repr(C)]

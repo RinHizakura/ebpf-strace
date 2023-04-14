@@ -1,12 +1,12 @@
 use crate::sys::*;
 use crate::syscall::syscall_ent_handler;
+use crate::utils::bump_memlock_rlimit::*;
 use anyhow::{anyhow, Result};
 use libbpf_rs::RingBufferBuilder;
 use std::env;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
-use crate::utils::bump_memlock_rlimit::*;
 
 mod sys;
 mod syscall;
