@@ -85,6 +85,27 @@ static void sys_enter_write(syscall_ent_t *ent,
     bpf_core_read_user(write->buf, cpy_count, buf);
 }
 
+static void sys_enter_exit_group(u64 id, int status)
+{
+    /* Unlike most system call which can be traced to one sys_enter
+     * and a pairing sys_exit, the 'exit_group' can only be traced
+     * to one sys_enter only. Because of the reason, we submit the event
+     * here directly. Note thati we therefore don't know the return value */
+    syscall_ent_t *ringbuf_ent =
+        bpf_ringbuf_reserve(&syscall_record, sizeof(syscall_ent_t), 0);
+    if (!ringbuf_ent) {
+        /* FIXME: Drop the syscall directly. Any better approach to guarantee
+         * to record the syscall on ring buffer?*/
+        return;
+    }
+    ringbuf_ent->id = id;
+    // ringbuf_ent->ret = ?;
+
+    exit_group_args_t *exit_group = &ringbuf_ent->exit_group;
+    exit_group->status = status;
+    bpf_ringbuf_submit(ringbuf_ent, 0);
+}
+
 SEC("raw_tracepoint/sys_enter")
 int sys_enter(struct bpf_raw_tracepoint_args *args)
 {
@@ -130,6 +151,9 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
         break;
     case SYS_WRITE:
         sys_enter_write(ent, id, di, (void *) si, dx);
+        break;
+    case SYS_EXIT_GROUP:
+        sys_enter_exit_group(id, di);
         break;
     default:
         sys_enter_default(ent, id);

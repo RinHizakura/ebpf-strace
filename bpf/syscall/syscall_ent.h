@@ -26,6 +26,11 @@ typedef struct {
 } write_args_t;
 static_assert(sizeof(write_args_t) <= sizeof(args_t));
 
+typedef struct {
+    int status;
+} exit_group_args_t;
+static_assert(sizeof(exit_group_args_t) <= sizeof(args_t));
+
 /* FIXME: This structure is designed to be used in
  * both C and Rust. However, this is not pretty :( */
 typedef struct {
@@ -39,6 +44,7 @@ typedef struct {
         args_t args;
         read_args_t read;
         write_args_t write;
+        exit_group_args_t exit_group;
     };
 } syscall_ent_t;
 
