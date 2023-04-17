@@ -24,7 +24,7 @@ fn format_io_buf(buf: &[u8; BUF_SIZE], count: usize) {
 }
 
 /* This should be synchronized with the structure
- * syscall_ent_t in syscall/strace_ent.h */
+ * syscall_ent_t in syscall/syscall_ent.h */
 #[repr(C)]
 struct ReadArgs {
     fd: i32,

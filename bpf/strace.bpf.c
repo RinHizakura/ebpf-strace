@@ -13,11 +13,16 @@
 #include "utils.h"
 
 pid_t select_pid = 0;
+/* The key to access the single entry BPF_MAP in array type. */
+u32 INDEX_0 = 0;
+
 /* FIXME: The instance allow us to store some information
  * at sys_enter and collect the remaining information at sys_exit.
  * It assumes that the sys_exit of a system call will always come
  * right after its sys_enter. Is this always correct? */
 DEFINE_BPF_MAP(g_ent, BPF_MAP_TYPE_ARRAY, u32, syscall_ent_t, 1);
+
+DEFINE_BPF_MAP(g_buf_addr, BPF_MAP_TYPE_ARRAY, u32, void *, 1);
 
 struct {
     __uint(type, BPF_MAP_TYPE_RINGBUF);
@@ -57,7 +62,9 @@ static void sys_enter_read(syscall_ent_t *ent,
     /* Record the address of buffer first but don't read the
      * content directly. Because the read syscall hasn't
      * fill the buffer yet when entering syscall. */
-    read->buf_addr = buf;
+    void **buf_addr_ptr = bpf_g_buf_addr_lookup_elem(&INDEX_0);
+    if (buf_addr_ptr != NULL)
+        *buf_addr_ptr = buf;
 }
 
 static void sys_enter_write(syscall_ent_t *ent,
@@ -103,8 +110,7 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
         break;
     }
 
-    u32 index = 0;
-    syscall_ent_t *ent = bpf_g_ent_lookup_elem(&index);
+    syscall_ent_t *ent = bpf_g_ent_lookup_elem(&INDEX_0);
     if (!ent)
         return -1;
 
@@ -143,13 +149,14 @@ static void sys_exit_read(syscall_ent_t *ent, u64 ret)
     sys_exit_default(ent, ret);
 
     read_args_t *read = &ent->read;
-    void *buf = read->buf_addr;
+    void **buf_addr_ptr = bpf_g_buf_addr_lookup_elem(&INDEX_0);
     size_t count = read->count;
 
     memset(read->buf, 0, sizeof(read->buf));
     /* minus 1 for the tail '\0' */
     size_t cpy_count = count > (BUF_SIZE - 1) ? (BUF_SIZE - 1) : count;
-    bpf_core_read_user(read->buf, cpy_count, buf);
+    if (buf_addr_ptr != NULL)
+        bpf_core_read_user(read->buf, cpy_count, *buf_addr_ptr);
 }
 
 static void submit_syscall(syscall_ent_t *ent)
@@ -187,8 +194,7 @@ int sys_exit(struct bpf_raw_tracepoint_args *args)
         break;
     }
 
-    u32 index = 0;
-    syscall_ent_t *ent = bpf_g_ent_lookup_elem(&index);
+    syscall_ent_t *ent = bpf_g_ent_lookup_elem(&INDEX_0);
     if (!ent || (ent->id != id))
         return -1;
 
