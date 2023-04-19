@@ -97,6 +97,15 @@ static void sys_enter_execve(syscall_ent_t *ent,
 
     execve_args_t *execve = &ent->execve;
 
+    /* FIXME: In the current design of entry format under the
+     * syscall_record ring buffer, we have to bring all the
+     * information(parameters, return value, ...) in one entry
+     * per syscall. However, we cannot increase the entry size endlessly
+     * for the system call like execve which has so many string type
+     * parameters, otherwise we'll waste too many space when passing
+     * those system calls which only need a few bytes for the parameters.
+     *
+     * We should redesign the entry format to fix this problem. */
     size_t idx = 0;
     if (argv != NULL) {
         for (;idx < LOOP_MAX; idx++) {
