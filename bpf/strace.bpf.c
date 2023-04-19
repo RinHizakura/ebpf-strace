@@ -87,6 +87,21 @@ static void sys_enter_write(syscall_ent_t *ent,
     bpf_core_read_user(write->buf, cpy_count, buf);
 }
 
+static size_t count_argc_envp_len(char *arr[])
+{
+    size_t idx = 0;
+    if (arr != NULL) {
+        for (;idx < LOOP_MAX; idx++) {
+            char *var = NULL;
+            bpf_core_read_user(&var, sizeof(var), &arr[idx]);
+            if (!var)
+                break;
+        }
+    }
+
+    return idx;
+}
+
 static void sys_enter_execve(syscall_ent_t *ent,
                              u64 id,
                              char *pathname,
@@ -106,26 +121,11 @@ static void sys_enter_execve(syscall_ent_t *ent,
      * those system calls which only need a few bytes for the parameters.
      *
      * We should redesign the entry format to fix this problem. */
-    size_t idx = 0;
-    if (argv != NULL) {
-        for (;idx < LOOP_MAX; idx++) {
-            char *env_var = NULL;
-            bpf_core_read_user(&env_var, sizeof(env_var), &argv[idx]);
-            if (!env_var)
-                break;
-
-            char c;
-            bpf_core_read_user(&c, sizeof(c), env_var);
-            if (c == '0')
-                break;
-        }
-    }
-
     execve->argv = (size_t) argv;
-    execve->argc = idx;
+    execve->argc = count_argc_envp_len(argv);
 
     execve->envp = (size_t) envp;
-    execve->envp_cnt = 0;
+    execve->envp_cnt = count_argc_envp_len(envp);
 
     memset(execve->pathname, 0, sizeof(execve->pathname));
     bpf_core_read_user_str(execve->pathname, sizeof(execve->pathname),
