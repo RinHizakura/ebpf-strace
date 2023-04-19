@@ -27,6 +27,15 @@ typedef struct {
 static_assert(sizeof(write_args_t) <= sizeof(args_t));
 
 typedef struct {
+    u8 pathname[BUF_SIZE];
+    size_t argv;
+    size_t envp;
+    u8 argc;
+    u8 envp_cnt;
+} execve_args_t;
+static_assert(sizeof(execve_args_t) <= sizeof(args_t));
+
+typedef struct {
     int status;
 } exit_group_args_t;
 static_assert(sizeof(exit_group_args_t) <= sizeof(args_t));
@@ -44,6 +53,7 @@ typedef struct {
         args_t args;
         read_args_t read;
         write_args_t write;
+        execve_args_t execve;
         exit_group_args_t exit_group;
     };
 } syscall_ent_t;

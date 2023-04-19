@@ -1,10 +1,12 @@
 mod common;
+mod execve;
 mod exit;
 mod io;
 mod syscall_desc;
 mod syscall_nr;
 mod syscall_tbl;
 
+use crate::syscall::execve::*;
 use crate::syscall::exit::*;
 use crate::syscall::io::*;
 use crate::syscall::syscall_nr::*;
@@ -25,6 +27,7 @@ fn handle_args(id: u64, args: &[u8], ret: u64) {
     match id {
         SYS_READ => handle_read_args(args, ret as usize),
         SYS_WRITE => handle_write_args(args),
+        SYS_EXECVE => handle_execve_args(args),
         SYS_EXIT_GROUP => handle_exit_group_args(args),
         _ => eprint!("()"),
     }

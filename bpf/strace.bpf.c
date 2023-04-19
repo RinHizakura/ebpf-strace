@@ -80,9 +80,28 @@ static void sys_enter_write(syscall_ent_t *ent,
     write->count = count;
 
     memset(write->buf, 0, sizeof(write->buf));
-    /* minus 1 for the tail '\0' */
-    size_t cpy_count = count > (BUF_SIZE - 1) ? (BUF_SIZE - 1) : count;
+    size_t cpy_count = count > BUF_SIZE ? BUF_SIZE : count;
     bpf_core_read_user(write->buf, cpy_count, buf);
+}
+
+static void sys_enter_execve(syscall_ent_t *ent,
+                             u64 id,
+                             char *pathname,
+                             char *argv[],
+                             char *envp[])
+{
+    sys_enter_default(ent, id);
+
+    execve_args_t *execve = &ent->execve;
+    /* TODO: Count the number for entries in the array */
+    execve->argv = (size_t) argv;
+    execve->argc = 0;
+    execve->envp = (size_t) envp;
+    execve->envp_cnt = 0;
+
+    memset(execve->pathname, 0, sizeof(execve->pathname));
+    bpf_core_read_user_str(execve->pathname, sizeof(execve->pathname),
+                           pathname);
 }
 
 static void sys_enter_exit_group(u64 id, int status)
@@ -152,6 +171,9 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
     case SYS_WRITE:
         sys_enter_write(ent, id, di, (void *) si, dx);
         break;
+    case SYS_EXECVE:
+        sys_enter_execve(ent, id, (char *) di, (void *) si, (void *) dx);
+        break;
     case SYS_EXIT_GROUP:
         sys_enter_exit_group(id, di);
         break;
@@ -178,7 +200,7 @@ static void sys_exit_read(syscall_ent_t *ent, u64 ret)
 
     memset(read->buf, 0, sizeof(read->buf));
     /* minus 1 for the tail '\0' */
-    size_t cpy_count = count > (BUF_SIZE - 1) ? (BUF_SIZE - 1) : count;
+    size_t cpy_count = count > BUF_SIZE ? BUF_SIZE : count;
     if (buf_addr_ptr != NULL)
         bpf_core_read_user(read->buf, cpy_count, *buf_addr_ptr);
 }
