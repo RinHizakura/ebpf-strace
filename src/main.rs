@@ -45,7 +45,7 @@ fn main() -> Result<()> {
         return Err(anyhow!("Command cannot be empty"));
     }
 
-    match fork() {
+    let child_pid = match fork() {
         0 => {
             let pid = getpid();
             /* We have to set select_pid by child process
@@ -53,8 +53,9 @@ fn main() -> Result<()> {
              * to do execvp. */
             skel.bss().select_pid = pid;
             execvp(&args)?;
+            unreachable!();
         }
-        _ => {}
+        pid => pid,
     };
 
     /* Run `sudo cat /sys/kernel/debug/tracing/trace_pipe` to
@@ -79,6 +80,12 @@ fn main() -> Result<()> {
             /* FIXME: Any better way to convert any Error to anyhow::Error? */
             return result.map_err(anyhow::Error::msg);
         }
+    }
+
+    /* Wait the child process for its exit status */
+    let result = waitpid(child_pid);
+    if let Ok(WaitStatus::Exited(exit)) = result {
+        eprintln!("+++ exited with {} +++", exit);
     }
 
     Ok(())

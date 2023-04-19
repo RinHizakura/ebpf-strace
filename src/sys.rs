@@ -1,5 +1,6 @@
 use anyhow::{anyhow, Result};
-use libc::{execvp as __execvp, fork as __fork, getpid as __getpid};
+use libc::{execvp as __execvp, fork as __fork, getpid as __getpid, waitpid as __waitpid};
+use libc::{WEXITSTATUS, WIFCONTINUED, WIFEXITED, WIFSIGNALED, WIFSTOPPED, WSTOPSIG, WTERMSIG};
 use std::ffi::CString;
 use std::io::Error;
 
@@ -38,4 +39,36 @@ pub fn fork() -> i32 {
 
 pub fn getpid() -> i32 {
     unsafe { __getpid() }
+}
+
+pub enum WaitStatus {
+    Stopped(i32),
+    Continued,
+    Exited(i32),
+    Signaled(i32),
+    Unknwon,
+}
+
+pub fn waitpid(pid: i32) -> Result<WaitStatus> {
+    let mut status = 0;
+    unsafe {
+        __waitpid(pid, &mut status, 0);
+    }
+
+    let ws = if WIFSTOPPED(status) {
+        let stopsig = WSTOPSIG(status);
+        WaitStatus::Stopped(stopsig)
+    } else if WIFEXITED(status) {
+        let exitstatus = WEXITSTATUS(status);
+        WaitStatus::Exited(exitstatus)
+    } else if WIFCONTINUED(status) {
+        WaitStatus::Continued
+    } else if WIFSIGNALED(status) {
+        let termsig = WTERMSIG(status);
+        WaitStatus::Signaled(termsig)
+    } else {
+        WaitStatus::Unknwon
+    };
+
+    Ok(ws)
 }
