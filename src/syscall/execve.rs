@@ -21,12 +21,12 @@ pub(super) fn handle_execve_args(args: &[u8]) {
      * we have a complete C string. */
     if execve.pathname[BUF_SIZE - 1] == 0 {
         let s = from_utf8(&execve.pathname).unwrap();
-        eprint!("({}, 0x{:x}, 0x{:x})", s, execve.argv, execve.envp);
+        eprint!("({}, 0x{:x} /* argc = {} */, 0x{:x})", s, execve.argv, execve.argc, execve.envp);
     } else {
         let len = BUF_SIZE;
 
         eprint!("(");
         format_buf(&execve.pathname, len);
-        eprint!("0x{:x}, 0x{:x})", execve.argv, execve.envp);
+        eprint!("0x{:x} /* argc = {} */, 0x{:x})", execve.argv, execve.argc, execve.envp);
     }
 }

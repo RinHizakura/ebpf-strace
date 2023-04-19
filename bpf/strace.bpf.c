@@ -12,6 +12,9 @@
 #include "syscall/syscall_nr.h"
 #include "utils.h"
 
+// We limit the iteration of loop by this definition to pass eBPF verifier
+#define LOOP_MAX 1024
+
 pid_t select_pid = 0;
 /* The key to access the single entry BPF_MAP in array type. */
 u32 INDEX_0 = 0;
@@ -93,9 +96,25 @@ static void sys_enter_execve(syscall_ent_t *ent,
     sys_enter_default(ent, id);
 
     execve_args_t *execve = &ent->execve;
-    /* TODO: Count the number for entries in the array */
+
+    size_t idx = 0;
+    if (argv != NULL) {
+        for (;idx < LOOP_MAX; idx++) {
+            char *env_var = NULL;
+            bpf_core_read_user(&env_var, sizeof(env_var), &argv[idx]);
+            if (!env_var)
+                break;
+
+            char c;
+            bpf_core_read_user(&c, sizeof(c), env_var);
+            if (c == '0')
+                break;
+        }
+    }
+
     execve->argv = (size_t) argv;
-    execve->argc = 0;
+    execve->argc = idx;
+
     execve->envp = (size_t) envp;
     execve->envp_cnt = 0;
 
