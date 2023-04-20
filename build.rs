@@ -27,7 +27,7 @@ fn gen_syscall_tbl_h(target: &mut File, line: Vec<&str>) -> Result<()> {
     let syscall_name = line[0];
     target.write_all(
         format!(
-            "__SYSCALL(SYS_{}, sys_{})\n",
+            "__SYSCALL(SYS_{}, {})\n",
             syscall_name,
             syscall_name.to_lowercase()
         )
