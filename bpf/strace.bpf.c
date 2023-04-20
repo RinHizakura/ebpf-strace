@@ -282,23 +282,14 @@ int sys_exit(struct bpf_raw_tracepoint_args *args)
         break;
     }
 
-    /* FIXME: Once we complete all system call, we can reuse the __SYSCALL
-     * macro in syscall/syscall_tbl.h */
     switch (id) {
-    case SYS_READ:
-        submit_syscall(ent, sizeof(read_args_t));
+#define __SYSCALL(nr, call)  \
+    case nr:                 \
+        submit_syscall(ent, sizeof(call##_args_t)); \
         break;
-    case SYS_WRITE:
-        submit_syscall(ent, sizeof(write_args_t));
-        break;
-    case SYS_EXECVE:
-        submit_syscall(ent, sizeof(execve_args_t));
-        break;
-    case SYS_EXIT_GROUP:
-        submit_syscall(ent, sizeof(exit_group_args_t));
-        break;
+#include "syscall/syscall_tbl.h"
+#undef __SYSCALL
     default:
-        submit_syscall(ent, 0);
         break;
     }
 
