@@ -19,7 +19,6 @@ use plain::Plain;
 struct SyscallEnt {
     id: u64,
     ret: u64,
-    args: [u8; 64],
 }
 unsafe impl Plain for SyscallEnt {}
 
@@ -49,14 +48,19 @@ fn handle_ret_value(id: u64, ret: u64) -> i32 {
 }
 
 pub fn syscall_ent_handler(bytes: &[u8]) -> i32 {
-    let ent = plain::from_bytes::<SyscallEnt>(bytes).expect("Fail to cast bytes to SyscallEnt");
+    let ent_size = std::mem::size_of::<SyscallEnt>();
+    let ent = plain::from_bytes::<SyscallEnt>(&bytes[0..ent_size]).expect("Fail to cast bytes to SyscallEnt");
+    let args = &bytes[ent_size..];
 
-    let syscall = &SYSCALLS[ent.id as usize];
+    let id = ent.id;
+    let ret = ent.ret;
+
+    let syscall = &SYSCALLS[id as usize];
     eprint!("{}", syscall.name);
 
-    handle_args(ent.id, &ent.args, ent.ret);
+    handle_args(id, args, ret);
 
-    let result = handle_ret_value(ent.id, ent.ret);
+    let result = handle_ret_value(id, ret);
 
     /* End up with a change line here */
     eprint!("\n");

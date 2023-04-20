@@ -19,13 +19,18 @@ pid_t select_pid = 0;
 /* The key to access the single entry BPF_MAP in array type. */
 u32 INDEX_0 = 0;
 
+DEFINE_BPF_MAP(g_buf_addr, BPF_MAP_TYPE_ARRAY, u32, void *, 1);
+
 /* FIXME: The instance allow us to store some information
  * at sys_enter and collect the remaining information at sys_exit.
  * It assumes that the sys_exit of a system call will always come
  * right after its sys_enter. Is this always correct? */
+typedef struct {
+    u64 id;
+    u64 ret;
+    u8 bytes[4096];
+} syscall_ent_t;
 DEFINE_BPF_MAP(g_ent, BPF_MAP_TYPE_ARRAY, u32, syscall_ent_t, 1);
-
-DEFINE_BPF_MAP(g_buf_addr, BPF_MAP_TYPE_ARRAY, u32, void *, 1);
 
 struct {
     __uint(type, BPF_MAP_TYPE_RINGBUF);
@@ -50,15 +55,13 @@ static void sys_enter_default(syscall_ent_t *ent, u64 id)
     ent->id = id;
 }
 
-static void sys_enter_read(syscall_ent_t *ent,
+static void sys_read_enter(syscall_ent_t *ent,
                            u64 id,
                            int fd,
                            void *buf,
                            size_t count)
 {
-    sys_enter_default(ent, id);
-
-    read_args_t *read = &ent->read;
+    read_args_t *read = (read_args_t *)ent->bytes;
     read->fd = fd;
     read->count = count;
 
@@ -70,15 +73,13 @@ static void sys_enter_read(syscall_ent_t *ent,
         *buf_addr_ptr = buf;
 }
 
-static void sys_enter_write(syscall_ent_t *ent,
+static void sys_write_enter(syscall_ent_t *ent,
                             u64 id,
                             int fd,
                             void *buf,
                             size_t count)
 {
-    sys_enter_default(ent, id);
-
-    write_args_t *write = &ent->write;
+    write_args_t *write = (write_args_t *)ent->bytes;
     write->fd = fd;
     write->count = count;
 
@@ -102,15 +103,13 @@ static size_t count_argc_envp_len(char *arr[])
     return idx;
 }
 
-static void sys_enter_execve(syscall_ent_t *ent,
+static void sys_execve_enter(syscall_ent_t *ent,
                              u64 id,
                              char *pathname,
                              char *argv[],
                              char *envp[])
 {
-    sys_enter_default(ent, id);
-
-    execve_args_t *execve = &ent->execve;
+    execve_args_t *execve = (execve_args_t *)ent->bytes;
 
     /* FIXME: In the current design of entry format under the
      * syscall_record ring buffer, we have to bring all the
@@ -132,14 +131,14 @@ static void sys_enter_execve(syscall_ent_t *ent,
                            pathname);
 }
 
-static void sys_enter_exit_group(u64 id, int status)
+static void sys_exit_group_enter(u64 id, int status)
 {
     /* Unlike most system call which can be traced to one sys_enter
      * and a pairing sys_exit, the 'exit_group' can only be traced
      * to one sys_enter only. Because of the reason, we submit the event
      * here directly. Note thati we therefore don't know the return value */
     syscall_ent_t *ringbuf_ent =
-        bpf_ringbuf_reserve(&syscall_record, sizeof(syscall_ent_t), 0);
+        bpf_ringbuf_reserve(&syscall_record, sizeof(basic_t) + sizeof(exit_group_args_t), 0);
     if (!ringbuf_ent) {
         /* FIXME: Drop the syscall directly. Any better approach to guarantee
          * to record the syscall on ring buffer?*/
@@ -148,7 +147,7 @@ static void sys_enter_exit_group(u64 id, int status)
     ringbuf_ent->id = id;
     // ringbuf_ent->ret = ?;
 
-    exit_group_args_t *exit_group = &ringbuf_ent->exit_group;
+    exit_group_args_t *exit_group = (exit_group_args_t *)ringbuf_ent->bytes;
     exit_group->status = status;
     bpf_ringbuf_submit(ringbuf_ent, 0);
 }
@@ -182,6 +181,8 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
     if (!ent)
         return -1;
 
+    sys_enter_default(ent, id);
+
     /* According to x86_64 abi:  User-level applications use as integer
      * registers for passing the sequence %rdi, %rsi, %rdx, %rcx, %r8 and %r9.
      * The kernel interface uses %rdi, %rsi, %rdx, %r10, %r8 and %r9. */
@@ -194,19 +195,18 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
     u64 r9 = BPF_CORE_READ(pt_regs, r9);
     switch (id) {
     case SYS_READ:
-        sys_enter_read(ent, id, di, (void *) si, dx);
+        sys_read_enter(ent, id, di, (void *) si, dx);
         break;
     case SYS_WRITE:
-        sys_enter_write(ent, id, di, (void *) si, dx);
+        sys_write_enter(ent, id, di, (void *) si, dx);
         break;
     case SYS_EXECVE:
-        sys_enter_execve(ent, id, (char *) di, (void *) si, (void *) dx);
+        sys_execve_enter(ent, id, (char *) di, (void *) si, (void *) dx);
         break;
     case SYS_EXIT_GROUP:
-        sys_enter_exit_group(id, di);
+        sys_exit_group_enter(id, di);
         break;
     default:
-        sys_enter_default(ent, id);
         break;
     }
 
@@ -218,11 +218,11 @@ static void sys_exit_default(syscall_ent_t *ent, u64 ret)
     ent->ret = ret;
 }
 
-static void sys_exit_read(syscall_ent_t *ent, u64 ret)
+static void sys_read_exit(syscall_ent_t *ent, u64 ret)
 {
     sys_exit_default(ent, ret);
 
-    read_args_t *read = &ent->read;
+    read_args_t *read = (read_args_t *)ent->bytes;
     void **buf_addr_ptr = bpf_g_buf_addr_lookup_elem(&INDEX_0);
     size_t count = read->count;
 
@@ -233,16 +233,17 @@ static void sys_exit_read(syscall_ent_t *ent, u64 ret)
         bpf_core_read_user(read->buf, cpy_count, *buf_addr_ptr);
 }
 
-static void submit_syscall(syscall_ent_t *ent)
+static void submit_syscall(syscall_ent_t *ent, size_t args_size)
 {
+    size_t total_size = sizeof(basic_t) + args_size;
     syscall_ent_t *ringbuf_ent =
-        bpf_ringbuf_reserve(&syscall_record, sizeof(syscall_ent_t), 0);
+        bpf_ringbuf_reserve(&syscall_record, total_size, 0);
     if (!ringbuf_ent) {
         /* FIXME: Drop the syscall directly. Any better approach to guarantee
          * to record the syscall on ring buffer?*/
         return;
     }
-    memcpy(ringbuf_ent, ent, sizeof(syscall_ent_t));
+    memcpy(ringbuf_ent, ent, total_size);
     bpf_ringbuf_submit(ringbuf_ent, 0);
 }
 
@@ -274,14 +275,33 @@ int sys_exit(struct bpf_raw_tracepoint_args *args)
 
     switch (id) {
     case SYS_READ:
-        sys_exit_read(ent, ret);
+        sys_read_exit(ent, ret);
         break;
     default:
         sys_exit_default(ent, ret);
         break;
     }
 
-    submit_syscall(ent);
+    /* FIXME: Once we complete all system call, we can reuse the __SYSCALL
+     * macro in syscall/syscall_tbl.h */
+    switch (id) {
+    case SYS_READ:
+        submit_syscall(ent, sizeof(read_args_t));
+        break;
+    case SYS_WRITE:
+        submit_syscall(ent, sizeof(write_args_t));
+        break;
+    case SYS_EXECVE:
+        submit_syscall(ent, sizeof(execve_args_t));
+        break;
+    case SYS_EXIT_GROUP:
+        submit_syscall(ent, sizeof(exit_group_args_t));
+        break;
+    default:
+        submit_syscall(ent, 0);
+        break;
+    }
+
     return 0;
 }
 char LICENSE[] SEC("license") = "GPL";
