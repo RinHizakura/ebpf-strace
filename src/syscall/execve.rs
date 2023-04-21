@@ -1,11 +1,11 @@
 use crate::syscall::common::*;
 use plain::Plain;
-use std::str::from_utf8;
 
+const ARGV_MAX_CNT: usize = 4;
 #[repr(C)]
 struct ExecveArgs {
     pathname: [u8; BUF_SIZE],
-    argv: usize,
+    argv: [[u8; BUF_SIZE]; ARGV_MAX_CNT],
     envp: usize,
     argc: u8,
     envp_cnt: u8,
@@ -16,23 +16,23 @@ pub(super) fn handle_execve_args(args: &[u8]) {
     let size = std::mem::size_of::<ExecveArgs>();
     let slice = &args[0..size];
     let execve = plain::from_bytes::<ExecveArgs>(slice).expect("Fail to cast bytes to ExecveArgs");
+    let printed_argc = (execve.argc as usize).min(ARGV_MAX_CNT);
 
-    /* Trickly use the last byte in the buffer to distinguish whether
-     * we have a complete C string. */
-    if execve.pathname[BUF_SIZE - 1] == 0 {
-        let s = from_utf8(&execve.pathname).unwrap();
-        eprint!(
-            "({}, 0x{:x} /* argc = {} */, 0x{:x} /* {} vars */)",
-            s, execve.argv, execve.argc, execve.envp, execve.envp_cnt
-        );
-    } else {
-        let len = BUF_SIZE;
+    eprint!("(");
+    format_str(&execve.pathname);
 
-        eprint!("(");
-        format_buf(&execve.pathname, len);
-        eprint!(
-            "0x{:x} /* argc = {} */, 0x{:x} /* {} vars */)",
-            execve.argv, execve.argc, execve.envp, execve.envp_cnt
-        );
+    eprint!("[");
+    for idx in 0..printed_argc {
+        format_str(&execve.argv[idx]);
     }
+    eprint!(
+        "{}], ",
+        if execve.argc as usize > ARGV_MAX_CNT {
+            "..."
+        } else {
+            ""
+        }
+    );
+
+    eprint!("0x{:x} /* {} vars */)", execve.envp, execve.envp_cnt);
 }

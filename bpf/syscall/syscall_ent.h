@@ -148,9 +148,10 @@ typedef struct {
 typedef struct {
 } vfork_args_t;
 
+#define ARGV_MAX_CNT 4
 typedef struct {
     u8 pathname[BUF_SIZE];
-    size_t argv;
+    u8 argv[ARGV_MAX_CNT][BUF_SIZE];
     size_t envp;
     u8 argc;
     u8 envp_cnt;
