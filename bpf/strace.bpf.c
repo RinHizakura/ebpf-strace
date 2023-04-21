@@ -32,119 +32,13 @@ struct {
     __uint(max_entries, 4096);
 } syscall_record SEC(".maps");
 
-/* Generate the default syscall enter and exit debug function */
-#define __SYSCALL(nr, call)            \
-    static void call##_enter_debug()   \
-    {                                  \
-        bpf_printk("enter/%s", #call); \
-    }                                  \
-    static void call##_exit_debug()    \
-    {                                  \
-        bpf_printk("exit/%s", #call);  \
-    }
-#include "syscall/syscall_tbl.h"
-#undef __SYSCALL
+#include "bpf/execve.c"
+#include "bpf/exit.c"
+#include "bpf/io.c"
 
 static void sys_enter_default(syscall_ent_t *ent, u64 id)
 {
     ent->basic.id = id;
-}
-
-static void sys_read_enter(syscall_ent_t *ent,
-                           u64 id,
-                           int fd,
-                           void *buf,
-                           size_t count)
-{
-    read_args_t *read = (read_args_t *) ent->bytes;
-    read->fd = fd;
-    read->count = count;
-
-    /* Record the address of buffer first but don't read the
-     * content directly. Because the read syscall hasn't
-     * fill the buffer yet when entering syscall. */
-    void **buf_addr_ptr = bpf_g_buf_addr_lookup_elem(&INDEX_0);
-    if (buf_addr_ptr != NULL)
-        *buf_addr_ptr = buf;
-}
-
-static void sys_write_enter(syscall_ent_t *ent,
-                            u64 id,
-                            int fd,
-                            void *buf,
-                            size_t count)
-{
-    write_args_t *write = (write_args_t *) ent->bytes;
-    write->fd = fd;
-    write->count = count;
-
-    memset(write->buf, 0, sizeof(write->buf));
-    size_t cpy_count = count > BUF_SIZE ? BUF_SIZE : count;
-    bpf_core_read_user(write->buf, cpy_count, buf);
-}
-
-static size_t count_argc_envp_len(char *arr[])
-{
-    size_t idx = 0;
-    if (arr != NULL) {
-        for (; idx < LOOP_MAX; idx++) {
-            char *var = NULL;
-            bpf_core_read_user(&var, sizeof(var), &arr[idx]);
-            if (!var)
-                break;
-        }
-    }
-
-    return idx;
-}
-
-static void sys_execve_enter(syscall_ent_t *ent,
-                             u64 id,
-                             char *pathname,
-                             char *argv[],
-                             char *envp[])
-{
-    execve_args_t *execve = (execve_args_t *) ent->bytes;
-
-    /* FIXME: In the current design of entry format under the
-     * syscall_record ring buffer, we have to bring all the
-     * information(parameters, return value, ...) in one entry
-     * per syscall. However, we cannot increase the entry size endlessly
-     * for the system call like execve which has so many string type
-     * parameters, otherwise we'll waste too many space when passing
-     * those system calls which only need a few bytes for the parameters.
-     *
-     * We should redesign the entry format to fix this problem. */
-    execve->argv = (size_t) argv;
-    execve->argc = count_argc_envp_len(argv);
-
-    execve->envp = (size_t) envp;
-    execve->envp_cnt = count_argc_envp_len(envp);
-
-    memset(execve->pathname, 0, sizeof(execve->pathname));
-    bpf_core_read_user_str(execve->pathname, sizeof(execve->pathname),
-                           pathname);
-}
-
-static void sys_exit_group_enter(u64 id, int status)
-{
-    /* Unlike most system call which can be traced to one sys_enter
-     * and a pairing sys_exit, the 'exit_group' can only be traced
-     * to one sys_enter only. Because of the reason, we submit the event
-     * here directly. Note thati we therefore don't know the return value */
-    syscall_ent_t *ringbuf_ent = bpf_ringbuf_reserve(
-        &syscall_record, sizeof(basic_t) + sizeof(exit_group_args_t), 0);
-    if (!ringbuf_ent) {
-        /* FIXME: Drop the syscall directly. Any better approach to guarantee
-         * to record the syscall on ring buffer?*/
-        return;
-    }
-    ringbuf_ent->basic.id = id;
-    // ringbuf_ent->ret = ?;
-
-    exit_group_args_t *exit_group = (exit_group_args_t *) ringbuf_ent->bytes;
-    exit_group->status = status;
-    bpf_ringbuf_submit(ringbuf_ent, 0);
 }
 
 SEC("raw_tracepoint/sys_enter")
@@ -161,17 +55,6 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
      * https://elixir.bootlin.com/linux/latest/source/include/trace/events/syscalls.h
      */
     u64 id = args->args[1];
-    switch (id) {
-#define __SYSCALL(nr, call)   \
-    case nr:                  \
-        call##_enter_debug(); \
-        break;
-#include "syscall/syscall_tbl.h"
-#undef __SYSCALL
-    default:
-        break;
-    }
-
     syscall_ent_t *ent = bpf_g_ent_lookup_elem(&INDEX_0);
     if (!ent)
         return -1;
@@ -213,21 +96,6 @@ static void sys_exit_default(syscall_ent_t *ent, u64 ret)
     ent->basic.ret = ret;
 }
 
-static void sys_read_exit(syscall_ent_t *ent, u64 ret)
-{
-    sys_exit_default(ent, ret);
-
-    read_args_t *read = (read_args_t *) ent->bytes;
-    void **buf_addr_ptr = bpf_g_buf_addr_lookup_elem(&INDEX_0);
-    size_t count = read->count;
-
-    memset(read->buf, 0, sizeof(read->buf));
-    /* minus 1 for the tail '\0' */
-    size_t cpy_count = count > BUF_SIZE ? BUF_SIZE : count;
-    if (buf_addr_ptr != NULL)
-        bpf_core_read_user(read->buf, cpy_count, *buf_addr_ptr);
-}
-
 static void submit_syscall(syscall_ent_t *ent, size_t args_size)
 {
     size_t total_size = sizeof(basic_t) + args_size;
@@ -253,27 +121,17 @@ int sys_exit(struct bpf_raw_tracepoint_args *args)
     long ret = args->args[1];
 
     u64 id = BPF_CORE_READ(pt_regs, orig_ax);
-    switch (id) {
-#define __SYSCALL(nr, call)  \
-    case nr:                 \
-        call##_exit_debug(); \
-        break;
-#include "syscall/syscall_tbl.h"
-#undef __SYSCALL
-    default:
-        break;
-    }
-
     syscall_ent_t *ent = bpf_g_ent_lookup_elem(&INDEX_0);
     if (!ent || (ent->basic.id != id))
         return -1;
+
+    sys_exit_default(ent, ret);
 
     switch (id) {
     case SYS_READ:
         sys_read_exit(ent, ret);
         break;
     default:
-        sys_exit_default(ent, ret);
         break;
     }
 
