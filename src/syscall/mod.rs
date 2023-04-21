@@ -49,7 +49,8 @@ fn handle_ret_value(id: u64, ret: u64) -> i32 {
 
 pub fn syscall_ent_handler(bytes: &[u8]) -> i32 {
     let ent_size = std::mem::size_of::<SyscallEnt>();
-    let ent = plain::from_bytes::<SyscallEnt>(&bytes[0..ent_size]).expect("Fail to cast bytes to SyscallEnt");
+    let ent = plain::from_bytes::<SyscallEnt>(&bytes[0..ent_size])
+        .expect("Fail to cast bytes to SyscallEnt");
     let args = &bytes[ent_size..];
 
     let id = ent.id;

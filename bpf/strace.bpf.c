@@ -25,11 +25,6 @@ DEFINE_BPF_MAP(g_buf_addr, BPF_MAP_TYPE_ARRAY, u32, void *, 1);
  * at sys_enter and collect the remaining information at sys_exit.
  * It assumes that the sys_exit of a system call will always come
  * right after its sys_enter. Is this always correct? */
-typedef struct {
-    u64 id;
-    u64 ret;
-    u8 bytes[4096];
-} syscall_ent_t;
 DEFINE_BPF_MAP(g_ent, BPF_MAP_TYPE_ARRAY, u32, syscall_ent_t, 1);
 
 struct {
@@ -52,7 +47,7 @@ struct {
 
 static void sys_enter_default(syscall_ent_t *ent, u64 id)
 {
-    ent->id = id;
+    ent->basic.id = id;
 }
 
 static void sys_read_enter(syscall_ent_t *ent,
@@ -61,7 +56,7 @@ static void sys_read_enter(syscall_ent_t *ent,
                            void *buf,
                            size_t count)
 {
-    read_args_t *read = (read_args_t *)ent->bytes;
+    read_args_t *read = (read_args_t *) ent->bytes;
     read->fd = fd;
     read->count = count;
 
@@ -79,7 +74,7 @@ static void sys_write_enter(syscall_ent_t *ent,
                             void *buf,
                             size_t count)
 {
-    write_args_t *write = (write_args_t *)ent->bytes;
+    write_args_t *write = (write_args_t *) ent->bytes;
     write->fd = fd;
     write->count = count;
 
@@ -92,7 +87,7 @@ static size_t count_argc_envp_len(char *arr[])
 {
     size_t idx = 0;
     if (arr != NULL) {
-        for (;idx < LOOP_MAX; idx++) {
+        for (; idx < LOOP_MAX; idx++) {
             char *var = NULL;
             bpf_core_read_user(&var, sizeof(var), &arr[idx]);
             if (!var)
@@ -109,7 +104,7 @@ static void sys_execve_enter(syscall_ent_t *ent,
                              char *argv[],
                              char *envp[])
 {
-    execve_args_t *execve = (execve_args_t *)ent->bytes;
+    execve_args_t *execve = (execve_args_t *) ent->bytes;
 
     /* FIXME: In the current design of entry format under the
      * syscall_record ring buffer, we have to bring all the
@@ -137,17 +132,17 @@ static void sys_exit_group_enter(u64 id, int status)
      * and a pairing sys_exit, the 'exit_group' can only be traced
      * to one sys_enter only. Because of the reason, we submit the event
      * here directly. Note thati we therefore don't know the return value */
-    syscall_ent_t *ringbuf_ent =
-        bpf_ringbuf_reserve(&syscall_record, sizeof(basic_t) + sizeof(exit_group_args_t), 0);
+    syscall_ent_t *ringbuf_ent = bpf_ringbuf_reserve(
+        &syscall_record, sizeof(basic_t) + sizeof(exit_group_args_t), 0);
     if (!ringbuf_ent) {
         /* FIXME: Drop the syscall directly. Any better approach to guarantee
          * to record the syscall on ring buffer?*/
         return;
     }
-    ringbuf_ent->id = id;
+    ringbuf_ent->basic.id = id;
     // ringbuf_ent->ret = ?;
 
-    exit_group_args_t *exit_group = (exit_group_args_t *)ringbuf_ent->bytes;
+    exit_group_args_t *exit_group = (exit_group_args_t *) ringbuf_ent->bytes;
     exit_group->status = status;
     bpf_ringbuf_submit(ringbuf_ent, 0);
 }
@@ -215,14 +210,14 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
 
 static void sys_exit_default(syscall_ent_t *ent, u64 ret)
 {
-    ent->ret = ret;
+    ent->basic.ret = ret;
 }
 
 static void sys_read_exit(syscall_ent_t *ent, u64 ret)
 {
     sys_exit_default(ent, ret);
 
-    read_args_t *read = (read_args_t *)ent->bytes;
+    read_args_t *read = (read_args_t *) ent->bytes;
     void **buf_addr_ptr = bpf_g_buf_addr_lookup_elem(&INDEX_0);
     size_t count = read->count;
 
@@ -270,7 +265,7 @@ int sys_exit(struct bpf_raw_tracepoint_args *args)
     }
 
     syscall_ent_t *ent = bpf_g_ent_lookup_elem(&INDEX_0);
-    if (!ent || (ent->id != id))
+    if (!ent || (ent->basic.id != id))
         return -1;
 
     switch (id) {
@@ -283,8 +278,8 @@ int sys_exit(struct bpf_raw_tracepoint_args *args)
     }
 
     switch (id) {
-#define __SYSCALL(nr, call)  \
-    case nr:                 \
+#define __SYSCALL(nr, call)                         \
+    case nr:                                        \
         submit_syscall(ent, sizeof(call##_args_t)); \
         break;
 #include "syscall/syscall_tbl.h"
