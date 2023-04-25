@@ -1,6 +1,4 @@
 use crate::syscall::common::*;
-use crate::syscall::get_args;
-use plain::Plain;
 
 const ARGV_MAX_CNT: usize = 4;
 #[repr(C)]
@@ -11,7 +9,7 @@ struct ExecveArgs {
     argc: u8,
     envp_cnt: u8,
 }
-unsafe impl Plain for ExecveArgs {}
+unsafe impl plain::Plain for ExecveArgs {}
 
 pub(super) fn handle_execve_args(args: &[u8]) {
     let execve = get_args::<ExecveArgs>(args);

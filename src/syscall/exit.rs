@@ -1,11 +1,10 @@
-use crate::syscall::get_args;
-use plain::Plain;
+use crate::syscall::common::*;
 
 #[repr(C)]
 struct ExitGroupArgs {
     status: i32,
 }
-unsafe impl Plain for ExitGroupArgs {}
+unsafe impl plain::Plain for ExitGroupArgs {}
 
 pub(super) fn handle_exit_group_args(args: &[u8]) {
     let exit_group = get_args::<ExitGroupArgs>(args);

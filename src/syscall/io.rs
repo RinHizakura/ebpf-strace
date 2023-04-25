@@ -1,6 +1,4 @@
 use crate::syscall::common::*;
-use crate::syscall::get_args;
-use plain::Plain;
 
 #[repr(C)]
 struct ReadArgs {
@@ -8,7 +6,7 @@ struct ReadArgs {
     buf: [u8; BUF_SIZE],
     count: usize,
 }
-unsafe impl Plain for ReadArgs {}
+unsafe impl plain::Plain for ReadArgs {}
 
 #[repr(C)]
 struct WriteArgs {
@@ -16,7 +14,7 @@ struct WriteArgs {
     buf: [u8; BUF_SIZE],
     count: usize,
 }
-unsafe impl Plain for WriteArgs {}
+unsafe impl plain::Plain for WriteArgs {}
 
 pub(super) fn handle_read_args(args: &[u8], read_cnt: usize) {
     let read = get_args::<ReadArgs>(args);
