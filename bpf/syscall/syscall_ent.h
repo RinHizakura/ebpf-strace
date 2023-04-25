@@ -7,7 +7,7 @@
 #define __static_assert(expr, msg, ...) _Static_assert(expr, msg)
 
 #define BUF_SIZE 32
-#define ARGS_SIZE 4096
+#define ARGS_SIZE 1024
 
 typedef struct {
     u64 id;
