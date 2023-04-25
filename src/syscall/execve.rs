@@ -1,4 +1,5 @@
 use crate::syscall::common::*;
+use crate::syscall::get_args;
 use plain::Plain;
 
 const ARGV_MAX_CNT: usize = 4;
@@ -13,9 +14,7 @@ struct ExecveArgs {
 unsafe impl Plain for ExecveArgs {}
 
 pub(super) fn handle_execve_args(args: &[u8]) {
-    let size = std::mem::size_of::<ExecveArgs>();
-    let slice = &args[0..size];
-    let execve = plain::from_bytes::<ExecveArgs>(slice).expect("Fail to cast bytes to ExecveArgs");
+    let execve = get_args::<ExecveArgs>(args);
     let printed_argc = (execve.argc as usize).min(ARGV_MAX_CNT);
 
     eprint!("(");

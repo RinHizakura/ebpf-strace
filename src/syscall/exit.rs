@@ -1,3 +1,4 @@
+use crate::syscall::get_args;
 use plain::Plain;
 
 #[repr(C)]
@@ -7,10 +8,7 @@ struct ExitGroupArgs {
 unsafe impl Plain for ExitGroupArgs {}
 
 pub(super) fn handle_exit_group_args(args: &[u8]) {
-    let size = std::mem::size_of::<ExitGroupArgs>();
-    let slice = &args[0..size];
-    let exit_group =
-        plain::from_bytes::<ExitGroupArgs>(slice).expect("Fail to cast bytes to ExitGroupArgs");
+    let exit_group = get_args::<ExitGroupArgs>(args);
 
     eprint!("({})", exit_group.status);
 }

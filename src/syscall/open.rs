@@ -1,4 +1,5 @@
 use crate::syscall::common::*;
+use crate::syscall::get_args;
 use plain::Plain;
 
 #[repr(C)]
@@ -9,9 +10,7 @@ struct OpenArgs {
 unsafe impl Plain for OpenArgs {}
 
 pub(super) fn handle_open_args(args: &[u8]) {
-    let size = std::mem::size_of::<OpenArgs>();
-    let slice = &args[0..size];
-    let open = plain::from_bytes::<OpenArgs>(slice).expect("Fail to cast bytes to OpenArgs");
+    let open = get_args::<OpenArgs>(args);
 
     eprint!("({:?},", open.pathname);
     format_str(&open.pathname);

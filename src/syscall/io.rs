@@ -1,4 +1,5 @@
 use crate::syscall::common::*;
+use crate::syscall::get_args;
 use plain::Plain;
 
 #[repr(C)]
@@ -18,9 +19,7 @@ struct WriteArgs {
 unsafe impl Plain for WriteArgs {}
 
 pub(super) fn handle_read_args(args: &[u8], read_cnt: usize) {
-    let size = std::mem::size_of::<ReadArgs>();
-    let slice = &args[0..size];
-    let read = plain::from_bytes::<ReadArgs>(slice).expect("Fail to cast bytes to ReadArgs");
+    let read = get_args::<ReadArgs>(args);
 
     eprint!("({}, ", read.fd);
     format_buf(&read.buf, read_cnt);
@@ -28,9 +27,7 @@ pub(super) fn handle_read_args(args: &[u8], read_cnt: usize) {
 }
 
 pub(super) fn handle_write_args(args: &[u8]) {
-    let size = std::mem::size_of::<WriteArgs>();
-    let slice = &args[0..size];
-    let write = plain::from_bytes::<WriteArgs>(slice).expect("Fail to cast bytes to WriteArgs");
+    let write = get_args::<WriteArgs>(args);
 
     eprint!("({}, ", write.fd);
     format_buf(&write.buf, write.count);
