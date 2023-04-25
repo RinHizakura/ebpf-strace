@@ -34,7 +34,11 @@ typedef struct {
 static_assert(sizeof(write_args_t) <= ARGS_SIZE);
 
 typedef struct {
+    u8 pathname[BUF_SIZE];
+    int flags;
 } open_args_t;
+static_assert(sizeof(open_args_t) <= ARGS_SIZE);
+
 typedef struct {
 } close_args_t;
 typedef struct {

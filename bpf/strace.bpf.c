@@ -35,6 +35,7 @@ struct {
 #include "bpf/execve.c"
 #include "bpf/exit.c"
 #include "bpf/io.c"
+#include "bpf/open.c"
 
 static void sys_enter_default(syscall_ent_t *ent, u64 id)
 {
@@ -77,6 +78,9 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
         break;
     case SYS_WRITE:
         sys_write_enter(ent, id, di, (void *) si, dx);
+        break;
+    case SYS_OPEN:
+        sys_open_enter(ent, id, (char *) di, si);
         break;
     case SYS_EXECVE:
         sys_execve_enter(ent, id, (char *) di, (void *) si, (void *) dx);
