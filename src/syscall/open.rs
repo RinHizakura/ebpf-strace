@@ -7,10 +7,9 @@ struct OpenArgs {
 }
 unsafe impl plain::Plain for OpenArgs {}
 
-pub(super) fn handle_open_args(args: &[u8]) {
+pub(super) fn handle_open_args(args: &[u8]) -> String {
     let open = get_args::<OpenArgs>(args);
 
-    eprint!("({:?},", open.pathname);
-    format_str(&open.pathname);
-    eprint!("{})", open.flags);
+    let pathname = format_str(&open.pathname);
+    return format!("{}, {}", pathname, open.flags);
 }

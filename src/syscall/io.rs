@@ -16,18 +16,16 @@ struct WriteArgs {
 }
 unsafe impl plain::Plain for WriteArgs {}
 
-pub(super) fn handle_read_args(args: &[u8], read_cnt: usize) {
+pub(super) fn handle_read_args(args: &[u8], read_cnt: usize) -> String {
     let read = get_args::<ReadArgs>(args);
 
-    eprint!("({}, ", read.fd);
-    format_buf(&read.buf, read_cnt);
-    eprint!("{})", read.count)
+    let buf = format_buf(&read.buf, read_cnt);
+    return format!("{}, {}, {}", read.fd, buf, read.count);
 }
 
-pub(super) fn handle_write_args(args: &[u8]) {
+pub(super) fn handle_write_args(args: &[u8]) -> String {
     let write = get_args::<WriteArgs>(args);
 
-    eprint!("({}, ", write.fd);
-    format_buf(&write.buf, write.count);
-    eprint!("{})", write.count);
+    let buf = format_buf(&write.buf, write.count);
+    return format!("{}, {}, {}", write.fd, buf, write.count);
 }

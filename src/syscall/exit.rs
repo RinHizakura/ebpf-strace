@@ -6,8 +6,8 @@ struct ExitGroupArgs {
 }
 unsafe impl plain::Plain for ExitGroupArgs {}
 
-pub(super) fn handle_exit_group_args(args: &[u8]) {
+pub(super) fn handle_exit_group_args(args: &[u8]) -> String {
     let exit_group = get_args::<ExitGroupArgs>(args);
 
-    eprint!("({})", exit_group.status);
+    return format!("{}", exit_group.status);
 }

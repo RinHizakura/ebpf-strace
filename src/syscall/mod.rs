@@ -7,12 +7,10 @@ mod syscall_desc;
 mod syscall_nr;
 mod syscall_tbl;
 
-use crate::syscall::execve::*;
-use crate::syscall::exit::*;
-use crate::syscall::io::*;
-use crate::syscall::open::*;
+use crate::syscall;
 use crate::syscall::syscall_nr::*;
-use crate::syscall::syscall_tbl::*;
+use crate::syscall::syscall_tbl::SYSCALLS;
+
 use plain::Plain;
 
 /* This should be synchronized with the structure
@@ -24,30 +22,15 @@ struct SyscallEnt {
 }
 unsafe impl Plain for SyscallEnt {}
 
-fn handle_args(id: u64, args: &[u8], ret: u64) {
+fn handle_args(id: u64, args: &[u8], ret: u64) -> String {
     match id {
-        SYS_READ => handle_read_args(args, ret as usize),
-        SYS_WRITE => handle_write_args(args),
-        SYS_OPEN => handle_open_args(args),
-        SYS_EXECVE => handle_execve_args(args),
-        SYS_EXIT_GROUP => handle_exit_group_args(args),
-        _ => eprint!("()"),
+        SYS_READ => syscall::io::handle_read_args(args, ret as usize),
+        SYS_WRITE => syscall::io::handle_write_args(args),
+        SYS_OPEN => syscall::open::handle_open_args(args),
+        SYS_EXECVE => syscall::execve::handle_execve_args(args),
+        SYS_EXIT_GROUP => syscall::exit::handle_exit_group_args(args),
+        _ => "".to_string(),
     }
-}
-
-fn handle_ret_value(id: u64, ret: u64) -> i32 {
-    match id {
-        SYS_BRK | SYS_MMAP => eprint!(" = 0x{:x}", ret),
-        SYS_EXIT_GROUP => {
-            eprint!(" = ?");
-            /* Simulate an ctrl-c interrupt here to hint that the
-             * traced process exits normally. */
-            return -libc::EINTR;
-        }
-        _ => eprint!(" = {}", ret as i64),
-    };
-
-    0
 }
 
 pub fn syscall_ent_handler(bytes: &[u8]) -> i32 {
@@ -60,14 +43,18 @@ pub fn syscall_ent_handler(bytes: &[u8]) -> i32 {
     let ret = ent.ret;
 
     let syscall = &SYSCALLS[id as usize];
-    eprint!("{}", syscall.name);
+    let args_str = handle_args(id, args, ret);
 
-    handle_args(id, args, ret);
+    match id {
+        SYS_BRK | SYS_MMAP => eprint!("{}({}) = 0x{:x}\n", syscall.name, args_str, ret),
+        SYS_EXIT_GROUP => {
+            eprint!("{}({}) = ?\n", syscall.name, args_str);
+            /* Simulate an ctrl-c interrupt here to hint that the
+             * traced process exits normally. */
+            return -libc::EINTR;
+        }
+        _ => eprint!("{}({}) = {}\n", syscall.name, args_str, ret as i64),
+    }
 
-    let result = handle_ret_value(id, ret);
-
-    /* End up with a change line here */
-    eprint!("\n");
-
-    result
+    0
 }

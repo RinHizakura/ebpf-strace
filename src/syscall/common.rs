@@ -1,40 +1,44 @@
 pub const BUF_SIZE: usize = 32;
 
-pub(super) fn format_buf(buf: &[u8], count: usize) {
+pub(super) fn format_buf(buf: &[u8], count: usize) -> String {
     let len = buf.len();
     let extra = if count > len { "..." } else { "" };
     let count = count.min(len);
 
-    eprint!("\"");
+    let mut s = String::new();
+    s.push('"');
     for byte in &buf[0..count] {
         let c = *byte;
         /* TODO: cover all possible special character */
         if (c as char).is_ascii_graphic() || (c as char) == ' ' {
-            eprint!("{}", c as char);
+            s.push(c as char);
         } else if (c as char) == '\n' {
-            eprint!("\\n");
+            s.push_str("\\n");
         } else if (c as char) == '\t' {
-            eprint!("\\n");
+            s.push_str("\\t");
         } else {
             /* Print it as octal(base-8) like what
              * strace do by default */
-            eprint!("\\{:o}", c);
+            s.push_str(&format!("\\{:o}", c));
         }
     }
-    eprint!("\"{}, ", extra);
+    s.push_str(&format!("\"{}", extra));
+
+    s
 }
 
-pub(super) fn format_str(buf: &[u8]) {
+pub(super) fn format_str(buf: &[u8]) -> String {
     let len = buf.len();
     let mut idx = 0;
 
-    eprint!("\"");
+    let mut s = String::new();
+    s.push('"');
     while idx < len {
         let c = buf[idx];
         if c == 0 {
             break;
         } else {
-            eprint!("{}", c as char);
+            s.push(c as char);
         }
 
         idx += 1;
@@ -42,7 +46,9 @@ pub(super) fn format_str(buf: &[u8]) {
 
     /* If we can't find the ended zero in the buffer, this is an incomplete string. */
     let extra = if idx >= len { "..." } else { "" };
-    eprint!("\"{}, ", extra);
+    s.push_str(&format!("\"{}, ", extra));
+
+    s
 }
 
 pub fn get_args<T: plain::Plain>(args: &[u8]) -> &T {
