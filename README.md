@@ -1,6 +1,8 @@
 # ebpf-strace
 
-An example to trace syscall using eBPF(WIP)
+A tiny tool to trace syscalls by eBPF
+
+> WARNING: It could only be run on x86_64 architecture currently
 
 ## Usage
 
