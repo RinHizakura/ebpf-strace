@@ -46,7 +46,7 @@ pub(super) fn format_str(buf: &[u8]) -> String {
 
     /* If we can't find the ended zero in the buffer, this is an incomplete string. */
     let extra = if idx >= len { "..." } else { "" };
-    s.push_str(&format!("\"{}, ", extra));
+    s.push_str(&format!("\"{}", extra));
 
     s
 }

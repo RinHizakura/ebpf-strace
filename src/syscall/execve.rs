@@ -15,23 +15,26 @@ pub(super) fn handle_execve_args(args: &[u8]) -> String {
     let execve = get_args::<ExecveArgs>(args);
     let printed_argc = (execve.argc as usize).min(ARGV_MAX_CNT);
 
-    let mut s = String::new();
     let pathname = format_str(&execve.pathname);
-    s.push_str(&pathname);
 
-    s.push('[');
+    /* FIXME: We should make this prettier if there's the way :( */
+    let mut argv_list = String::new();
     for idx in 0..printed_argc {
-        s.push_str(&format_str(&execve.argv[idx]));
+        argv_list.push_str(&format_str(&execve.argv[idx]));
+        argv_list.push(',');
     }
+    // Pop out the last ','
+    argv_list.pop();
     if execve.argc as usize > ARGV_MAX_CNT {
-        s.push_str("...");
+        argv_list.push_str("...");
     }
 
-    s.push(']');
-    s.push_str(&format!(
-        ", 0x{:x} /* {} vars */)",
-        execve.envp, execve.envp_cnt
-    ));
-
-    s
+    return format!(
+        "{}, [{}], 0x{:x} /* {} var{} */",
+        pathname,
+        argv_list,
+        execve.envp,
+        execve.envp_cnt,
+        if execve.envp_cnt > 1 { "s" } else { "" }
+    );
 }
