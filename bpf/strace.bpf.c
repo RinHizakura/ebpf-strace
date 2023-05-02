@@ -1,13 +1,20 @@
-#ifndef __TARGET_ARCH_x86
-#error "only x86_64 architecture is supported for ebpf-strace"
-#endif
-
 /* clang-format off */
-// We must include this
+
+/* These header file should be included first and in sequence,
+ * because our following included file may depend on these. Turn
+ * off clang-format to achieve this purpose. */
 #include "vmlinux.h"
-/* clang-format on */
 #include <bpf/bpf_core_read.h>
 #include <bpf/bpf_helpers.h>
+#include <bpf/bpf_tracing.h>
+/* clang-format on */
+
+#ifdef __TARGET_ARCH_x86
+#include "arch/x86/syscall.h"
+#else
+#error "only x86_64 architecture is supported for ebpf-strace now"
+#endif
+
 #include "syscall/syscall_ent.h"
 #include "syscall/syscall_nr.h"
 #include "utils.h"
@@ -62,31 +69,28 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
 
     sys_enter_default(ent, id);
 
-    /* According to x86_64 abi:  User-level applications use as integer
-     * registers for passing the sequence %rdi, %rsi, %rdx, %rcx, %r8 and %r9.
-     * The kernel interface uses %rdi, %rsi, %rdx, %r10, %r8 and %r9. */
     struct pt_regs *pt_regs = (struct pt_regs *) args->args[0];
-    u64 di = BPF_CORE_READ(pt_regs, di);
-    u64 si = BPF_CORE_READ(pt_regs, si);
-    u64 dx = BPF_CORE_READ(pt_regs, dx);
-    u64 r10 = BPF_CORE_READ(pt_regs, r10);
-    u64 r8 = BPF_CORE_READ(pt_regs, r8);
-    u64 r9 = BPF_CORE_READ(pt_regs, r9);
+    u64 parm1 = PT_REGS_PARM1_CORE(pt_regs);
+    u64 parm2 = PT_REGS_PARM2_CORE(pt_regs);
+    u64 parm3 = PT_REGS_PARM3_CORE(pt_regs);
+    u64 parm4 = PT_REGS_PARM4_CORE(pt_regs);
+    u64 parm5 = PT_REGS_PARM5_CORE(pt_regs);
     switch (id) {
     case SYS_READ:
-        sys_read_enter(ent, id, di, (void *) si, dx);
+        sys_read_enter(ent, id, parm1, (void *) parm2, parm3);
         break;
     case SYS_WRITE:
-        sys_write_enter(ent, id, di, (void *) si, dx);
+        sys_write_enter(ent, id, parm1, (void *) parm2, parm3);
         break;
     case SYS_OPEN:
-        sys_open_enter(ent, id, (char *) di, si);
+        sys_open_enter(ent, id, (char *) parm1, parm2);
         break;
     case SYS_EXECVE:
-        sys_execve_enter(ent, id, (char *) di, (void *) si, (void *) dx);
+        sys_execve_enter(ent, id, (char *) parm1, (void *) parm2,
+                         (void *) parm3);
         break;
     case SYS_EXIT_GROUP:
-        sys_exit_group_enter(id, di);
+        sys_exit_group_enter(id, parm1);
         break;
     default:
         break;
@@ -124,7 +128,7 @@ int sys_exit(struct bpf_raw_tracepoint_args *args)
     struct pt_regs *pt_regs = (struct pt_regs *) args->args[0];
     long ret = args->args[1];
 
-    u64 id = BPF_CORE_READ(pt_regs, orig_ax);
+    u64 id = get_syscall_nr(pt_regs);
     syscall_ent_t *ent = bpf_g_ent_lookup_elem(&INDEX_0);
     if (!ent || (ent->basic.id != id))
         return -1;
