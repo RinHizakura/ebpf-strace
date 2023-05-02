@@ -5,6 +5,8 @@ VMLINUX_H = vmlinux.h
 SRCS = $(shell find ./src -name '*.c')
 SRCS += $(shell find ./src -name '*.rs')
 
+TEST = $(OUT)/do_syscall
+
 all: $(BIN) $(GIT_HOOKS)
 
 $(GIT_HOOKS):
@@ -14,11 +16,14 @@ $(GIT_HOOKS):
 $(BIN): $(SRCS) $(VMLINUX_H)
 	cargo build
 
+$(TEST): tests/do_syscall.c
+	gcc $< -o $@
+
 $(VMLINUX_H):
 	bpftool btf dump file /sys/kernel/btf/vmlinux format c > $(VMLINUX_H)
 
-run: $(BIN)
-	sudo $(BIN) cat README.md 1>/dev/null
+run: $(BIN) $(TEST)
+	sudo $(BIN)  $(abspath $(TEST)) 1>/dev/null
 
 check:
 	sudo cat /sys/kernel/debug/tracing/trace_pipe
