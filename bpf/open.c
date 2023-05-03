@@ -1,7 +1,4 @@
-static void sys_open_enter(syscall_ent_t *ent,
-                           u64 id,
-                           char *pathname,
-                           int flags)
+static void sys_open_enter(syscall_ent_t *ent, char *pathname, int flags)
 {
     open_args_t *open = (open_args_t *) ent->bytes;
     open->flags = flags;
@@ -29,9 +26,8 @@ static void sys_open_exit(syscall_ent_t *ent)
 }
 
 static void sys_openat_enter(syscall_ent_t *ent,
-                             u64 id,
                              int dirfd,
-                             const char *pathname,
+                             char *pathname,
                              int flags)
 {
     openat_args_t *openat = (openat_args_t *) ent->bytes;

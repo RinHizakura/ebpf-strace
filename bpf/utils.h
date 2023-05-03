@@ -15,18 +15,20 @@
     DEFINE_BPF_MAP_NO_ACCESSORS(the_map, map_type, key_type, value_type,     \
                                 num_entries)                                 \
                                                                              \
-    static value_type *bpf_##the_map##_lookup_elem(key_type *k)              \
+    __attribute__((unused)) static value_type *bpf_##the_map##_lookup_elem(  \
+        key_type *k)                                                         \
     {                                                                        \
         return bpf_map_lookup_elem(&the_map, k);                             \
     }                                                                        \
                                                                              \
-    static int bpf_##the_map##_update_elem(key_type *k, value_type *v,       \
-                                           __u64 flags)                      \
+    __attribute__((unused)) static int bpf_##the_map##_update_elem(          \
+        key_type *k, value_type *v, __u64 flags)                             \
     {                                                                        \
         return bpf_map_update_elem(&the_map, k, v, flags);                   \
     }                                                                        \
                                                                              \
-    static int bpf_##the_map##_delete_elem(key_type *k)                      \
+    __attribute__((unused)) static int bpf_##the_map##_delete_elem(          \
+        key_type *k)                                                         \
     {                                                                        \
         return bpf_map_delete_elem(&the_map, k);                             \
     }
@@ -39,11 +41,12 @@
 #define memcpy(dest, src, n) __builtin_memcpy((dest), (src), (n))
 #endif
 
-static size_t strlen(const char *str)
+__attribute__((unused)) static size_t strlen(const char *str)
 {
     size_t len;
 
-    for (len = 0; str[len]; len++) {}
+    for (len = 0; str[len]; len++) {
+    }
 
     return len;
 }

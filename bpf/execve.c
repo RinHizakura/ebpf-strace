@@ -14,7 +14,6 @@ static size_t count_envp_len(char *arr[])
 }
 
 static void sys_execve_enter(syscall_ent_t *ent,
-                             u64 id,
                              char *pathname,
                              char *argv[],
                              char *envp[])

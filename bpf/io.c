@@ -1,8 +1,4 @@
-static void sys_read_enter(syscall_ent_t *ent,
-                           u64 id,
-                           int fd,
-                           void *buf,
-                           size_t count)
+static void sys_read_enter(syscall_ent_t *ent, int fd, void *buf, size_t count)
 {
     read_args_t *read = (read_args_t *) ent->bytes;
     read->fd = fd;
@@ -29,11 +25,7 @@ static void sys_read_exit(syscall_ent_t *ent)
         bpf_core_read_user(read->buf, cpy_count, *buf_addr_ptr);
 }
 
-static void sys_write_enter(syscall_ent_t *ent,
-                            u64 id,
-                            int fd,
-                            void *buf,
-                            size_t count)
+static void sys_write_enter(syscall_ent_t *ent, int fd, void *buf, size_t count)
 {
     write_args_t *write = (write_args_t *) ent->bytes;
     write->fd = fd;
@@ -43,4 +35,3 @@ static void sys_write_enter(syscall_ent_t *ent,
     size_t cpy_count = count > BUF_SIZE ? BUF_SIZE : count;
     bpf_core_read_user(write->buf, cpy_count, buf);
 }
-

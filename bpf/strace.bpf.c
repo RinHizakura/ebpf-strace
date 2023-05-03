@@ -62,7 +62,7 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
     /* We'll only hook the pid which is specified by BPF loader.
      * Note that the return value of "bpf_get_current_pid_tgid" will
      * be "(u64) task->tgid << 32 | task->pid" */
-    u64 cur_pid = (bpf_get_current_pid_tgid() >> 32);
+    pid_t cur_pid = (bpf_get_current_pid_tgid() >> 32);
     if (select_pid == 0 || select_pid != cur_pid)
         return 0;
 
@@ -80,24 +80,23 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
     u64 parm1 = PT_REGS_PARM1_CORE(pt_regs);
     u64 parm2 = PT_REGS_PARM2_CORE(pt_regs);
     u64 parm3 = PT_REGS_PARM3_CORE(pt_regs);
-    u64 parm4 = PT_REGS_PARM4_CORE(pt_regs);
-    u64 parm5 = PT_REGS_PARM5_CORE(pt_regs);
+    __attribute__((unused)) u64 parm4 = PT_REGS_PARM4_CORE(pt_regs);
+    __attribute__((unused)) u64 parm5 = PT_REGS_PARM5_CORE(pt_regs);
     switch (id) {
     case SYS_READ:
-        sys_read_enter(ent, id, parm1, (void *) parm2, parm3);
+        sys_read_enter(ent, parm1, (void *) parm2, parm3);
         break;
     case SYS_WRITE:
-        sys_write_enter(ent, id, parm1, (void *) parm2, parm3);
+        sys_write_enter(ent, parm1, (void *) parm2, parm3);
         break;
     case SYS_OPEN:
-        sys_open_enter(ent, id, (char *) parm1, parm2);
+        sys_open_enter(ent, (char *) parm1, parm2);
         break;
     case SYS_OPENAT:
-        sys_openat_enter(ent, id, parm1, (char *) parm2, parm3);
+        sys_openat_enter(ent, parm1, (char *) parm2, parm3);
         break;
     case SYS_EXECVE:
-        sys_execve_enter(ent, id, (char *) parm1, (void *) parm2,
-                         (void *) parm3);
+        sys_execve_enter(ent, (char *) parm1, (void *) parm2, (void *) parm3);
         break;
     case SYS_EXIT_GROUP:
         sys_exit_group_enter(id, parm1);
@@ -131,7 +130,7 @@ static void submit_syscall(syscall_ent_t *ent, size_t args_size)
 SEC("raw_tracepoint/sys_exit")
 int sys_exit(struct bpf_raw_tracepoint_args *args)
 {
-    u64 cur_pid = (bpf_get_current_pid_tgid() >> 32);
+    pid_t cur_pid = (bpf_get_current_pid_tgid() >> 32);
     if (select_pid == 0 || select_pid != cur_pid)
         return 0;
 
