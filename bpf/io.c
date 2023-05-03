@@ -16,7 +16,7 @@ static void sys_read_enter(syscall_ent_t *ent,
         *buf_addr_ptr = buf;
 }
 
-static void sys_read_exit(syscall_ent_t *ent, u64 ret)
+static void sys_read_exit(syscall_ent_t *ent)
 {
     read_args_t *read = (read_args_t *) ent->bytes;
     void **buf_addr_ptr = bpf_g_buf_addr_lookup_elem(&INDEX_0);

@@ -25,7 +25,14 @@
 pid_t select_pid = 0;
 /* The key to access the single entry BPF_MAP in array type. */
 u32 INDEX_0 = 0;
-
+/* FIXME: For some reason, we may not able to read the content under the
+ * address at sys_enter. To solve the problem, we store the address first
+ * and read it until sys_exit.
+ *
+ * Are we guaranteed to get the syscall arguments from
+ * ABI-defined register at sys_exit? If so we are able to do most
+ * of the works at sys_exit directly, instead of passing the address
+ * by BPF map like this. */
 DEFINE_BPF_MAP(g_buf_addr, BPF_MAP_TYPE_ARRAY, u32, void *, 1);
 
 /* FIXME: The instance allow us to store some information
@@ -85,6 +92,9 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
     case SYS_OPEN:
         sys_open_enter(ent, id, (char *) parm1, parm2);
         break;
+    case SYS_OPENAT:
+        sys_openat_enter(ent, id, parm1, (char *) parm2, parm3);
+        break;
     case SYS_EXECVE:
         sys_execve_enter(ent, id, (char *) parm1, (void *) parm2,
                          (void *) parm3);
@@ -137,7 +147,13 @@ int sys_exit(struct bpf_raw_tracepoint_args *args)
 
     switch (id) {
     case SYS_READ:
-        sys_read_exit(ent, ret);
+        sys_read_exit(ent);
+        break;
+    case SYS_OPEN:
+        sys_open_exit(ent);
+        break;
+    case SYS_OPENAT:
+        sys_openat_exit(ent);
         break;
     default:
         break;

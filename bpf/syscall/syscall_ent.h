@@ -560,8 +560,14 @@ typedef struct {
 } inotify_rm_watch_args_t;
 typedef struct {
 } migrate_pages_args_t;
+
 typedef struct {
+    u8 pathname[BUF_SIZE];
+    int dirfd;
+    int flags;
 } openat_args_t;
+static_assert(sizeof(openat_args_t) <= ARGS_SIZE);
+
 typedef struct {
 } mkdirat_args_t;
 typedef struct {

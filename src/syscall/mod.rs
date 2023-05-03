@@ -27,6 +27,7 @@ fn handle_args(id: u64, args: &[u8], ret: u64) -> String {
         SYS_READ => syscall::io::handle_read_args(args, ret as usize),
         SYS_WRITE => syscall::io::handle_write_args(args),
         SYS_OPEN => syscall::open::handle_open_args(args),
+        SYS_OPENAT => syscall::open::handle_openat_args(args),
         SYS_EXECVE => syscall::execve::handle_execve_args(args),
         SYS_EXIT_GROUP => syscall::exit::handle_exit_group_args(args),
         _ => "".to_string(),
