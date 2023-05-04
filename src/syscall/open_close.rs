@@ -28,3 +28,15 @@ pub(super) fn handle_openat_args(args: &[u8]) -> String {
     let pathname = format_str(&openat.pathname);
     return format!("{}, {}, {}", openat.dirfd, pathname, openat.flags);
 }
+
+#[repr(C)]
+struct CloseArgs {
+    fd: i32,
+}
+unsafe impl plain::Plain for CloseArgs {}
+
+pub(super) fn handle_close_args(args: &[u8]) -> String {
+    let close = get_args::<CloseArgs>(args);
+
+    return format!("{}", close.fd);
+}

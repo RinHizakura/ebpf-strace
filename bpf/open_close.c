@@ -48,3 +48,9 @@ static void sys_openat_exit(syscall_ent_t *ent)
         bpf_core_read_user_str(openat->pathname, sizeof(openat->pathname),
                                *buf_addr_ptr);
 }
+
+static void sys_close_enter(syscall_ent_t *ent, int fd)
+{
+    close_args_t *close = (close_args_t *) ent->bytes;
+    close->fd = fd;
+}

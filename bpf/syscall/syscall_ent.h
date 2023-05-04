@@ -40,7 +40,10 @@ typedef struct {
 static_assert(sizeof(open_args_t) <= ARGS_SIZE);
 
 typedef struct {
+    int fd;
 } close_args_t;
+static_assert(sizeof(close_args_t) <= ARGS_SIZE);
+
 typedef struct {
 } stat_args_t;
 typedef struct {

@@ -49,7 +49,7 @@ struct {
 #include "bpf/execve.c"
 #include "bpf/exit.c"
 #include "bpf/io.c"
-#include "bpf/open.c"
+#include "bpf/open_close.c"
 
 static void sys_enter_default(syscall_ent_t *ent, u64 id)
 {
@@ -94,6 +94,9 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
         break;
     case SYS_OPENAT:
         sys_openat_enter(ent, parm1, (char *) parm2, parm3);
+        break;
+    case SYS_CLOSE:
+        sys_close_enter(ent, parm1);
         break;
     case SYS_EXECVE:
         sys_execve_enter(ent, (char *) parm1, (void *) parm2, (void *) parm3);
