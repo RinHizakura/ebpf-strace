@@ -51,6 +51,32 @@ pub(super) fn format_str(buf: &[u8]) -> String {
     s
 }
 
+pub struct FlagDesc {
+    pub val: i32,
+    pub name: &'static str,
+}
+
+pub fn format_flags(mut flags: i32, sep: char, flags_descs: &[FlagDesc]) -> String {
+    let mut output_str: String = String::new();
+
+    for f in flags_descs {
+        if (flags & f.val) == f.val {
+            output_str.push_str(f.name);
+            output_str.push(sep);
+            flags &= !f.val;
+        }
+    }
+
+    if flags != 0 {
+        output_str.push_str(&format!("{:x}", flags));
+    }
+
+    // Pop out the last seperator
+    output_str.pop();
+
+    output_str
+}
+
 pub fn get_args<T: plain::Plain>(args: &[u8]) -> &T {
     let size = std::mem::size_of::<T>();
     let slice = &args[0..size];

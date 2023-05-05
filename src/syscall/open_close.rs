@@ -1,4 +1,10 @@
 use crate::syscall::common::*;
+use libc::O_RDONLY;
+
+pub const OPENFLAGS_DESCS: &[FlagDesc] = &[FlagDesc {
+    val: O_RDONLY,
+    name: "O_RDONLY",
+}];
 
 #[repr(C)]
 struct OpenArgs {
@@ -11,7 +17,8 @@ pub(super) fn handle_open_args(args: &[u8]) -> String {
     let open = get_args::<OpenArgs>(args);
 
     let pathname = format_str(&open.pathname);
-    return format!("{}, {}", pathname, open.flags);
+    let flags = format_flags(open.flags, '|', OPENFLAGS_DESCS);
+    return format!("{}, {}", pathname, flags);
 }
 
 #[repr(C)]
@@ -26,7 +33,8 @@ pub(super) fn handle_openat_args(args: &[u8]) -> String {
     let openat = get_args::<OpenAtArgs>(args);
 
     let pathname = format_str(&openat.pathname);
-    return format!("{}, {}, {}", openat.dirfd, pathname, openat.flags);
+    let flags = format_flags(openat.flags, '|', OPENFLAGS_DESCS);
+    return format!("{}, {}, {}", openat.dirfd, pathname, flags);
 }
 
 #[repr(C)]
