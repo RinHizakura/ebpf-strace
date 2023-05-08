@@ -1,5 +1,15 @@
 pub const BUF_SIZE: usize = 32;
 
+#[macro_export]
+macro_rules! flag_desc {
+    ( $flag:expr ) => {
+        FlagDesc {
+            val: $flag,
+            name: stringify!($flag),
+        }
+    };
+}
+
 pub(super) fn format_buf(buf: &[u8], count: usize) -> String {
     let len = buf.len();
     let extra = if count > len { "..." } else { "" };
