@@ -35,8 +35,7 @@ fn format_dirfd(fd: i32) -> String {
     if fd == libc::AT_FDCWD {
         "AT_FDCWD".to_string()
     } else {
-        // TODO
-        "".to_string()
+        fd.to_string()
     }
 }
 
