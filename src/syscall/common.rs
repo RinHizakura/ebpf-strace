@@ -4,7 +4,7 @@ pub const BUF_SIZE: usize = 32;
 macro_rules! flag_desc {
     ( $flag:expr ) => {
         FlagDesc {
-            val: $flag,
+            val: $flag as u32,
             name: stringify!($flag),
         }
     };
@@ -62,11 +62,11 @@ pub(super) fn format_str(buf: &[u8]) -> String {
 }
 
 pub struct FlagDesc {
-    pub val: i32,
+    pub val: u32,
     pub name: &'static str,
 }
 
-pub fn format_flags(mut flags: i32, sep: char, flags_descs: &[FlagDesc]) -> String {
+pub fn format_flags(mut flags: u32, sep: char, flags_descs: &[FlagDesc]) -> String {
     let mut output_str: String = String::new();
 
     for f in flags_descs {
@@ -78,11 +78,12 @@ pub fn format_flags(mut flags: i32, sep: char, flags_descs: &[FlagDesc]) -> Stri
     }
 
     if flags != 0 {
-        output_str.push_str(&format!("{:x}", flags));
+        /* FIXME: The format(base, width) should be specified by caller */
+        output_str.push_str(&format!("{:o}", flags));
+    } else {
+        // Pop out the last seperator if there's any
+        output_str.pop();
     }
-
-    // Pop out the last seperator
-    output_str.pop();
 
     output_str
 }

@@ -4,6 +4,7 @@ mod execve;
 mod exit;
 mod io;
 mod open_close;
+mod stat;
 mod syscall_desc;
 mod syscall_nr;
 mod syscall_tbl;
@@ -29,8 +30,9 @@ fn handle_args(id: u64, args: &[u8], ret: u64) -> String {
         SYS_WRITE => syscall::io::handle_write_args(args),
         SYS_OPEN => syscall::open_close::handle_open_args(args),
         SYS_CLOSE => syscall::open_close::handle_close_args(args),
-        SYS_OPENAT => syscall::open_close::handle_openat_args(args),
+        SYS_STAT => syscall::stat::handle_stat_args(args),
         SYS_EXECVE => syscall::execve::handle_execve_args(args),
+        SYS_OPENAT => syscall::open_close::handle_openat_args(args),
         SYS_EXIT_GROUP => syscall::exit::handle_exit_group_args(args),
         _ => "".to_string(),
     }

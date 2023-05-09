@@ -25,6 +25,8 @@
 pid_t select_pid = 0;
 /* The key to access the single entry BPF_MAP in array type. */
 u32 INDEX_0 = 0;
+u32 INDEX_1 = 1;
+
 /* FIXME: For some reason, we may not able to read the content under the
  * address at sys_enter. To solve the problem, we store the address first
  * and read it until sys_exit.
@@ -33,7 +35,7 @@ u32 INDEX_0 = 0;
  * ABI-defined register at sys_exit? If so we are able to do most
  * of the works at sys_exit directly, instead of passing the address
  * by BPF map like this. */
-DEFINE_BPF_MAP(g_buf_addr, BPF_MAP_TYPE_ARRAY, u32, void *, 1);
+DEFINE_BPF_MAP(g_buf_addr, BPF_MAP_TYPE_ARRAY, u32, void *, 2);
 
 /* FIXME: The instance allow us to store some information
  * at sys_enter and collect the remaining information at sys_exit.
@@ -50,6 +52,7 @@ struct {
 #include "bpf/exit.c"
 #include "bpf/io.c"
 #include "bpf/open_close.c"
+#include "bpf/stat.c"
 
 static void sys_enter_default(syscall_ent_t *ent, u64 id)
 {
@@ -92,17 +95,20 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
     case SYS_OPEN:
         sys_open_enter(ent, (char *) parm1, parm2);
         break;
-    case SYS_OPENAT:
-        sys_openat_enter(ent, parm1, (char *) parm2, parm3);
-        break;
     case SYS_CLOSE:
         sys_close_enter(ent, parm1);
+        break;
+    case SYS_STAT:
+        sys_stat_enter(ent, (void *) parm1, (void *) parm2);
         break;
     case SYS_EXECVE:
         sys_execve_enter(ent, (char *) parm1, (void *) parm2, (void *) parm3);
         break;
     case SYS_EXIT_GROUP:
         sys_exit_group_enter(id, parm1);
+        break;
+    case SYS_OPENAT:
+        sys_openat_enter(ent, parm1, (char *) parm2, parm3);
         break;
     default:
         break;
@@ -153,6 +159,9 @@ int sys_exit(struct bpf_raw_tracepoint_args *args)
         break;
     case SYS_OPEN:
         sys_open_exit(ent);
+        break;
+    case SYS_STAT:
+        sys_stat_exit(ent);
         break;
     case SYS_OPENAT:
         sys_openat_exit(ent);

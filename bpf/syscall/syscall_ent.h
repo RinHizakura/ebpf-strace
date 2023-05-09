@@ -45,7 +45,11 @@ typedef struct {
 static_assert(sizeof(close_args_t) <= ARGS_SIZE);
 
 typedef struct {
+    u8 pathname[BUF_SIZE];
+    struct stat statbuf;
 } stat_args_t;
+static_assert(sizeof(stat_args_t) <= ARGS_SIZE);
+
 typedef struct {
 } fstat_args_t;
 typedef struct {
