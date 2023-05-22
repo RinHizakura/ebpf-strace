@@ -1,8 +1,8 @@
+use crate::syscall::common::*;
+use chrono::{Local, TimeZone};
 use libc::{
     S_IFBLK, S_IFCHR, S_IFDIR, S_IFIFO, S_IFLNK, S_IFREG, S_IFSOCK, S_ISGID, S_ISUID, S_ISVTX,
 };
-
-use crate::syscall::common::*;
 
 #[repr(C)]
 struct StatArgs {
@@ -34,8 +34,15 @@ fn format_dev(st_dev: u64) -> String {
     }
 }
 
+fn format_timestamp(millis: i64) -> String {
+    Local
+        .timestamp_millis_opt(millis)
+        .unwrap()
+        .format("%FT%T%z")
+        .to_string()
+}
+
 fn format_struct_stat(statbuf: &libc::stat) -> String {
-    /* TODO */
     let st_dev = format_dev(statbuf.st_dev);
     let st_ino = statbuf.st_ino;
     let st_mode = format_flags(statbuf.st_mode, '|', STAT_FLAGS_DESCS);
@@ -50,7 +57,18 @@ fn format_struct_stat(statbuf: &libc::stat) -> String {
     let st_mtim = statbuf.st_mtime;
     let st_ctim = statbuf.st_ctime;
 
-    return format!("{{st_dev={st_dev}, st_ino={st_ino}, st_mode={st_mode}, st_nlink={st_nlink}, st_uid={st_uid}, st_gid={st_gid}, st_blksize={st_blksize}, st_blocks={st_blocks}, st_size={st_size}, st_atim={st_atim}, st_mtim={st_mtim}, st_ctim={st_ctim}}}");
+    let adt = format_timestamp(st_atim * 1000);
+    let mdt = format_timestamp(st_mtim * 1000);
+    let cdt = format_timestamp(st_ctim * 1000);
+
+    return format!(
+        "{{st_dev={st_dev}, st_ino={st_ino}, st_mode={st_mode}, \
+                   st_nlink={st_nlink}, st_uid={st_uid}, st_gid={st_gid}, \
+                   st_blksize={st_blksize}, st_blocks={st_blocks}, st_size={st_size}, \
+                   st_atim={st_atim} /* {adt} */, \
+                   st_mtim={st_mtim} /* {mdt} */, \
+                   st_ctim={st_ctim} /* {cdt} */}}"
+    );
 }
 
 pub(super) fn handle_stat_args(args: &[u8]) -> String {
