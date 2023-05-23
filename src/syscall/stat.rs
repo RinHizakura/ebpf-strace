@@ -11,6 +11,20 @@ struct StatArgs {
 }
 unsafe impl plain::Plain for StatArgs {}
 
+#[repr(C)]
+struct FstatArgs {
+    fd: i32,
+    statbuf: libc::stat,
+}
+unsafe impl plain::Plain for FstatArgs {}
+
+#[repr(C)]
+struct LstatArgs {
+    pathname: [u8; BUF_SIZE],
+    statbuf: libc::stat,
+}
+unsafe impl plain::Plain for LstatArgs {}
+
 const STAT_FLAGS_DESCS: &[FlagDesc] = &[
     flag_desc!(S_IFREG),
     flag_desc!(S_IFSOCK),
@@ -80,5 +94,21 @@ pub(super) fn handle_stat_args(args: &[u8]) -> String {
      * have to parse only a part of structure if the abbreviated output
      * is needed. */
     let statbuf = format_struct_stat(&stat.statbuf);
+    return format!("{}, {}", pathname, statbuf);
+}
+
+pub(super) fn handle_fstat_args(args: &[u8]) -> String {
+    let fstat = get_args::<FstatArgs>(args);
+
+    let fd = fstat.fd;
+    let statbuf = format_struct_stat(&fstat.statbuf);
+    return format!("{}, {}", fd, statbuf);
+}
+
+pub(super) fn handle_lstat_args(args: &[u8]) -> String {
+    let lstat = get_args::<LstatArgs>(args);
+
+    let pathname = format_str(&lstat.pathname);
+    let statbuf = format_struct_stat(&lstat.statbuf);
     return format!("{}, {}", pathname, statbuf);
 }

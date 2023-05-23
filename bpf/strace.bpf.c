@@ -101,6 +101,12 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
     case SYS_STAT:
         sys_stat_enter(ent, (void *) parm1, (void *) parm2);
         break;
+    case SYS_FSTAT:
+        sys_fstat_enter(ent, parm1, (void *) parm2);
+        break;
+    case SYS_LSTAT:
+        sys_lstat_enter(ent, (void *) parm1, (void *) parm2);
+        break;
     case SYS_EXECVE:
         sys_execve_enter(ent, (char *) parm1, (void *) parm2, (void *) parm3);
         break;
@@ -162,6 +168,12 @@ int sys_exit(struct bpf_raw_tracepoint_args *args)
         break;
     case SYS_STAT:
         sys_stat_exit(ent);
+        break;
+    case SYS_FSTAT:
+        sys_fstat_exit(ent);
+        break;
+    case SYS_LSTAT:
+        sys_lstat_exit(ent);
         break;
     case SYS_OPENAT:
         sys_openat_exit(ent);

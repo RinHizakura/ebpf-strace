@@ -9,6 +9,14 @@
 #define BUF_SIZE 32
 #define ARGS_SIZE 1024
 
+/* TODO: Decomment the following lines to check the arguments
+ * size when all of them are completed.
+ *
+ * #define __SYSCALL(nr, call)                            \
+ *   static_assert(sizeof(call##_args_t) <= ARGS_SIZE);
+ * #include "../syscall/syscall_tbl.h"
+ * #undef __SYSCALL
+ */
 typedef struct {
     u64 id;
     u64 ret;
@@ -24,36 +32,37 @@ typedef struct {
     u8 buf[BUF_SIZE];
     size_t count;
 } read_args_t;
-static_assert(sizeof(read_args_t) <= ARGS_SIZE);
 
 typedef struct {
     int fd;
     u8 buf[BUF_SIZE];
     size_t count;
 } write_args_t;
-static_assert(sizeof(write_args_t) <= ARGS_SIZE);
 
 typedef struct {
     u8 pathname[BUF_SIZE];
     int flags;
 } open_args_t;
-static_assert(sizeof(open_args_t) <= ARGS_SIZE);
 
 typedef struct {
     int fd;
 } close_args_t;
-static_assert(sizeof(close_args_t) <= ARGS_SIZE);
 
 typedef struct {
     u8 pathname[BUF_SIZE];
     struct stat statbuf;
 } stat_args_t;
-static_assert(sizeof(stat_args_t) <= ARGS_SIZE);
 
 typedef struct {
+    int fd;
+    struct stat statbuf;
 } fstat_args_t;
+
 typedef struct {
+    u8 pathname[BUF_SIZE];
+    struct stat statbuf;
 } lstat_args_t;
+
 typedef struct {
 } poll_args_t;
 typedef struct {
@@ -167,7 +176,6 @@ typedef struct {
     u8 argc;
     u8 envp_cnt;
 } execve_args_t;
-static_assert(sizeof(execve_args_t) <= ARGS_SIZE);
 
 typedef struct {
 } exit_args_t;
@@ -515,7 +523,6 @@ typedef struct {
 typedef struct {
     int status;
 } exit_group_args_t;
-static_assert(sizeof(exit_group_args_t) <= ARGS_SIZE);
 
 typedef struct {
 } epoll_wait_args_t;
@@ -573,7 +580,6 @@ typedef struct {
     int dirfd;
     int flags;
 } openat_args_t;
-static_assert(sizeof(openat_args_t) <= ARGS_SIZE);
 
 typedef struct {
 } mkdirat_args_t;
