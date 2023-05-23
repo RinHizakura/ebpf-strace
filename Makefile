@@ -1,6 +1,7 @@
 OUT = target/debug
 BIN = $(OUT)/ebpf-strace
 VMLINUX_H = vmlinux.h
+GIT_HOOKS := .git/hooks/applied
 
 SRCS = $(shell find ./src -name '*.c')
 SRCS += $(shell find ./src -name '*.rs')
