@@ -31,14 +31,6 @@ const OPEN_FLAGS_DESCS: &[FlagDesc] = &[
     flag_desc!(O_DIRECTORY),
 ];
 
-fn format_dirfd(fd: i32) -> String {
-    if fd == libc::AT_FDCWD {
-        "AT_FDCWD".to_string()
-    } else {
-        fd.to_string()
-    }
-}
-
 #[repr(C)]
 struct OpenArgs {
     pathname: [u8; BUF_SIZE],

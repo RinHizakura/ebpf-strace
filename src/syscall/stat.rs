@@ -1,7 +1,8 @@
 use crate::syscall::common::*;
 use chrono::{Local, TimeZone};
 use libc::{
-    S_IFBLK, S_IFCHR, S_IFDIR, S_IFIFO, S_IFLNK, S_IFREG, S_IFSOCK, S_ISGID, S_ISUID, S_ISVTX,
+    AT_EMPTY_PATH, S_IFBLK, S_IFCHR, S_IFDIR, S_IFIFO, S_IFLNK, S_IFREG, S_IFSOCK, S_ISGID,
+    S_ISUID, S_ISVTX,
 };
 
 #[repr(C)]
@@ -25,6 +26,15 @@ struct LstatArgs {
 }
 unsafe impl plain::Plain for LstatArgs {}
 
+#[repr(C)]
+struct NewfstatatArgs {
+    pathname: [u8; BUF_SIZE],
+    dirfd: i32,
+    flags: i32,
+    statbuf: libc::stat,
+}
+unsafe impl plain::Plain for NewfstatatArgs {}
+
 const STAT_FLAGS_DESCS: &[FlagDesc] = &[
     flag_desc!(S_IFREG),
     flag_desc!(S_IFSOCK),
@@ -37,6 +47,8 @@ const STAT_FLAGS_DESCS: &[FlagDesc] = &[
     flag_desc!(S_ISGID),
     flag_desc!(S_ISVTX),
 ];
+
+const AT_FLAGS_DESCS: &[FlagDesc] = &[flag_desc!(AT_EMPTY_PATH)];
 
 fn format_dev(st_dev: u64) -> String {
     unsafe {
@@ -111,4 +123,14 @@ pub(super) fn handle_lstat_args(args: &[u8]) -> String {
     let pathname = format_str(&lstat.pathname);
     let statbuf = format_struct_stat(&lstat.statbuf);
     return format!("{}, {}", pathname, statbuf);
+}
+
+pub(super) fn handle_newfstatat_args(args: &[u8]) -> String {
+    let newfstatat = get_args::<NewfstatatArgs>(args);
+
+    let dirfd = format_dirfd(newfstatat.dirfd);
+    let pathname = format_str(&newfstatat.pathname);
+    let statbuf = format_struct_stat(&newfstatat.statbuf);
+    let flags = format_flags(newfstatat.flags as u32, '|', AT_FLAGS_DESCS);
+    return format!("{}, {}, {}, {}", dirfd, pathname, statbuf, flags);
 }

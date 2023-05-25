@@ -80,10 +80,10 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
     sys_enter_default(ent, id);
 
     struct pt_regs *pt_regs = (struct pt_regs *) args->args[0];
-    u64 parm1 = PT_REGS_PARM1_CORE(pt_regs);
-    u64 parm2 = PT_REGS_PARM2_CORE(pt_regs);
-    u64 parm3 = PT_REGS_PARM3_CORE(pt_regs);
-    __attribute__((unused)) u64 parm4 = PT_REGS_PARM4_CORE(pt_regs);
+    u64 parm1 = PT_REGS_PARM1_CORE_SYSCALL(pt_regs);
+    u64 parm2 = PT_REGS_PARM2_CORE_SYSCALL(pt_regs);
+    u64 parm3 = PT_REGS_PARM3_CORE_SYSCALL(pt_regs);
+    u64 parm4 = PT_REGS_PARM4_CORE_SYSCALL(pt_regs);
     __attribute__((unused)) u64 parm5 = PT_REGS_PARM5_CORE(pt_regs);
     switch (id) {
     case SYS_READ:
@@ -106,6 +106,9 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
         break;
     case SYS_LSTAT:
         sys_lstat_enter(ent, (void *) parm1, (void *) parm2);
+        break;
+    case SYS_NEWFSTATAT:
+        sys_newfstatat_enter(ent, parm1, (void *) parm2, (void *) parm3, parm4);
         break;
     case SYS_EXECVE:
         sys_execve_enter(ent, (char *) parm1, (void *) parm2, (void *) parm3);
@@ -174,6 +177,9 @@ int sys_exit(struct bpf_raw_tracepoint_args *args)
         break;
     case SYS_LSTAT:
         sys_lstat_exit(ent);
+        break;
+    case SYS_NEWFSTATAT:
+        sys_newfstatat_exit(ent);
         break;
     case SYS_OPENAT:
         sys_openat_exit(ent);

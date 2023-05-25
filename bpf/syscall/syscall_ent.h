@@ -589,8 +589,14 @@ typedef struct {
 } fchownat_args_t;
 typedef struct {
 } futimesat_args_t;
+
 typedef struct {
+    u8 pathname[BUF_SIZE];
+    int dirfd;
+    int flags;
+    struct stat statbuf;
 } newfstatat_args_t;
+
 typedef struct {
 } unlinkat_args_t;
 typedef struct {

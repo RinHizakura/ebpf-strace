@@ -88,6 +88,14 @@ pub fn format_flags(mut flags: u32, sep: char, flags_descs: &[FlagDesc]) -> Stri
     output_str
 }
 
+pub fn format_dirfd(fd: i32) -> String {
+    if fd == libc::AT_FDCWD {
+        "AT_FDCWD".to_string()
+    } else {
+        fd.to_string()
+    }
+}
+
 pub fn get_args<T: plain::Plain>(args: &[u8]) -> &T {
     let size = std::mem::size_of::<T>();
     let slice = &args[0..size];

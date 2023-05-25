@@ -73,3 +73,23 @@ static void sys_lstat_exit(syscall_ent_t *ent)
     load_pathname(lstat->pathname);
     load_statbuf(&lstat->statbuf);
 }
+
+static void sys_newfstatat_enter(syscall_ent_t *ent,
+                                 int dirfd,
+                                 char *pathname,
+                                 struct stat *statbuf,
+                                 int flags)
+{
+    newfstatat_args_t *newfstatat = (newfstatat_args_t *) ent->bytes;
+    newfstatat->dirfd = dirfd;
+    newfstatat->flags = flags;
+    save_pathname(pathname);
+    save_statbuf(statbuf);
+}
+
+static void sys_newfstatat_exit(syscall_ent_t *ent)
+{
+    newfstatat_args_t *newfstatat = (newfstatat_args_t *) ent->bytes;
+    load_pathname(newfstatat->pathname);
+    load_statbuf(&newfstatat->statbuf);
+}

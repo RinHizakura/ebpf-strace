@@ -33,6 +33,7 @@ fn handle_args(id: u64, args: &[u8], ret: u64) -> String {
         SYS_STAT => syscall::stat::handle_stat_args(args),
         SYS_FSTAT => syscall::stat::handle_fstat_args(args),
         SYS_LSTAT => syscall::stat::handle_lstat_args(args),
+        SYS_NEWFSTATAT => syscall::stat::handle_newfstatat_args(args),
         SYS_EXECVE => syscall::execve::handle_execve_args(args),
         SYS_OPENAT => syscall::open_close::handle_openat_args(args),
         SYS_EXIT_GROUP => syscall::exit::handle_exit_group_args(args),
