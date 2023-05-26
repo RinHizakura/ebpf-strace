@@ -67,6 +67,10 @@ pub struct FlagDesc {
 }
 
 pub fn format_flags(mut flags: u32, sep: char, flags_descs: &[FlagDesc]) -> String {
+    if flags == 0 {
+        return "0".to_string();
+    }
+
     let mut output_str: String = String::new();
 
     for f in flags_descs {

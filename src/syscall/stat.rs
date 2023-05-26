@@ -1,7 +1,8 @@
 use crate::syscall::common::*;
 use chrono::{Local, TimeZone};
 use libc::{
-    AT_EMPTY_PATH, S_IFBLK, S_IFCHR, S_IFDIR, S_IFIFO, S_IFLNK, S_IFREG, S_IFSOCK, S_ISGID,
+    AT_EMPTY_PATH, AT_NO_AUTOMOUNT, AT_RECURSIVE, AT_REMOVEDIR, AT_SYMLINK_FOLLOW,
+    AT_SYMLINK_NOFOLLOW, S_IFBLK, S_IFCHR, S_IFDIR, S_IFIFO, S_IFLNK, S_IFREG, S_IFSOCK, S_ISGID,
     S_ISUID, S_ISVTX,
 };
 
@@ -48,7 +49,14 @@ const STAT_FLAGS_DESCS: &[FlagDesc] = &[
     flag_desc!(S_ISVTX),
 ];
 
-const AT_FLAGS_DESCS: &[FlagDesc] = &[flag_desc!(AT_EMPTY_PATH)];
+const AT_FLAGS_DESCS: &[FlagDesc] = &[
+    flag_desc!(AT_SYMLINK_NOFOLLOW),
+    flag_desc!(AT_REMOVEDIR),
+    flag_desc!(AT_SYMLINK_FOLLOW),
+    flag_desc!(AT_NO_AUTOMOUNT),
+    flag_desc!(AT_EMPTY_PATH),
+    flag_desc!(AT_RECURSIVE),
+];
 
 fn format_dev(st_dev: u64) -> String {
     unsafe {
