@@ -63,8 +63,13 @@ typedef struct {
     struct stat statbuf;
 } lstat_args_t;
 
+#define POLLFD_MAX_CNT 4
 typedef struct {
+    struct pollfd fds[POLLFD_MAX_CNT];
+    u32 nfds;
+    int timeout;
 } poll_args_t;
+
 typedef struct {
 } lseek_args_t;
 typedef struct {

@@ -1,4 +1,5 @@
 #include <fcntl.h>
+#include <poll.h>
 #include <sys/stat.h>
 #include <sys/syscall.h>
 #include <sys/types.h>
@@ -44,10 +45,22 @@ int do_stat()
     return 0;
 }
 
+int do_poll()
+{
+    struct pollfd pfd;
+    pfd.fd = STDIN_FILENO;
+    pfd.events = POLLIN;
+
+    poll(&pfd, 1, 0);
+
+    return 0;
+}
+
 int main()
 {
     // TEST(do_file_operation);
-    TEST(do_stat);
+    // TEST(do_stat);
+    TEST(do_poll);
 
     return 0;
 }
