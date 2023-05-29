@@ -2,7 +2,7 @@ use crate::syscall::common::*;
 
 #[repr(C)]
 struct PollArgs {
-    fds: [libc::pollfd; 4],
+    fds: [libc::pollfd; ARR_ENT_SIZE],
     nfds: u32,
     timeout: i32,
 }

@@ -36,7 +36,7 @@ static void sys_execve_enter(syscall_ent_t *ent,
         if (!var)
             break;
 
-        if (idx < ARGV_MAX_CNT) {
+        if (idx < ARR_ENT_SIZE) {
             memset(execve->argv[idx], 0, BUF_SIZE);
             bpf_core_read_user(execve->argv[idx], BUF_SIZE, var);
         }
@@ -47,6 +47,6 @@ static void sys_execve_enter(syscall_ent_t *ent,
     execve->envp_cnt = count_envp_len(envp);
 
     memset(execve->pathname, 0, sizeof(execve->pathname));
-    bpf_core_read_user_str(execve->pathname, sizeof(execve->pathname),
+    bpf_core_read_user(execve->pathname, sizeof(execve->pathname),
                            pathname);
 }

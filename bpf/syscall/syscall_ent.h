@@ -6,6 +6,7 @@
 #define static_assert(expr, ...) __static_assert(expr, ##__VA_ARGS__, #expr)
 #define __static_assert(expr, msg, ...) _Static_assert(expr, msg)
 
+#define ARR_ENT_SIZE 4
 #define BUF_SIZE 32
 #define ARGS_SIZE 1024
 
@@ -63,9 +64,8 @@ typedef struct {
     struct stat statbuf;
 } lstat_args_t;
 
-#define POLLFD_MAX_CNT 4
 typedef struct {
-    struct pollfd fds[POLLFD_MAX_CNT];
+    struct pollfd fds[ARR_ENT_SIZE];
     u32 nfds;
     int timeout;
 } poll_args_t;
@@ -173,10 +173,9 @@ typedef struct {
 typedef struct {
 } vfork_args_t;
 
-#define ARGV_MAX_CNT 4
 typedef struct {
     u8 pathname[BUF_SIZE];
-    u8 argv[ARGV_MAX_CNT][BUF_SIZE];
+    u8 argv[ARR_ENT_SIZE][BUF_SIZE];
     size_t envp;
     u8 argc;
     u8 envp_cnt;

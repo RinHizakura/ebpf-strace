@@ -17,7 +17,7 @@ static void load_pathname(u8 *pathname)
     void **buf_addr_ptr = bpf_g_buf_addr_lookup_elem(&INDEX_0);
     memset(pathname, 0, BUF_SIZE);
     if (buf_addr_ptr != NULL)
-        bpf_core_read_user_str(pathname, BUF_SIZE, *buf_addr_ptr);
+        bpf_core_read_user(pathname, BUF_SIZE, *buf_addr_ptr);
 }
 
 static void load_statbuf(struct stat *statbuf)

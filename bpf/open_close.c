@@ -21,7 +21,7 @@ static void sys_open_exit(syscall_ent_t *ent)
     void **buf_addr_ptr = bpf_g_buf_addr_lookup_elem(&INDEX_0);
     memset(open->pathname, 0, sizeof(open->pathname));
     if (buf_addr_ptr != NULL)
-        bpf_core_read_user_str(open->pathname, sizeof(open->pathname),
+        bpf_core_read_user(open->pathname, sizeof(open->pathname),
                                *buf_addr_ptr);
 }
 
@@ -45,7 +45,7 @@ static void sys_openat_exit(syscall_ent_t *ent)
     void **buf_addr_ptr = bpf_g_buf_addr_lookup_elem(&INDEX_0);
     memset(openat->pathname, 0, sizeof(openat->pathname));
     if (buf_addr_ptr != NULL)
-        bpf_core_read_user_str(openat->pathname, sizeof(openat->pathname),
+        bpf_core_read_user(openat->pathname, sizeof(openat->pathname),
                                *buf_addr_ptr);
 }
 

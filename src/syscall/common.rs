@@ -1,3 +1,4 @@
+pub const ARR_ENT_SIZE: usize = 4;
 pub const BUF_SIZE: usize = 32;
 
 #[macro_export]
@@ -37,7 +38,7 @@ pub(super) fn format_buf(buf: &[u8], count: usize) -> String {
     s
 }
 
-pub(super) fn format_str(buf: &[u8]) -> String {
+pub(super) fn format_str(buf: &[u8;BUF_SIZE]) -> String {
     let len = buf.len();
     let mut idx = 0;
 
@@ -99,6 +100,28 @@ pub fn format_dirfd(fd: i32) -> String {
         fd.to_string()
     }
 }
+
+pub fn format_arr<T, F>(arr: &[T], arr_size: usize, formatter: F) -> String
+where F: Fn(&T) -> String,
+{
+    /* FIXME: We should make this prettier if there's the way :( */
+    let mut list_str = String::new();
+    /* Note that arr_size is not equal to arr.len(). */
+    let printed_argc = (arr_size as usize).min(ARR_ENT_SIZE);
+    for idx in 0..printed_argc {
+        list_str.push_str(&formatter(&arr[idx]));
+        list_str.push(',');
+    }
+    // Pop out the last ','
+    list_str.pop();
+
+    if arr_size > ARR_ENT_SIZE {
+        list_str.push_str("...");
+    }
+
+    list_str
+}
+
 
 pub fn get_args<T: plain::Plain>(args: &[u8]) -> &T {
     let size = std::mem::size_of::<T>();
