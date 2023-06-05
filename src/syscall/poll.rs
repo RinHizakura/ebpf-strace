@@ -2,7 +2,7 @@ use libc::{POLLHUP, POLLIN, POLLNVAL, POLLOUT, POLLPRI};
 
 use crate::syscall::common::*;
 
-const POLL_FLAGS_DESCS: &[FlagDesc] = &[
+const POLL_EVENTS_DESCS: &[FlagDesc] = &[
     flag_desc!(POLLIN),
     flag_desc!(POLLPRI),
     flag_desc!(POLLOUT),
@@ -19,7 +19,7 @@ struct PollArgs {
 unsafe impl plain::Plain for PollArgs {}
 
 fn format_pollfd(fd: &libc::pollfd) -> String {
-    let events = format_flags(fd.events as u32, '|', POLL_FLAGS_DESCS);
+    let events = format_flags(fd.events as u32, '|', POLL_EVENTS_DESCS);
     return format!("{{fd={}, events={}}}", fd.fd, events);
 }
 

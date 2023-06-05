@@ -77,7 +77,14 @@ typedef struct {
 } lseek_args_t;
 
 typedef struct {
+    void *addr;
+    size_t length;
+    int prot;
+    int flags;
+    int fd;
+    off_t offset;
 } mmap_args_t;
+
 typedef struct {
 } mprotect_args_t;
 typedef struct {

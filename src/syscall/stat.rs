@@ -36,7 +36,7 @@ struct NewfstatatArgs {
 }
 unsafe impl plain::Plain for NewfstatatArgs {}
 
-const STAT_FLAGS_DESCS: &[FlagDesc] = &[
+const STAT_STMODE_DESCS: &[FlagDesc] = &[
     flag_desc!(S_IFREG),
     flag_desc!(S_IFSOCK),
     flag_desc!(S_IFIFO),
@@ -79,7 +79,7 @@ fn format_timestamp(millis: i64) -> String {
 fn format_struct_stat(statbuf: &libc::stat) -> String {
     let st_dev = format_dev(statbuf.st_dev);
     let st_ino = statbuf.st_ino;
-    let st_mode = format_flags(statbuf.st_mode, '|', STAT_FLAGS_DESCS);
+    let st_mode = format_flags(statbuf.st_mode, '|', STAT_STMODE_DESCS);
     //let st_mode = statbuf.st_mode;
     let st_nlink = statbuf.st_nlink;
     let st_uid = statbuf.st_uid;

@@ -70,7 +70,13 @@ pub struct FlagDesc {
 pub fn format_flags(mut flags: u32, sep: char, flags_descs: &[FlagDesc]) -> String {
     let mut output_str: String = String::new();
 
+    let mut zero_flag_str = "0";
     for f in flags_descs {
+        if f.val == 0 {
+            zero_flag_str = f.name;
+            continue;
+        }
+
         if (flags & f.val) == f.val {
             output_str.push_str(f.name);
             output_str.push(sep);
@@ -83,7 +89,7 @@ pub fn format_flags(mut flags: u32, sep: char, flags_descs: &[FlagDesc]) -> Stri
         output_str.push_str(&format!("{:o}", flags));
     } else {
         if output_str.is_empty() {
-            output_str.push('0');
+            output_str.push_str(zero_flag_str);
         } else {
             // Pop out the last seperator if there's any
             output_str.pop();
@@ -126,6 +132,14 @@ where
     list_str.push(']');
 
     list_str
+}
+
+pub(super) fn format_addr(addr: usize) -> String {
+    if addr == 0 {
+        "NULL".to_string()
+    } else {
+        addr.to_string()
+    }
 }
 
 pub fn get_args<T: plain::Plain>(args: &[u8]) -> &T {

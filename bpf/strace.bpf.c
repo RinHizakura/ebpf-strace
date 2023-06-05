@@ -52,6 +52,7 @@ struct {
 #include "bpf/exit.c"
 #include "bpf/io.c"
 #include "bpf/lseek.c"
+#include "bpf/mem.c"
 #include "bpf/open_close.c"
 #include "bpf/poll.c"
 #include "bpf/stat.c"
@@ -86,7 +87,8 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
     u64 parm2 = PT_REGS_PARM2_CORE_SYSCALL(pt_regs);
     u64 parm3 = PT_REGS_PARM3_CORE_SYSCALL(pt_regs);
     u64 parm4 = PT_REGS_PARM4_CORE_SYSCALL(pt_regs);
-    __attribute__((unused)) u64 parm5 = PT_REGS_PARM5_CORE(pt_regs);
+    u64 parm5 = PT_REGS_PARM5_CORE_SYSCALL(pt_regs);
+    u64 parm6 = PT_REGS_PARM6_CORE_SYSCALL(pt_regs);
     switch (id) {
     case SYS_READ:
         sys_read_enter(ent, parm1, (void *) parm2, parm3);
@@ -114,6 +116,9 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
         break;
     case SYS_LSEEK:
         sys_lseek_enter(ent, parm1, parm2, parm3);
+        break;
+    case SYS_MMAP:
+        sys_mmap_enter(ent, (void *) parm1, parm2, parm3, parm4, parm5, parm6);
         break;
     case SYS_NEWFSTATAT:
         sys_newfstatat_enter(ent, parm1, (void *) parm2, (void *) parm3, parm4);
