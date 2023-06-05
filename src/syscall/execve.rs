@@ -17,7 +17,7 @@ pub(super) fn handle_execve_args(args: &[u8]) -> String {
     let argv_list = format_arr(&execve.argv, execve.argc as usize, format_str);
 
     return format!(
-        "{}, [{}], 0x{:x} /* {} var{} */",
+        "{}, {}, 0x{:x} /* {} var{} */",
         pathname,
         argv_list,
         execve.envp,

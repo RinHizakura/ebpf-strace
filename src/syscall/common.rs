@@ -101,11 +101,14 @@ pub fn format_dirfd(fd: i32) -> String {
     }
 }
 
+/* FIXME: We should make the implementation prettier if there's the way :( */
 pub fn format_arr<T, F>(arr: &[T], arr_size: usize, formatter: F) -> String
 where F: Fn(&T) -> String,
 {
-    /* FIXME: We should make this prettier if there's the way :( */
     let mut list_str = String::new();
+
+    list_str.push('[');
+
     /* Note that arr_size is not equal to arr.len(). */
     let printed_argc = (arr_size as usize).min(ARR_ENT_SIZE);
     for idx in 0..printed_argc {
@@ -118,6 +121,8 @@ where F: Fn(&T) -> String,
     if arr_size > ARR_ENT_SIZE {
         list_str.push_str("...");
     }
+
+    list_str.push(']');
 
     list_str
 }
