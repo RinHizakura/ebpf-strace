@@ -71,7 +71,11 @@ typedef struct {
 } poll_args_t;
 
 typedef struct {
+    int fd;
+    off_t offset;
+    int whence;
 } lseek_args_t;
+
 typedef struct {
 } mmap_args_t;
 typedef struct {

@@ -1,4 +1,4 @@
-use libc::{POLLIN, POLLPRI, POLLOUT, POLLHUP, POLLNVAL};
+use libc::{POLLHUP, POLLIN, POLLNVAL, POLLOUT, POLLPRI};
 
 use crate::syscall::common::*;
 

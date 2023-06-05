@@ -38,7 +38,7 @@ pub(super) fn format_buf(buf: &[u8], count: usize) -> String {
     s
 }
 
-pub(super) fn format_str(buf: &[u8;BUF_SIZE]) -> String {
+pub(super) fn format_str(buf: &[u8; BUF_SIZE]) -> String {
     let len = buf.len();
     let mut idx = 0;
 
@@ -68,10 +68,6 @@ pub struct FlagDesc {
 }
 
 pub fn format_flags(mut flags: u32, sep: char, flags_descs: &[FlagDesc]) -> String {
-    if flags == 0 {
-        return "0".to_string();
-    }
-
     let mut output_str: String = String::new();
 
     for f in flags_descs {
@@ -86,8 +82,12 @@ pub fn format_flags(mut flags: u32, sep: char, flags_descs: &[FlagDesc]) -> Stri
         /* FIXME: The format(base, width) should be specified by caller */
         output_str.push_str(&format!("{:o}", flags));
     } else {
-        // Pop out the last seperator if there's any
-        output_str.pop();
+        if output_str.is_empty() {
+            output_str.push('0');
+        } else {
+            // Pop out the last seperator if there's any
+            output_str.pop();
+        }
     }
 
     output_str
@@ -103,7 +103,8 @@ pub fn format_dirfd(fd: i32) -> String {
 
 /* FIXME: We should make the implementation prettier if there's the way :( */
 pub fn format_arr<T, F>(arr: &[T], arr_size: usize, formatter: F) -> String
-where F: Fn(&T) -> String,
+where
+    F: Fn(&T) -> String,
 {
     let mut list_str = String::new();
 
@@ -126,7 +127,6 @@ where F: Fn(&T) -> String,
 
     list_str
 }
-
 
 pub fn get_args<T: plain::Plain>(args: &[u8]) -> &T {
     let size = std::mem::size_of::<T>();

@@ -19,6 +19,8 @@ int do_file_operation()
     if (fd < 0)
         return -1;
 
+    lseek(fd, 0, SEEK_SET);
+
     close(fd);
     close(dirfd);
 
@@ -58,9 +60,9 @@ int do_poll()
 
 int main()
 {
-    // TEST(do_file_operation);
+    TEST(do_file_operation);
     // TEST(do_stat);
-    TEST(do_poll);
+    // TEST(do_poll);
 
     return 0;
 }

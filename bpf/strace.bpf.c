@@ -51,6 +51,7 @@ struct {
 #include "bpf/execve.c"
 #include "bpf/exit.c"
 #include "bpf/io.c"
+#include "bpf/lseek.c"
 #include "bpf/open_close.c"
 #include "bpf/poll.c"
 #include "bpf/stat.c"
@@ -110,6 +111,9 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
         break;
     case SYS_POLL:
         sys_poll_enter(ent, (void *) parm1, parm2, parm3);
+        break;
+    case SYS_LSEEK:
+        sys_lseek_enter(ent, parm1, parm2, parm3);
         break;
     case SYS_NEWFSTATAT:
         sys_newfstatat_enter(ent, parm1, (void *) parm2, (void *) parm3, parm4);
