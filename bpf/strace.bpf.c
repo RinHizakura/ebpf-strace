@@ -120,6 +120,12 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
     case SYS_MMAP:
         sys_mmap_enter(ent, (void *) parm1, parm2, parm3, parm4, parm5, parm6);
         break;
+    case SYS_MPROTECT:
+        sys_mprotect_enter(ent, (void *) parm1, parm2, parm3);
+        break;
+    case SYS_MUNMAP:
+        sys_munmap_enter(ent, (void *) parm1, parm2);
+        break;
     case SYS_NEWFSTATAT:
         sys_newfstatat_enter(ent, parm1, (void *) parm2, (void *) parm3, parm4);
         break;

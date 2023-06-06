@@ -75,7 +75,14 @@ int do_map()
 
     size_t length = (sb.st_size > pa_offset) ? sb.st_size - pa_offset : 0;
     void *addr = mmap(NULL, length, PROT_READ, MAP_PRIVATE, fd, pa_offset);
-    return (addr == NULL) ? -1 : 0;
+    if (addr == NULL)
+        return -1;
+
+    if (mprotect(addr, length, PROT_WRITE) != 0)
+        return -1;
+
+    munmap(addr, length);
+    return 0;
 }
 
 int main()

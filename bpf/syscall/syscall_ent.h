@@ -86,9 +86,16 @@ typedef struct {
 } mmap_args_t;
 
 typedef struct {
+    void *addr;
+    size_t len;
+    int prot;
 } mprotect_args_t;
+
 typedef struct {
+    void *addr;
+    size_t length;
 } munmap_args_t;
+
 typedef struct {
 } brk_args_t;
 typedef struct {

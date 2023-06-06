@@ -15,3 +15,22 @@ static void sys_mmap_enter(syscall_ent_t *ent,
     mmap->fd = fd;
     mmap->offset = offset;
 }
+
+static void sys_mprotect_enter(syscall_ent_t *ent,
+                               void *addr,
+                               size_t len,
+                               int prot)
+{
+    mprotect_args_t *mprotect = (mprotect_args_t *) ent->bytes;
+
+    mprotect->addr = addr;
+    mprotect->len = len;
+    mprotect->prot = prot;
+}
+
+static void sys_munmap_enter(syscall_ent_t *ent, void *addr, size_t length)
+{
+    munmap_args_t *munmap = (munmap_args_t *) ent->bytes;
+    munmap->addr = addr;
+    munmap->length = length;
+}

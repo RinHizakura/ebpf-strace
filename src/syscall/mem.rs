@@ -58,3 +58,33 @@ pub(super) fn handle_mmap_args(args: &[u8]) -> String {
         addr, mmap.length, prot, flags, mmap.fd, mmap.offset
     );
 }
+
+#[repr(C)]
+struct MprotectArgs {
+    addr: usize,
+    length: usize,
+    prot: i32,
+}
+unsafe impl plain::Plain for MprotectArgs {}
+
+pub(super) fn handle_mprotect_args(args: &[u8]) -> String {
+    let mprotect = get_args::<MprotectArgs>(args);
+
+    let addr = format_addr(mprotect.addr);
+    let prot = format_flags(mprotect.prot as u32, '|', &MMAP_PROT_DESCS);
+    return format!("{}, {}, {}", addr, mprotect.length, prot);
+}
+
+#[repr(C)]
+struct MunmapArgs {
+    addr: usize,
+    length: usize,
+}
+unsafe impl plain::Plain for MunmapArgs {}
+
+pub(super) fn handle_munmap_args(args: &[u8]) -> String {
+    let munmap = get_args::<MunmapArgs>(args);
+
+    let addr = format_addr(munmap.addr);
+    return format!("{}, {}", addr, munmap.length);
+}

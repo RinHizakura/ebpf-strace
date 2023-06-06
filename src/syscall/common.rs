@@ -138,7 +138,7 @@ pub(super) fn format_addr(addr: usize) -> String {
     if addr == 0 {
         "NULL".to_string()
     } else {
-        addr.to_string()
+        format!("0x{:x}", addr)
     }
 }
 
