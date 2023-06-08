@@ -97,7 +97,9 @@ typedef struct {
 } munmap_args_t;
 
 typedef struct {
+    void *addr;
 } brk_args_t;
+
 typedef struct {
 } rt_sigaction_args_t;
 typedef struct {

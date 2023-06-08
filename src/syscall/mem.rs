@@ -88,3 +88,16 @@ pub(super) fn handle_munmap_args(args: &[u8]) -> String {
     let addr = format_addr(munmap.addr);
     return format!("{}, {}", addr, munmap.length);
 }
+
+#[repr(C)]
+struct BrkArgs {
+    addr: usize,
+}
+unsafe impl plain::Plain for BrkArgs {}
+
+pub(super) fn handle_brk_args(args: &[u8]) -> String {
+    let brk = get_args::<BrkArgs>(args);
+
+    let addr = format_addr(brk.addr);
+    return format!("{}", addr);
+}

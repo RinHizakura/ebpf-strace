@@ -1,5 +1,6 @@
 #include <fcntl.h>
 #include <poll.h>
+#include <stdlib.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/syscall.h>
@@ -80,8 +81,14 @@ int do_map()
 
     if (mprotect(addr, length, PROT_WRITE) != 0)
         return -1;
-
     munmap(addr, length);
+    return 0;
+}
+
+int do_mem()
+{
+    void *ptr = malloc(4096);
+    free(ptr);
     return 0;
 }
 
@@ -90,7 +97,9 @@ int main()
     // TEST(do_file_operation);
     // TEST(do_stat);
     // TEST(do_poll);
-    TEST(do_map);
+    // TEST(do_map);
+    TEST(do_mem);
+
 
     return 0;
 }

@@ -34,3 +34,9 @@ static void sys_munmap_enter(syscall_ent_t *ent, void *addr, size_t length)
     munmap->addr = addr;
     munmap->length = length;
 }
+
+static void sys_brk_enter(syscall_ent_t *ent, void *addr)
+{
+    brk_args_t *brk = (brk_args_t *) ent->bytes;
+    brk->addr = addr;
+}
