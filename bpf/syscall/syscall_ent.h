@@ -101,7 +101,12 @@ typedef struct {
 } brk_args_t;
 
 typedef struct {
+    struct sigaction act;
+    struct sigaction oldact;
+    size_t sigsetsize;
+    int signum;
 } rt_sigaction_args_t;
+
 typedef struct {
 } rt_sigprocmask_args_t;
 typedef struct {

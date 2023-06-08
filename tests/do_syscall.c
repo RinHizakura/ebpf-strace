@@ -1,5 +1,6 @@
 #include <fcntl.h>
 #include <poll.h>
+#include <signal.h>
 #include <stdlib.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -92,14 +93,31 @@ int do_mem()
     return 0;
 }
 
+static void handler(int signo)
+{
+    /* dummy */
+}
+
+int do_signal()
+{
+    struct sigaction act;
+    act.sa_flags = 0;
+    act.sa_handler = handler;
+
+    if (sigaction(SIGUSR1, &act, NULL) < 0)
+        return -1;
+
+    return 0;
+}
+
 int main()
 {
     // TEST(do_file_operation);
     // TEST(do_stat);
     // TEST(do_poll);
     // TEST(do_map);
-    TEST(do_mem);
-
+    // TEST(do_mem);
+    TEST(do_signal);
 
     return 0;
 }

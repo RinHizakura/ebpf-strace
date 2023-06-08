@@ -55,6 +55,7 @@ struct {
 #include "bpf/mem.c"
 #include "bpf/open_close.c"
 #include "bpf/poll.c"
+#include "bpf/signal.c"
 #include "bpf/stat.c"
 
 static void sys_enter_default(syscall_ent_t *ent, u64 id)
@@ -128,6 +129,10 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
         break;
     case SYS_BRK:
         sys_brk_enter(ent, (void *) parm1);
+        break;
+    case SYS_RT_SIGACTION:
+        sys_rt_sigaction_enter(ent, parm1, (void *) parm2, (void *) parm3,
+                               parm4);
         break;
     case SYS_NEWFSTATAT:
         sys_newfstatat_enter(ent, parm1, (void *) parm2, (void *) parm3, parm4);

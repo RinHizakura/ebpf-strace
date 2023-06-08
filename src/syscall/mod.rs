@@ -7,6 +7,7 @@ mod lseek;
 mod mem;
 mod open_close;
 mod poll;
+mod signal;
 mod stat;
 mod syscall_desc;
 mod syscall_nr;
@@ -42,6 +43,7 @@ fn handle_args(id: u64, args: &[u8], ret: u64) -> String {
         SYS_MPROTECT => syscall::mem::handle_mprotect_args(args),
         SYS_MUNMAP => syscall::mem::handle_munmap_args(args),
         SYS_BRK => syscall::mem::handle_brk_args(args),
+        SYS_RT_SIGACTION => syscall::signal::handle_rt_sigaction_args(args),
         SYS_NEWFSTATAT => syscall::stat::handle_newfstatat_args(args),
         SYS_EXECVE => syscall::execve::handle_execve_args(args),
         SYS_OPENAT => syscall::open_close::handle_openat_args(args),
