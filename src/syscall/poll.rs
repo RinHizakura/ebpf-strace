@@ -1,3 +1,5 @@
+use std::ffi::c_int;
+
 use libc::{POLLHUP, POLLIN, POLLNVAL, POLLOUT, POLLPRI};
 
 use crate::syscall::common::*;
@@ -14,12 +16,12 @@ const POLL_EVENTS_DESCS: &[FlagDesc] = &[
 struct PollArgs {
     fds: [libc::pollfd; ARR_ENT_SIZE],
     nfds: u32,
-    timeout: i32,
+    timeout: c_int,
 }
 unsafe impl plain::Plain for PollArgs {}
 
 fn format_pollfd(fd: &libc::pollfd) -> String {
-    let events = format_flags(fd.events as u32, '|', POLL_EVENTS_DESCS);
+    let events = format_flags(fd.events as c_int, '|', POLL_EVENTS_DESCS);
     return format!("{{fd={}, events={}}}", fd.fd, events);
 }
 

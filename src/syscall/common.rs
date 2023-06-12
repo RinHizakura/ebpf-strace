@@ -1,3 +1,5 @@
+use std::ffi::c_int;
+
 pub const ARR_ENT_SIZE: usize = 4;
 pub const BUF_SIZE: usize = 32;
 
@@ -5,7 +7,7 @@ pub const BUF_SIZE: usize = 32;
 macro_rules! flag_desc {
     ( $flag:expr ) => {
         FlagDesc {
-            val: $flag as u32,
+            val: $flag as c_int,
             name: stringify!($flag),
         }
     };
@@ -63,11 +65,11 @@ pub(super) fn format_str(buf: &[u8; BUF_SIZE]) -> String {
 }
 
 pub struct FlagDesc {
-    pub val: u32,
+    pub val: c_int,
     pub name: &'static str,
 }
 
-pub fn format_flags(mut flags: u32, sep: char, flags_descs: &[FlagDesc]) -> String {
+pub fn format_flags(mut flags: c_int, sep: char, flags_descs: &[FlagDesc]) -> String {
     let mut output_str: String = String::new();
 
     let mut zero_flag_str = "0";
@@ -99,7 +101,7 @@ pub fn format_flags(mut flags: u32, sep: char, flags_descs: &[FlagDesc]) -> Stri
     output_str
 }
 
-pub fn format_dirfd(fd: i32) -> String {
+pub fn format_dirfd(fd: c_int) -> String {
     if fd == libc::AT_FDCWD {
         "AT_FDCWD".to_string()
     } else {

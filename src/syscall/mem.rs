@@ -1,3 +1,5 @@
+use std::ffi::c_int;
+
 use libc::{
     MAP_32BIT, MAP_ANONYMOUS, MAP_DENYWRITE, MAP_EXECUTABLE, MAP_FIXED, MAP_FIXED_NOREPLACE,
     MAP_GROWSDOWN, MAP_HUGETLB, MAP_LOCKED, MAP_NONBLOCK, MAP_NORESERVE, MAP_POPULATE, MAP_PRIVATE,
@@ -40,9 +42,9 @@ const MMAP_FLAGS_DESCS: &[FlagDesc] = &[
 struct MmapArgs {
     addr: usize,
     length: usize,
-    prot: i32,
-    flags: i32,
-    fd: i32,
+    prot: c_int,
+    flags: c_int,
+    fd: c_int,
     offset: libc::off_t,
 }
 unsafe impl plain::Plain for MmapArgs {}
@@ -51,8 +53,8 @@ pub(super) fn handle_mmap_args(args: &[u8]) -> String {
     let mmap = get_args::<MmapArgs>(args);
 
     let addr = format_addr(mmap.addr);
-    let prot = format_flags(mmap.prot as u32, '|', &MMAP_PROT_DESCS);
-    let flags = format_flags(mmap.flags as u32, '|', &MMAP_FLAGS_DESCS);
+    let prot = format_flags(mmap.prot, '|', &MMAP_PROT_DESCS);
+    let flags = format_flags(mmap.flags, '|', &MMAP_FLAGS_DESCS);
     return format!(
         "{}, {}, {}, {}, {}, 0x{:x}",
         addr, mmap.length, prot, flags, mmap.fd, mmap.offset
@@ -63,7 +65,7 @@ pub(super) fn handle_mmap_args(args: &[u8]) -> String {
 struct MprotectArgs {
     addr: usize,
     length: usize,
-    prot: i32,
+    prot: c_int,
 }
 unsafe impl plain::Plain for MprotectArgs {}
 
@@ -71,7 +73,7 @@ pub(super) fn handle_mprotect_args(args: &[u8]) -> String {
     let mprotect = get_args::<MprotectArgs>(args);
 
     let addr = format_addr(mprotect.addr);
-    let prot = format_flags(mprotect.prot as u32, '|', &MMAP_PROT_DESCS);
+    let prot = format_flags(mprotect.prot, '|', &MMAP_PROT_DESCS);
     return format!("{}, {}, {}", addr, mprotect.length, prot);
 }
 

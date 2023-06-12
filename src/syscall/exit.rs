@@ -1,8 +1,10 @@
+use std::ffi::c_int;
+
 use crate::syscall::common::*;
 
 #[repr(C)]
 struct ExitGroupArgs {
-    status: i32,
+    status: c_int,
 }
 unsafe impl plain::Plain for ExitGroupArgs {}
 

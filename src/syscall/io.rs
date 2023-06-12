@@ -1,8 +1,10 @@
+use std::ffi::c_int;
+
 use crate::syscall::common::*;
 
 #[repr(C)]
 struct ReadArgs {
-    fd: i32,
+    fd: c_int,
     buf: [u8; BUF_SIZE],
     count: usize,
 }
@@ -10,7 +12,7 @@ unsafe impl plain::Plain for ReadArgs {}
 
 #[repr(C)]
 struct WriteArgs {
-    fd: i32,
+    fd: c_int,
     buf: [u8; BUF_SIZE],
     count: usize,
 }
