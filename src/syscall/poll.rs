@@ -21,7 +21,7 @@ struct PollArgs {
 unsafe impl plain::Plain for PollArgs {}
 
 fn format_pollfd(fd: &libc::pollfd) -> String {
-    let events = format_flags(fd.events as c_int, '|', POLL_EVENTS_DESCS);
+    let events = format_flags(fd.events as u64, '|', POLL_EVENTS_DESCS);
     return format!("{{fd={}, events={}}}", fd.fd, events);
 }
 

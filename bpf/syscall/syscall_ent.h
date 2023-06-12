@@ -105,6 +105,11 @@ typedef struct {
     struct sigaction oldact;
     size_t sigsetsize;
     int signum;
+
+    /* These are extra field(not copy directly from the syscall) to
+     * hint whether the sigaction is passed as NULL originally */
+    bool is_act_exist;
+    bool is_oldact_exist;
 } rt_sigaction_args_t;
 
 typedef struct {

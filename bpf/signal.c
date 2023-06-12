@@ -9,12 +9,16 @@ static void sys_rt_sigaction_enter(syscall_ent_t *ent,
     memset(&rt_sigaction->act, 0, sizeof(struct sigaction));
     memset(&rt_sigaction->oldact, 0, sizeof(struct sigaction));
 
-    if (act)
+    if (act) {
         bpf_core_read_user(&rt_sigaction->act, sizeof(struct sigaction), act);
+        rt_sigaction->is_act_exist = true;
+    }
 
-    if (oldact)
+    if (oldact) {
         bpf_core_read_user(&rt_sigaction->oldact, sizeof(struct sigaction),
                            oldact);
+        rt_sigaction->is_oldact_exist = true;
+    }
 
     rt_sigaction->signum = signum;
     rt_sigaction->sigsetsize = sigsetsize;

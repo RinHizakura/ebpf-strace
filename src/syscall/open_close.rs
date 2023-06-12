@@ -44,7 +44,7 @@ pub(super) fn handle_open_args(args: &[u8]) -> String {
     let open = get_args::<OpenArgs>(args);
 
     let pathname = format_str(&open.pathname);
-    let flags = format_flags(open.flags, '|', OPEN_FLAGS_DESCS);
+    let flags = format_flags(open.flags as u64, '|', OPEN_FLAGS_DESCS);
     return format!("{}, {}", pathname, flags);
 }
 
@@ -61,7 +61,7 @@ pub(super) fn handle_openat_args(args: &[u8]) -> String {
 
     let dirfd = format_dirfd(openat.dirfd);
     let pathname = format_str(&openat.pathname);
-    let flags = format_flags(openat.flags, '|', OPEN_FLAGS_DESCS);
+    let flags = format_flags(openat.flags as u64, '|', OPEN_FLAGS_DESCS);
     return format!("{}, {}, {}", dirfd, pathname, flags);
 }
 

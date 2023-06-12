@@ -103,6 +103,9 @@ int do_signal()
     struct sigaction act;
     act.sa_flags = 0;
     act.sa_handler = handler;
+    sigemptyset(&act.sa_mask);
+    sigaddset(&act.sa_mask, SIGUSR2);
+    sigaddset(&act.sa_mask, SIGQUIT);
 
     if (sigaction(SIGUSR1, &act, NULL) < 0)
         return -1;

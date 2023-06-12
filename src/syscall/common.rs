@@ -7,7 +7,7 @@ pub const BUF_SIZE: usize = 32;
 macro_rules! flag_desc {
     ( $flag:expr ) => {
         FlagDesc {
-            val: $flag as c_int,
+            val: $flag as u64,
             name: stringify!($flag),
         }
     };
@@ -65,11 +65,11 @@ pub(super) fn format_str(buf: &[u8; BUF_SIZE]) -> String {
 }
 
 pub struct FlagDesc {
-    pub val: c_int,
+    pub val: u64,
     pub name: &'static str,
 }
 
-pub fn format_flags(mut flags: c_int, sep: char, flags_descs: &[FlagDesc]) -> String {
+pub fn format_flags(mut flags: u64, sep: char, flags_descs: &[FlagDesc]) -> String {
     let mut output_str: String = String::new();
 
     let mut zero_flag_str = "0";
