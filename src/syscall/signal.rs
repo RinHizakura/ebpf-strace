@@ -8,10 +8,9 @@ use std::ffi::{c_int, c_long};
  * libc, but it could be architecture-dependent? */
 const SA_RESTORER: c_int = 0x04000000;
 
-/* FIXME: We use own defined sigaction. This could only work on
- * x86_64 architecture. What's the problem of mismatch between Rust's
- * libc::sigaction and C's sigaction? */
-#[cfg(target_arch = "x86_64")]
+/* Note that the struct sigaction between kernel and userspace is not the same, see:
+ * https://elixir.bootlin.com/glibc/latest/source/sysdeps/unix/sysv/linux/libc_sigaction.c#L42 */
+#[cfg(all(target_arch = "x86_64", target_os = "linux"))]
 #[repr(C)]
 struct Sigaction {
     sa_handler: libc::sighandler_t,
@@ -119,7 +118,7 @@ fn format_sigset(sig_mask: &[c_long]) -> String {
     let mut i = next_set_bit(sig_mask, 0);
     while i >= 0 {
         i += 1;
-        s.push_str(SIGNAL_NAME[i as usize]);
+        s.push_str(&SIGNAL_NAME[i as usize][3..]);
         s.push(' ');
         i = next_set_bit(sig_mask, i);
     }
