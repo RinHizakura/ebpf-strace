@@ -93,28 +93,32 @@ int do_mem()
     return 0;
 }
 
-static void handler(int signo)
+static void handler(int no, siginfo_t *si, void *uc)
 {
     /* dummy */
 }
 
+#define RT_0 32
 int do_signal()
 {
-    struct sigaction act;
-    act.sa_flags = 0;
-    act.sa_handler = handler;
-    sigemptyset(&act.sa_mask);
-    sigaddset(&act.sa_mask, SIGUSR2);
-    sigaddset(&act.sa_mask, SIGQUIT);
-
-    if (sigaction(SIGUSR1, &act, NULL) < 0)
-        return -1;
-
     sigset_t set, oldset;
     sigemptyset(&set);
-    sigaddset(&set, SIGUSR1);
-    if (sigprocmask(SIG_BLOCK, &set, &oldset) < 0)
+    sigaddset(&set, SIGUSR2);
+    sigaddset(&set, SIGCHLD);
+    sigaddset(&set, RT_0 +  3);
+    if (sigprocmask(SIG_SETMASK, &set, &oldset))
         return -1;
+
+    struct sigaction sa = {
+        .sa_sigaction = handler,
+        .sa_flags = SA_SIGINFO
+    };
+    if (sigaction(SIGUSR1, &sa, NULL))
+        return -1;
+
+    if (raise(SIGUSR1))
+        return -1;
+
     if (sigprocmask(SIG_SETMASK, &oldset, NULL) < 0)
         return -1;
 

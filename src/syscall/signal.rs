@@ -38,8 +38,8 @@ struct RtSigactionArgs {
 unsafe impl plain::Plain for RtSigactionArgs {}
 
 /* FIXME: This could not correct for some architecture */
-const SIGNUM_TOTAL: usize = 33;
-const SIGNAL_NAME: &[&'static str; SIGNUM_TOTAL] = &[
+const SIGNUM_TOTAL: usize = 32;
+const SIGNAL_NAME: &[&'static str; SIGNUM_TOTAL + 1] = &[
     "0",         /* 0 */
     "SIGHUP",    /* 1 */
     "SIGINT",    /* 2 */
@@ -76,7 +76,7 @@ const SIGNAL_NAME: &[&'static str; SIGNUM_TOTAL] = &[
 ];
 
 fn format_signum(signum: c_int) -> String {
-    if signum < 0 || signum >= SIGNUM_TOTAL as c_int {
+    if signum < 0 || signum > SIGNUM_TOTAL as c_int {
         return signum.to_string();
     }
 
@@ -122,7 +122,7 @@ fn format_sigset(sig_mask: &KernlSigset) -> String {
     s.push('[');
 
     let mut i = next_set_bit(&sig_mask.sig, 0);
-    while i >= 0 {
+    while i >= 0 && i < SIGNUM_TOTAL as c_int {
         i += 1;
         s.push_str(&SIGNAL_NAME[i as usize][3..]);
         s.push(' ');
