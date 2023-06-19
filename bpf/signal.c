@@ -23,3 +23,29 @@ static void sys_rt_sigaction_enter(syscall_ent_t *ent,
     rt_sigaction->signum = signum;
     rt_sigaction->sigsetsize = sigsetsize;
 }
+
+static void sys_rt_sigprocmask_enter(syscall_ent_t *ent,
+                                     int how,
+                                     sigset_t *set,
+                                     sigset_t *oldset,
+                                     size_t sigsetsize)
+{
+    rt_sigprocmask_args_t *rt_sigprocmask =
+        (rt_sigprocmask_args_t *) ent->bytes;
+
+    memset(&rt_sigprocmask->set, 0, sizeof(sigset_t));
+    memset(&rt_sigprocmask->oldset, 0, sizeof(sigset_t));
+
+    if (set) {
+        bpf_core_read_user(&rt_sigprocmask->set, sizeof(sigset_t), set);
+        rt_sigprocmask->is_set_exist = true;
+    }
+
+    if (oldset) {
+        bpf_core_read_user(&rt_sigprocmask->oldset, sizeof(sigset_t), oldset);
+        rt_sigprocmask->is_oldset_exist = true;
+    }
+
+    rt_sigprocmask->how = how;
+    rt_sigprocmask->sigsetsize = sigsetsize;
+}

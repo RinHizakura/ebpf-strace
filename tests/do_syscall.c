@@ -110,6 +110,14 @@ int do_signal()
     if (sigaction(SIGUSR1, &act, NULL) < 0)
         return -1;
 
+    sigset_t set, oldset;
+    sigemptyset(&set);
+    sigaddset(&set, SIGUSR1);
+    if (sigprocmask(SIG_BLOCK, &set, &oldset) < 0)
+        return -1;
+    if (sigprocmask(SIG_SETMASK, &oldset, NULL) < 0)
+        return -1;
+
     return 0;
 }
 

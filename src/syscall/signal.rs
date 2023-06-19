@@ -8,15 +8,20 @@ use std::ffi::{c_int, c_long};
  * libc, but it could be architecture-dependent? */
 const SA_RESTORER: c_int = 0x04000000;
 
+#[cfg(all(target_arch = "x86_64", target_os = "linux"))]
+#[repr(C)]
+struct KernlSigset {
+    sig: [c_long; 1],
+}
+
 /* Note that the struct sigaction between kernel and userspace is not the same, see:
  * https://elixir.bootlin.com/glibc/latest/source/sysdeps/unix/sysv/linux/libc_sigaction.c#L42 */
-#[cfg(all(target_arch = "x86_64", target_os = "linux"))]
 #[repr(C)]
 struct Sigaction {
     sa_handler: libc::sighandler_t,
     sa_flags: c_long,
     sa_restorer: usize,
-    sa_mask: [c_long; 1],
+    sa_mask: KernlSigset,
 }
 unsafe impl plain::Plain for Sigaction {}
 
@@ -111,16 +116,16 @@ fn next_set_bit(sig_mask: &[c_long], mut cur_bit: c_int) -> c_int {
     return -1;
 }
 
-fn format_sigset(sig_mask: &[c_long]) -> String {
+fn format_sigset(sig_mask: &KernlSigset) -> String {
     let mut s = String::new();
     s.push('[');
 
-    let mut i = next_set_bit(sig_mask, 0);
+    let mut i = next_set_bit(&sig_mask.sig, 0);
     while i >= 0 {
         i += 1;
         s.push_str(&SIGNAL_NAME[i as usize][3..]);
         s.push(' ');
-        i = next_set_bit(sig_mask, i);
+        i = next_set_bit(&sig_mask.sig, i);
     }
     /* It means we don't just put the first '[' in the string. Pop
      * the last space. */
@@ -165,4 +170,21 @@ pub(super) fn handle_rt_sigaction_args(args: &[u8]) -> String {
         "{}, {}, {}, {}",
         signum, act, oldact, rt_sigaction.sigsetsize
     );
+}
+
+#[repr(C)]
+struct RtSigprocmaskArgs {
+    set: KernlSigset,
+    oldset: KernlSigset,
+    sigsetsize: usize,
+    how: c_int,
+    is_set_exist: bool,
+    is_oldset_exist: bool,
+}
+unsafe impl plain::Plain for RtSigprocmaskArgs {}
+
+pub(super) fn handle_rt_sigprocmask_args(args: &[u8]) -> String {
+    let rt_sigprocmask = get_args::<RtSigprocmaskArgs>(args);
+
+    return format!("{}", rt_sigprocmask.sigsetsize);
 }

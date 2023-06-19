@@ -113,7 +113,17 @@ typedef struct {
 } rt_sigaction_args_t;
 
 typedef struct {
+    sigset_t set;
+    sigset_t oldset;
+    size_t sigsetsize;
+    int how;
+
+    /* These are extra field(not copy directly from the syscall) to
+     * hint whether the sigset_t is passed as NULL originally */
+    bool is_set_exist;
+    bool is_oldset_exist;
 } rt_sigprocmask_args_t;
+
 typedef struct {
 } rt_sigreturn_args_t;
 typedef struct {
