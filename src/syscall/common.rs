@@ -4,9 +4,9 @@ pub const ARR_ENT_SIZE: usize = 4;
 pub const BUF_SIZE: usize = 32;
 
 #[macro_export]
-macro_rules! flag_desc {
+macro_rules! desc {
     ( $flag:expr ) => {
-        FlagDesc {
+        Desc {
             val: $flag as u64,
             name: stringify!($flag),
         }
@@ -64,16 +64,16 @@ pub(super) fn format_str(buf: &[u8; BUF_SIZE]) -> String {
     s
 }
 
-pub struct FlagDesc {
+pub struct Desc {
     pub val: u64,
     pub name: &'static str,
 }
 
-pub fn format_flags(mut flags: u64, sep: char, flags_descs: &[FlagDesc]) -> String {
+pub fn format_flags(mut flags: u64, sep: char, descs: &[Desc]) -> String {
     let mut output_str: String = String::new();
 
     let mut zero_flag_str = "0";
-    for f in flags_descs {
+    for f in descs {
         if f.val == 0 {
             zero_flag_str = f.name;
             continue;
@@ -99,6 +99,17 @@ pub fn format_flags(mut flags: u64, sep: char, flags_descs: &[FlagDesc]) -> Stri
     }
 
     output_str
+}
+
+pub fn format_value(val: u64, default: &str, descs: &[Desc]) -> String {
+    for v in descs {
+        if val == v.val {
+            return v.name.to_owned();
+        }
+    }
+
+    /* Print the value directly if no hit */
+    return format!("0x{:x} /* {} */", val, default);
 }
 
 pub fn format_dirfd(fd: c_int) -> String {

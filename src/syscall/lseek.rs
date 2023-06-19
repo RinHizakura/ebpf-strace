@@ -4,12 +4,12 @@ use libc::{SEEK_CUR, SEEK_DATA, SEEK_END, SEEK_HOLE, SEEK_SET};
 
 use crate::syscall::common::*;
 
-const LSEEK_WHENCE_DESCS: &[FlagDesc] = &[
-    flag_desc!(SEEK_SET),
-    flag_desc!(SEEK_CUR),
-    flag_desc!(SEEK_END),
-    flag_desc!(SEEK_DATA),
-    flag_desc!(SEEK_HOLE),
+const LSEEK_WHENCE_DESCS: &[Desc] = &[
+    desc!(SEEK_SET),
+    desc!(SEEK_CUR),
+    desc!(SEEK_END),
+    desc!(SEEK_DATA),
+    desc!(SEEK_HOLE),
 ];
 
 #[repr(C)]
@@ -22,7 +22,7 @@ unsafe impl plain::Plain for LseekArgs {}
 
 pub(super) fn handle_lseek_args(args: &[u8]) -> String {
     let lseek = get_args::<LseekArgs>(args);
-    let whence = format_flags(lseek.whence as u64, '|', &LSEEK_WHENCE_DESCS);
+    let whence = format_value(lseek.whence as u64, "SEEK_???", &LSEEK_WHENCE_DESCS);
 
     return format!("{}, {}, {}", lseek.fd, lseek.offset, whence);
 }

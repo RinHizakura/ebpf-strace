@@ -8,29 +8,29 @@ use libc::{
     O_WRONLY,
 };
 
-const OPEN_FLAGS_DESCS: &[FlagDesc] = &[
+const OPEN_FLAGS_DESCS: &[Desc] = &[
     /* access */
-    flag_desc!(O_RDONLY),
-    flag_desc!(O_WRONLY),
-    flag_desc!(O_RDWR),
-    flag_desc!(O_ACCMODE),
+    desc!(O_RDONLY),
+    desc!(O_WRONLY),
+    desc!(O_RDWR),
+    desc!(O_ACCMODE),
     /* mode */
-    flag_desc!(O_CREAT),
-    flag_desc!(O_EXCL),
-    flag_desc!(O_NOCTTY),
-    flag_desc!(O_TRUNC),
-    flag_desc!(O_APPEND),
-    flag_desc!(O_NONBLOCK),
-    flag_desc!(O_SYNC),
-    flag_desc!(O_DSYNC),
-    flag_desc!(O_DIRECT),
-    //flag_desc!(O_LARGEFILE), <- This is also set to 0 for gnu/b64 platform
-    flag_desc!(O_NOFOLLOW),
-    flag_desc!(O_NOATIME),
-    flag_desc!(O_CLOEXEC),
-    flag_desc!(O_PATH),
-    flag_desc!(O_TMPFILE),
-    flag_desc!(O_DIRECTORY),
+    desc!(O_CREAT),
+    desc!(O_EXCL),
+    desc!(O_NOCTTY),
+    desc!(O_TRUNC),
+    desc!(O_APPEND),
+    desc!(O_NONBLOCK),
+    desc!(O_SYNC),
+    desc!(O_DSYNC),
+    desc!(O_DIRECT),
+    //desc!(O_LARGEFILE), <- This is also set to 0 for gnu/b64 platform
+    desc!(O_NOFOLLOW),
+    desc!(O_NOATIME),
+    desc!(O_CLOEXEC),
+    desc!(O_PATH),
+    desc!(O_TMPFILE),
+    desc!(O_DIRECTORY),
 ];
 
 #[repr(C)]

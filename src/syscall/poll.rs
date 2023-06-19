@@ -4,12 +4,12 @@ use libc::{POLLHUP, POLLIN, POLLNVAL, POLLOUT, POLLPRI};
 
 use crate::syscall::common::*;
 
-const POLL_EVENTS_DESCS: &[FlagDesc] = &[
-    flag_desc!(POLLIN),
-    flag_desc!(POLLPRI),
-    flag_desc!(POLLOUT),
-    flag_desc!(POLLHUP),
-    flag_desc!(POLLNVAL),
+const POLL_EVENTS_DESCS: &[Desc] = &[
+    desc!(POLLIN),
+    desc!(POLLPRI),
+    desc!(POLLOUT),
+    desc!(POLLHUP),
+    desc!(POLLNVAL),
 ];
 
 #[repr(C)]

@@ -82,18 +82,18 @@ fn format_signum(signum: c_int) -> String {
     return SIGNAL_NAME[signum as usize].to_string();
 }
 
-const SIGACT_FLAGS_DESCS: &[FlagDesc] = &[
-    flag_desc!(SA_RESTORER),
-    flag_desc!(SA_ONSTACK),
-    flag_desc!(SA_RESTART),
-    flag_desc!(SA_NODEFER),
-    flag_desc!(SA_RESETHAND),
-    flag_desc!(SA_SIGINFO),
-    flag_desc!(SA_RESETHAND),
-    flag_desc!(SA_ONSTACK),
-    flag_desc!(SA_NODEFER),
-    flag_desc!(SA_NOCLDSTOP),
-    flag_desc!(SA_NOCLDWAIT),
+const SIGACT_FLAGS_DESCS: &[Desc] = &[
+    desc!(SA_RESTORER),
+    desc!(SA_ONSTACK),
+    desc!(SA_RESTART),
+    desc!(SA_NODEFER),
+    desc!(SA_RESETHAND),
+    desc!(SA_SIGINFO),
+    desc!(SA_RESETHAND),
+    desc!(SA_ONSTACK),
+    desc!(SA_NODEFER),
+    desc!(SA_NOCLDSTOP),
+    desc!(SA_NOCLDWAIT),
 ];
 
 fn next_set_bit(sig_mask: &[c_long], mut cur_bit: c_int) -> c_int {

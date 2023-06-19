@@ -9,33 +9,33 @@ use libc::{
 
 use crate::syscall::common::*;
 
-const MMAP_PROT_DESCS: &[FlagDesc] = &[
-    flag_desc!(PROT_NONE),
-    flag_desc!(PROT_READ),
-    flag_desc!(PROT_WRITE),
-    flag_desc!(PROT_EXEC),
-    flag_desc!(PROT_GROWSDOWN),
-    flag_desc!(PROT_GROWSUP),
+const MMAP_PROT_DESCS: &[Desc] = &[
+    desc!(PROT_NONE),
+    desc!(PROT_READ),
+    desc!(PROT_WRITE),
+    desc!(PROT_EXEC),
+    desc!(PROT_GROWSDOWN),
+    desc!(PROT_GROWSUP),
 ];
 
-const MMAP_FLAGS_DESCS: &[FlagDesc] = &[
-    flag_desc!(MAP_SHARED),
-    flag_desc!(MAP_PRIVATE),
-    flag_desc!(MAP_SHARED_VALIDATE),
-    flag_desc!(MAP_FIXED),
-    flag_desc!(MAP_ANONYMOUS),
-    flag_desc!(MAP_32BIT),
-    flag_desc!(MAP_NORESERVE),
-    flag_desc!(MAP_POPULATE),
-    flag_desc!(MAP_NONBLOCK),
-    flag_desc!(MAP_GROWSDOWN),
-    flag_desc!(MAP_DENYWRITE),
-    flag_desc!(MAP_EXECUTABLE),
-    flag_desc!(MAP_LOCKED),
-    flag_desc!(MAP_STACK),
-    flag_desc!(MAP_HUGETLB),
-    flag_desc!(MAP_SYNC),
-    flag_desc!(MAP_FIXED_NOREPLACE),
+const MMAP_FLAGS_DESCS: &[Desc] = &[
+    desc!(MAP_SHARED),
+    desc!(MAP_PRIVATE),
+    desc!(MAP_SHARED_VALIDATE),
+    desc!(MAP_FIXED),
+    desc!(MAP_ANONYMOUS),
+    desc!(MAP_32BIT),
+    desc!(MAP_NORESERVE),
+    desc!(MAP_POPULATE),
+    desc!(MAP_NONBLOCK),
+    desc!(MAP_GROWSDOWN),
+    desc!(MAP_DENYWRITE),
+    desc!(MAP_EXECUTABLE),
+    desc!(MAP_LOCKED),
+    desc!(MAP_STACK),
+    desc!(MAP_HUGETLB),
+    desc!(MAP_SYNC),
+    desc!(MAP_FIXED_NOREPLACE),
 ];
 
 #[repr(C)]

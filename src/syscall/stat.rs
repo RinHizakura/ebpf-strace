@@ -38,26 +38,26 @@ struct NewfstatatArgs {
 }
 unsafe impl plain::Plain for NewfstatatArgs {}
 
-const STAT_STMODE_DESCS: &[FlagDesc] = &[
-    flag_desc!(S_IFREG),
-    flag_desc!(S_IFSOCK),
-    flag_desc!(S_IFIFO),
-    flag_desc!(S_IFLNK),
-    flag_desc!(S_IFDIR),
-    flag_desc!(S_IFBLK),
-    flag_desc!(S_IFCHR),
-    flag_desc!(S_ISUID),
-    flag_desc!(S_ISGID),
-    flag_desc!(S_ISVTX),
+const STAT_STMODE_DESCS: &[Desc] = &[
+    desc!(S_IFREG),
+    desc!(S_IFSOCK),
+    desc!(S_IFIFO),
+    desc!(S_IFLNK),
+    desc!(S_IFDIR),
+    desc!(S_IFBLK),
+    desc!(S_IFCHR),
+    desc!(S_ISUID),
+    desc!(S_ISGID),
+    desc!(S_ISVTX),
 ];
 
-const AT_FLAGS_DESCS: &[FlagDesc] = &[
-    flag_desc!(AT_SYMLINK_NOFOLLOW),
-    flag_desc!(AT_REMOVEDIR),
-    flag_desc!(AT_SYMLINK_FOLLOW),
-    flag_desc!(AT_NO_AUTOMOUNT),
-    flag_desc!(AT_EMPTY_PATH),
-    flag_desc!(AT_RECURSIVE),
+const AT_FLAGS_DESCS: &[Desc] = &[
+    desc!(AT_SYMLINK_NOFOLLOW),
+    desc!(AT_REMOVEDIR),
+    desc!(AT_SYMLINK_FOLLOW),
+    desc!(AT_NO_AUTOMOUNT),
+    desc!(AT_EMPTY_PATH),
+    desc!(AT_RECURSIVE),
 ];
 
 fn format_dev(st_dev: u64) -> String {
@@ -82,7 +82,6 @@ fn format_struct_stat(statbuf: &libc::stat) -> String {
     let st_dev = format_dev(statbuf.st_dev);
     let st_ino = statbuf.st_ino;
     let st_mode = format_flags(statbuf.st_mode as u64, '|', STAT_STMODE_DESCS);
-    //let st_mode = statbuf.st_mode;
     let st_nlink = statbuf.st_nlink;
     let st_uid = statbuf.st_uid;
     let st_gid = statbuf.st_gid;
