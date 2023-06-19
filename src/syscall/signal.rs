@@ -1,6 +1,7 @@
 use crate::syscall::common::*;
 use libc::{
     SA_NOCLDSTOP, SA_NOCLDWAIT, SA_NODEFER, SA_ONSTACK, SA_RESETHAND, SA_RESTART, SA_SIGINFO,
+    SIG_BLOCK, SIG_SETMASK, SIG_UNBLOCK,
 };
 use std::ffi::{c_int, c_long};
 
@@ -183,8 +184,25 @@ struct RtSigprocmaskArgs {
 }
 unsafe impl plain::Plain for RtSigprocmaskArgs {}
 
+const SIGPROCMASK_HOW_DESCS: &[Desc] = &[desc!(SIG_BLOCK), desc!(SIG_UNBLOCK), desc!(SIG_SETMASK)];
+
 pub(super) fn handle_rt_sigprocmask_args(args: &[u8]) -> String {
     let rt_sigprocmask = get_args::<RtSigprocmaskArgs>(args);
 
-    return format!("{}", rt_sigprocmask.sigsetsize);
+    let how = format_value(rt_sigprocmask.how as u64, "SIG_???", &SIGPROCMASK_HOW_DESCS);
+    let set = if rt_sigprocmask.is_set_exist {
+        format_sigset(&rt_sigprocmask.set)
+    } else {
+        "NULL".to_string()
+    };
+
+    let oldset = if rt_sigprocmask.is_oldset_exist {
+        format_sigset(&rt_sigprocmask.oldset)
+    } else {
+        "NULL".to_string()
+    };
+    return format!(
+        "{}, {}, {}, {}",
+        how, set, oldset, rt_sigprocmask.sigsetsize
+    );
 }

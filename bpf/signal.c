@@ -12,12 +12,16 @@ static void sys_rt_sigaction_enter(syscall_ent_t *ent,
     if (act) {
         bpf_core_read_user(&rt_sigaction->act, sizeof(struct sigaction), act);
         rt_sigaction->is_act_exist = true;
+    } else {
+        rt_sigaction->is_act_exist = false;
     }
 
     if (oldact) {
         bpf_core_read_user(&rt_sigaction->oldact, sizeof(struct sigaction),
                            oldact);
         rt_sigaction->is_oldact_exist = true;
+    } else {
+        rt_sigaction->is_oldact_exist = false;
     }
 
     rt_sigaction->signum = signum;
@@ -33,17 +37,21 @@ static void sys_rt_sigprocmask_enter(syscall_ent_t *ent,
     rt_sigprocmask_args_t *rt_sigprocmask =
         (rt_sigprocmask_args_t *) ent->bytes;
 
-    memset(&rt_sigprocmask->set, 0, sizeof(sigset_t));
-    memset(&rt_sigprocmask->oldset, 0, sizeof(sigset_t));
+    memset(&rt_sigprocmask->set, 0, sizeof(rt_sigprocmask_args_t));
+    memset(&rt_sigprocmask->oldset, 0, sizeof(rt_sigprocmask_args_t));
 
     if (set) {
         bpf_core_read_user(&rt_sigprocmask->set, sizeof(sigset_t), set);
         rt_sigprocmask->is_set_exist = true;
+    } else {
+        rt_sigprocmask->is_set_exist = false;
     }
 
     if (oldset) {
         bpf_core_read_user(&rt_sigprocmask->oldset, sizeof(sigset_t), oldset);
         rt_sigprocmask->is_oldset_exist = true;
+    } else {
+        rt_sigprocmask->is_oldset_exist = false;
     }
 
     rt_sigprocmask->how = how;
