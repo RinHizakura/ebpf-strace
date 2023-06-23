@@ -1,6 +1,6 @@
 use std::ffi::c_int;
 
-use crate::syscall::common::*;
+use crate::common::*;
 
 #[repr(C)]
 struct ReadArgs {

@@ -1,6 +1,6 @@
 use std::ffi::c_int;
 
-use crate::syscall::common::*;
+use crate::common::*;
 use chrono::{Local, TimeZone};
 use libc::{
     AT_EMPTY_PATH, AT_NO_AUTOMOUNT, AT_RECURSIVE, AT_REMOVEDIR, AT_SYMLINK_FOLLOW,

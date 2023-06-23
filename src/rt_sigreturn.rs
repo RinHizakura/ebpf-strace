@@ -1,4 +1,4 @@
-use crate::syscall::common::*;
+use crate::common::*;
 
 #[repr(C)]
 struct RtSigreturnArgs {

@@ -2,7 +2,7 @@ use std::ffi::c_int;
 
 use libc::{POLLHUP, POLLIN, POLLNVAL, POLLOUT, POLLPRI};
 
-use crate::syscall::common::*;
+use crate::common::*;
 
 const POLL_EVENTS_DESCS: &[Desc] = &[
     desc!(POLLIN),

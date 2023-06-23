@@ -1,4 +1,4 @@
-use crate::syscall::common::*;
+use crate::common::*;
 use libc::{
     SA_NOCLDSTOP, SA_NOCLDWAIT, SA_NODEFER, SA_ONSTACK, SA_RESETHAND, SA_RESTART, SA_SIGINFO,
     SIG_BLOCK, SIG_SETMASK, SIG_UNBLOCK,

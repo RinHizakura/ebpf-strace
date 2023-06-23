@@ -2,7 +2,7 @@ use std::ffi::c_int;
 
 use libc::{SEEK_CUR, SEEK_DATA, SEEK_END, SEEK_HOLE, SEEK_SET};
 
-use crate::syscall::common::*;
+use crate::common::*;
 
 const LSEEK_WHENCE_DESCS: &[Desc] = &[
     desc!(SEEK_SET),

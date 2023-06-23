@@ -1,6 +1,6 @@
+use crate::bump_memlock_rlimit::*;
 use crate::sys::*;
-use crate::syscall::syscall_ent_handler;
-use crate::utils::bump_memlock_rlimit::*;
+use crate::syscall_ent_handler::syscall_ent_handler;
 use anyhow::{anyhow, Result};
 use libbpf_rs::RingBufferBuilder;
 use std::env;
@@ -8,9 +8,22 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 
+#[macro_use]
+mod common;
+mod bump_memlock_rlimit;
+mod execve;
+mod exit;
+mod io;
+mod lseek;
+mod mem;
+mod open_close;
+mod poll;
+mod rt_sigreturn;
+mod signal;
+mod stat;
 mod sys;
 mod syscall;
-mod utils;
+mod syscall_ent_handler;
 
 #[path = "../bpf/.output/strace.skel.rs"]
 #[cfg_attr(rustfmt, rustfmt_skip)]

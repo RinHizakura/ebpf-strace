@@ -7,7 +7,7 @@ use libc::{
     PROT_NONE, PROT_READ, PROT_WRITE,
 };
 
-use crate::syscall::common::*;
+use crate::common::*;
 
 const MMAP_PROT_DESCS: &[Desc] = &[
     desc!(PROT_NONE),

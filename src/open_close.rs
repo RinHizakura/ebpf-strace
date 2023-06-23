@@ -1,6 +1,6 @@
 use std::ffi::c_int;
 
-use crate::syscall::common::*;
+use crate::common::*;
 
 use libc::{
     O_ACCMODE, O_APPEND, O_CLOEXEC, O_CREAT, O_DIRECT, O_DIRECTORY, O_DSYNC, O_EXCL, O_NOATIME,
