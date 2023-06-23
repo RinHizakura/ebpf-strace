@@ -140,7 +140,7 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
                                  parm4);
         break;
     case SYS_RT_SIGRETURN:
-        sys_rt_sigreturn_enter(id);
+        sys_rt_sigreturn_enter(id, pt_regs);
         break;
     case SYS_NEWFSTATAT:
         sys_newfstatat_enter(ent, parm1, (void *) parm2, (void *) parm3, parm4);

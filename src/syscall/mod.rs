@@ -7,6 +7,7 @@ mod lseek;
 mod mem;
 mod open_close;
 mod poll;
+mod rt_sigreturn;
 mod signal;
 mod stat;
 mod syscall_desc;
@@ -45,6 +46,7 @@ fn handle_args(id: u64, args: &[u8], ret: u64) -> String {
         SYS_BRK => syscall::mem::handle_brk_args(args),
         SYS_RT_SIGACTION => syscall::signal::handle_rt_sigaction_args(args),
         SYS_RT_SIGPROCMASK => syscall::signal::handle_rt_sigprocmask_args(args),
+        SYS_RT_SIGRETURN => syscall::rt_sigreturn::handle_rt_sigreturn_args(args),
         SYS_NEWFSTATAT => syscall::stat::handle_newfstatat_args(args),
         SYS_EXECVE => syscall::execve::handle_execve_args(args),
         SYS_OPENAT => syscall::open_close::handle_openat_args(args),
@@ -67,6 +69,7 @@ pub fn syscall_ent_handler(bytes: &[u8]) -> i32 {
 
     match id {
         SYS_BRK | SYS_MMAP => eprint!("{}({}) = 0x{:x}\n", syscall.name, args_str, ret),
+        SYS_RT_SIGRETURN => eprint!("{}({}) = ?\n", syscall.name, args_str),
         SYS_EXIT_GROUP => {
             eprint!("{}({}) = ?\n", syscall.name, args_str);
             /* Simulate an ctrl-c interrupt here to hint that the

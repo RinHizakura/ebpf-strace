@@ -125,7 +125,9 @@ typedef struct {
 } rt_sigprocmask_args_t;
 
 typedef struct {
+    sigset_t set;
 } rt_sigreturn_args_t;
+
 typedef struct {
 } ioctl_args_t;
 typedef struct {
