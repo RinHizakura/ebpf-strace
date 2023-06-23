@@ -1,6 +1,6 @@
 use crate::bump_memlock_rlimit::*;
+use crate::handler::syscall_ent_handler;
 use crate::sys::*;
-use crate::syscall_ent_handler::syscall_ent_handler;
 use anyhow::{anyhow, Result};
 use libbpf_rs::RingBufferBuilder;
 use std::env;
@@ -13,6 +13,7 @@ mod common;
 mod bump_memlock_rlimit;
 mod execve;
 mod exit;
+mod handler;
 mod io;
 mod lseek;
 mod mem;
@@ -23,7 +24,6 @@ mod signal;
 mod stat;
 mod sys;
 mod syscall;
-mod syscall_ent_handler;
 
 #[path = "../bpf/.output/strace.skel.rs"]
 #[cfg_attr(rustfmt, rustfmt_skip)]

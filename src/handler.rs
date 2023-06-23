@@ -39,7 +39,7 @@ fn handle_args(id: u64, args: &[u8], ret: u64) -> String {
     }
 }
 
-pub fn syscall_handler(bytes: &[u8]) -> i32 {
+pub fn syscall_ent_handler(bytes: &[u8]) -> i32 {
     let ent_size = std::mem::size_of::<SyscallEnt>();
     let ent = plain::from_bytes::<SyscallEnt>(&bytes[0..ent_size])
         .expect("Fail to cast bytes to SyscallEnt");
