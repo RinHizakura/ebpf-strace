@@ -213,6 +213,12 @@ int sys_exit(struct bpf_raw_tracepoint_args *args)
     case SYS_LSTAT:
         sys_lstat_exit(ent);
         break;
+    case SYS_RT_SIGACTION:
+        sys_rt_sigaction_exit(ent);
+        break;
+    case SYS_RT_SIGPROCMASK:
+        sys_rt_sigprocmask_exit(ent);
+        break;
     case SYS_NEWFSTATAT:
         sys_newfstatat_exit(ent);
         break;
