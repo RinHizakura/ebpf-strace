@@ -1,9 +1,9 @@
+use crate::arch::KernlSigset;
 use crate::common::*;
 use libc::{
     SA_NOCLDSTOP, SA_NOCLDWAIT, SA_NODEFER, SA_ONSTACK, SA_RESETHAND, SA_RESTART, SA_SIGINFO,
     SIG_BLOCK, SIG_SETMASK, SIG_UNBLOCK,
 };
-use std::ffi::{c_int, c_long};
 
 /* FIXME: We define this ourself because it is not contained in
  * libc, but it could be architecture-dependent? */

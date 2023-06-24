@@ -10,7 +10,7 @@
 /* clang-format on */
 
 #ifdef __TARGET_ARCH_x86
-#include "arch/x86/syscall.h"
+#include "arch/x86_64/syscall.h"
 #else
 #error "only x86_64 architecture is supported for ebpf-strace now"
 #endif

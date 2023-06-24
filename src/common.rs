@@ -1,13 +1,9 @@
-use std::ffi::{c_int, c_long};
+use crate::arch::*;
+use crate::utils::next_set_bit;
+pub use std::ffi::{c_int, c_long};
 
 pub const ARR_ENT_SIZE: usize = 4;
 pub const BUF_SIZE: usize = 32;
-
-#[cfg(all(target_arch = "x86_64", target_os = "linux"))]
-#[repr(C)]
-pub struct KernlSigset {
-    pub sig: [c_long; 1],
-}
 
 #[macro_export]
 macro_rules! desc {
@@ -161,70 +157,12 @@ pub(super) fn format_addr(addr: usize) -> String {
     }
 }
 
-/* FIXME: This could not correct for some architecture */
-const SIGNUM_TOTAL: usize = 32;
-const SIGNAL_NAME: &[&'static str; SIGNUM_TOTAL + 1] = &[
-    "0",         /* 0 */
-    "SIGHUP",    /* 1 */
-    "SIGINT",    /* 2 */
-    "SIGQUIT",   /* 3 */
-    "SIGILL",    /* 4 */
-    "SIGTRAP",   /* 5 */
-    "SIGABRT",   /* 6 */
-    "SIGBUS",    /* 7 */
-    "SIGFPE",    /* 8 */
-    "SIGKILL",   /* 9 */
-    "SIGUSR1",   /* 10 */
-    "SIGSEGV",   /* 11 */
-    "SIGUSR2",   /* 12 */
-    "SIGPIPE",   /* 13 */
-    "SIGALRM",   /* 14 */
-    "SIGTERM",   /* 15 */
-    "SIGSTKFLT", /* 16 */
-    "SIGCHLD",   /* 17 */
-    "SIGCONT",   /* 18 */
-    "SIGSTOP",   /* 19 */
-    "SIGTSTP",   /* 20 */
-    "SIGTTIN",   /* 21 */
-    "SIGTTOU",   /* 22 */
-    "SIGURG",    /* 23 */
-    "SIGXCPU",   /* 24 */
-    "SIGXFSZ",   /* 25 */
-    "SIGVTALRM", /* 26 */
-    "SIGPROF",   /* 27 */
-    "SIGWINCH",  /* 28 */
-    "SIGIO",     /* 29 */
-    "SIGPWR",    /* 30 */
-    "SIGSYS",    /* 31 */
-    "SIGRTMIN",  /* 32 */
-];
-
 pub(super) fn format_signum(signum: c_int) -> String {
     if signum < 0 || signum > SIGNUM_TOTAL as c_int {
         return signum.to_string();
     }
 
     return SIGNAL_NAME[signum as usize].to_string();
-}
-
-fn next_set_bit(sig_mask: &[c_long], mut cur_bit: c_int) -> c_int {
-    /* FIXME: Just simply implement this for correctness. Consider
-     * https://github.com/strace/strace/blob/master/src/util.c#LL274C1-L274C74
-     * if we want some optimization */
-    let ent_bitsize = std::mem::size_of::<c_long>() as c_int * 8;
-    let total_bitsize = sig_mask.len() as c_int * ent_bitsize;
-
-    while cur_bit < total_bitsize {
-        let slot = (cur_bit / ent_bitsize) as usize;
-        let pos = cur_bit % ent_bitsize;
-
-        if ((sig_mask[slot] >> pos) & 1) == 1 {
-            return cur_bit;
-        }
-
-        cur_bit += 1;
-    }
-    return -1;
 }
 
 pub(super) fn format_sigset(sig_mask: &KernlSigset) -> String {

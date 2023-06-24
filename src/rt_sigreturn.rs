@@ -1,3 +1,4 @@
+use crate::arch::KernlSigset;
 use crate::common::*;
 
 #[repr(C)]

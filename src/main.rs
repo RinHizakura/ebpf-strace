@@ -10,6 +10,7 @@ use std::time::Duration;
 
 #[macro_use]
 mod common;
+mod arch;
 mod bump_memlock_rlimit;
 mod execve;
 mod exit;
@@ -24,6 +25,7 @@ mod signal;
 mod stat;
 mod sys;
 mod syscall;
+mod utils;
 
 #[path = "../bpf/.output/strace.skel.rs"]
 #[cfg_attr(rustfmt, rustfmt_skip)]
