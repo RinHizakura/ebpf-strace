@@ -170,9 +170,13 @@ pub(super) fn format_sigset(sig_mask: &KernlSigset) -> String {
     s.push('[');
 
     let mut i = next_set_bit(&sig_mask.sig, 0);
-    while i >= 0 && i < SIGNUM_TOTAL as c_int {
+    while i >= 0 {
         i += 1;
-        s.push_str(&SIGNAL_NAME[i as usize][3..]);
+        if i < SIGNUM_TOTAL as c_int {
+            s.push_str(&SIGNAL_NAME[i as usize][3..]);
+        } else {
+            s.push_str(&format!("RT_{}", i - SIGNUM_TOTAL as c_int));
+        }
         s.push(' ');
         i = next_set_bit(&sig_mask.sig, i);
     }
