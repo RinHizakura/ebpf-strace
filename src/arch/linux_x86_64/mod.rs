@@ -5,8 +5,9 @@ pub struct KernlSigset {
     pub sig: [c_long; 1],
 }
 
-pub const SIGNUM_TOTAL: usize = 32;
-pub const SIGNAL_NAME: &[&'static str; SIGNUM_TOTAL + 1] = &[
+pub const SIGRTMIN: usize = 32;
+pub const SIGRTMAX: usize = 64;
+pub const SIGNAL_NAME: &[&'static str; SIGRTMIN + 1] = &[
     "0",         /* 0 */
     "SIGHUP",    /* 1 */
     "SIGINT",    /* 2 */

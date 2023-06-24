@@ -158,11 +158,16 @@ pub(super) fn format_addr(addr: usize) -> String {
 }
 
 pub(super) fn format_signum(signum: c_int) -> String {
-    if signum < 0 || signum > SIGNUM_TOTAL as c_int {
-        return signum.to_string();
+    let signum = signum as usize;
+    if signum > 0 {
+        if signum < SIGRTMIN {
+            return SIGNAL_NAME[signum].to_string();
+        } else if signum >= SIGRTMIN && signum <= SIGRTMAX {
+            return format!("SIGRT_{}", signum - SIGRTMIN);
+        }
     }
 
-    return SIGNAL_NAME[signum as usize].to_string();
+    return signum.to_string();
 }
 
 pub(super) fn format_sigset(sig_mask: &KernlSigset) -> String {
@@ -172,10 +177,10 @@ pub(super) fn format_sigset(sig_mask: &KernlSigset) -> String {
     let mut i = next_set_bit(&sig_mask.sig, 0);
     while i >= 0 {
         i += 1;
-        if i < SIGNUM_TOTAL as c_int {
+        if i < SIGRTMIN as c_int {
             s.push_str(&SIGNAL_NAME[i as usize][3..]);
-        } else {
-            s.push_str(&format!("RT_{}", i - SIGNUM_TOTAL as c_int));
+        } else if i >= SIGRTMIN as c_int && i <= SIGRTMAX as c_int {
+            s.push_str(&format!("RT_{}", i - SIGRTMIN as c_int));
         }
         s.push(' ');
         i = next_set_bit(&sig_mask.sig, i);
