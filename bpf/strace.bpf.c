@@ -242,4 +242,19 @@ int sys_exit(struct bpf_raw_tracepoint_args *args)
 
     return 0;
 }
+
+SEC("raw_tracepoint/signal_deliver")
+int signal_deliver(struct bpf_raw_tracepoint_args *args)
+{
+    pid_t cur_pid = (bpf_get_current_pid_tgid() >> 32);
+    if (select_pid == 0 || select_pid != cur_pid)
+        return 0;
+
+    int sig = args->args[0];
+
+    bpf_printk("get %d", sig);
+
+    return 0;
+}
+
 char LICENSE[] SEC("license") = "GPL";
