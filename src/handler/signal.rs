@@ -2,9 +2,33 @@ use crate::common::*;
 use plain::Plain;
 
 #[repr(C)]
+struct SiKill {
+    pid: libc::pid_t,
+    uid: libc::uid_t,
+}
+unsafe impl Plain for SiKill {}
+
+/* FIXME: We use the own defined siginfo_t struct instead of the libc one.
+ * It is because the padding bytes here are inaccessible for some
+ * reasons, but we'll need them for the specific struct in
+ * union __sifields. However, this could be unsafe if kernel modifies
+ * the structure someday.
+ *
+ * See https://docs.rs/libc/latest/libc/struct.siginfo_t.html */
+#[repr(C)]
+struct SigInfo {
+    pub si_signo: c_int,
+    pub si_errno: c_int,
+    pub si_code: c_int,
+    pub pad: [u8; 29 * 4],
+    _align: [u64; 0],
+}
+unsafe impl Plain for SigInfo {}
+
+#[repr(C)]
 struct SignalEnt {
     signo: c_int,
-    siginfo: libc::siginfo_t,
+    siginfo: SigInfo,
 }
 unsafe impl Plain for SignalEnt {}
 
@@ -34,12 +58,26 @@ pub(super) fn signal_ent_handler(bytes: &[u8]) -> i32 {
         .expect("Fail to cast bytes to SignalEnt");
 
     let signo = format_signum(ent.signo);
-    let si_signo = format_signum(ent.siginfo.si_signo);
-    let si_code = format_value(ent.siginfo.si_code as u64, "SI_??", &SI_CODE_DESCS);
-    eprint!(
-        "--- {} {{si_signo={}, si_code={}}} ---\n",
-        signo, si_signo, si_code
-    );
+    let siginfo = format_siginfo(&ent.siginfo);
+    eprint!("--- {} {{{}}} ---\n", signo, siginfo);
     0
 }
 
+fn format_si_info(sip: &SigInfo) -> String {
+    let pad = &sip.pad;
+    match sip.si_code {
+        SI_TKILL => {
+             let si_kill = get_args::<SiKill>(pad);
+             format!("si_pid={}, si_uid={}", si_kill.pid, si_kill.uid)
+        }
+        _ => "".to_string(),
+    }
+}
+
+fn format_siginfo(siginfo: &SigInfo) -> String {
+    let si_signo = format_signum(siginfo.si_signo);
+    let si_code = format_value(siginfo.si_code as u64, "SI_??", &SI_CODE_DESCS);
+    let si_info = format_si_info(siginfo);
+
+    return format!("si_signo={}, si_code={}, {}", si_signo, si_code, si_info);
+}
