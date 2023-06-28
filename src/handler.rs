@@ -4,8 +4,14 @@ use crate::{execve, exit, io, lseek, mem, open_close, poll, rt_sigreturn, signal
 
 use plain::Plain;
 
-/* This should be synchronized with the structure
+/* These should be synchronized with the structure
  * syscall_ent_t in syscall/syscall_ent.h */
+#[repr(C)]
+struct MsgEnt {
+    msg_type: u64,
+}
+unsafe impl Plain for MsgEnt {}
+
 #[repr(C)]
 struct SyscallEnt {
     id: u64,
@@ -39,7 +45,7 @@ fn handle_args(id: u64, args: &[u8], ret: u64) -> String {
     }
 }
 
-pub fn syscall_ent_handler(bytes: &[u8]) -> i32 {
+fn syscall_ent_handler(bytes: &[u8]) -> i32 {
     let ent_size = std::mem::size_of::<SyscallEnt>();
     let ent = plain::from_bytes::<SyscallEnt>(&bytes[0..ent_size])
         .expect("Fail to cast bytes to SyscallEnt");
@@ -64,4 +70,19 @@ pub fn syscall_ent_handler(bytes: &[u8]) -> i32 {
     }
 
     0
+}
+
+const MSG_SYSCALL: u64 = 0;
+pub fn msg_ent_handler(bytes: &[u8]) -> i32 {
+    /* The first u64 is used for encoding the type of message. Pick up
+     * the corresponding handler for the inner entry accordingly. */
+    let ent_size = std::mem::size_of::<MsgEnt>();
+    let ent =
+        plain::from_bytes::<MsgEnt>(&bytes[0..ent_size]).expect("Fail to cast bytes to MsgEnt");
+    let bytes = &bytes[ent_size..];
+
+    match ent.msg_type {
+        MSG_SYSCALL => syscall_ent_handler(bytes),
+        _ => unreachable!(),
+    }
 }

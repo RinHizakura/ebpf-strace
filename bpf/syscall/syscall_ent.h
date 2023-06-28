@@ -18,6 +18,13 @@
  * #include "../syscall/syscall_tbl.h"
  * #undef __SYSCALL
  */
+#define MSG_SYSCALL 0
+#define MSG_SIGNAL 1
+typedef struct {
+    u64 msg_type;
+    u8 inner[0];
+} msg_ent_t;
+
 typedef struct {
     u64 id;
     u64 ret;

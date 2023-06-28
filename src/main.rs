@@ -1,5 +1,5 @@
 use crate::bump_memlock_rlimit::*;
-use crate::handler::syscall_ent_handler;
+use crate::handler::msg_ent_handler;
 use crate::sys::*;
 use anyhow::{anyhow, Result};
 use libbpf_rs::RingBufferBuilder;
@@ -83,7 +83,7 @@ fn main() -> Result<()> {
 
     /* Access the ringbuffer in our ebpf code */
     let mut builder = RingBufferBuilder::new();
-    builder.add(skel.maps().syscall_record(), syscall_ent_handler)?;
+    builder.add(skel.maps().msg_ringbuf(), msg_ent_handler)?;
     let syscall_record = builder.build()?;
 
     while running.load(Ordering::SeqCst) {

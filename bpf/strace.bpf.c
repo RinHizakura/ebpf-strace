@@ -46,7 +46,7 @@ DEFINE_BPF_MAP(g_ent, BPF_MAP_TYPE_ARRAY, u32, syscall_ent_t, 1);
 struct {
     __uint(type, BPF_MAP_TYPE_RINGBUF);
     __uint(max_entries, 4096);
-} syscall_record SEC(".maps");
+} msg_ringbuf SEC(".maps");
 
 #include "bpf/execve.c"
 #include "bpf/exit.c"
@@ -58,6 +58,21 @@ struct {
 #include "bpf/rt_sigreturn.c"
 #include "bpf/signal.c"
 #include "bpf/stat.c"
+
+static void submit_syscall(syscall_ent_t *ent, size_t args_size)
+{
+    size_t syscall_ent_size = sizeof(basic_t) + args_size;
+    size_t total_size = sizeof(msg_ent_t) + syscall_ent_size;
+    msg_ent_t *ringbuf_ent = bpf_ringbuf_reserve(&msg_ringbuf, total_size, 0);
+    if (!ringbuf_ent) {
+        /* FIXME: Drop the syscall directly. Any better approach to guarantee
+         * to record the syscall on ring buffer?*/
+        return;
+    }
+    ringbuf_ent->msg_type = MSG_SYSCALL;
+    memcpy(ringbuf_ent->inner, ent, syscall_ent_size);
+    bpf_ringbuf_submit(ringbuf_ent, 0);
+}
 
 static void sys_enter_default(syscall_ent_t *ent, u64 id)
 {
@@ -140,7 +155,7 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
                                  parm4);
         break;
     case SYS_RT_SIGRETURN:
-        sys_rt_sigreturn_enter(id, pt_regs);
+        sys_rt_sigreturn_enter(ent, pt_regs);
         break;
     case SYS_NEWFSTATAT:
         sys_newfstatat_enter(ent, parm1, (void *) parm2, (void *) parm3, parm4);
@@ -149,10 +164,25 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
         sys_execve_enter(ent, (char *) parm1, (void *) parm2, (void *) parm3);
         break;
     case SYS_EXIT_GROUP:
-        sys_exit_group_enter(id, parm1);
+        sys_exit_group_enter(ent, parm1);
         break;
     case SYS_OPENAT:
         sys_openat_enter(ent, parm1, (char *) parm2, parm3);
+        break;
+    default:
+        break;
+    }
+
+    /* Unlike most system call which can be traced to one sys_enter
+     * and a pairing sys_exit, these call can only be traced
+     * to one sys_enter only. Because of the reason, we submit the event
+     * here directly. Note that we therefore don't know the return value */
+    switch (id) {
+    case SYS_RT_SIGRETURN:
+        submit_syscall(ent, sizeof(rt_sigreturn_args_t));
+        break;
+    case SYS_EXIT_GROUP:
+        submit_syscall(ent, sizeof(exit_group_args_t));
         break;
     default:
         break;
@@ -164,20 +194,6 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
 static void sys_exit_default(syscall_ent_t *ent, u64 ret)
 {
     ent->basic.ret = ret;
-}
-
-static void submit_syscall(syscall_ent_t *ent, size_t args_size)
-{
-    size_t total_size = sizeof(basic_t) + args_size;
-    syscall_ent_t *ringbuf_ent =
-        bpf_ringbuf_reserve(&syscall_record, total_size, 0);
-    if (!ringbuf_ent) {
-        /* FIXME: Drop the syscall directly. Any better approach to guarantee
-         * to record the syscall on ring buffer?*/
-        return;
-    }
-    memcpy(ringbuf_ent, ent, total_size);
-    bpf_ringbuf_submit(ringbuf_ent, 0);
 }
 
 SEC("raw_tracepoint/sys_exit")
