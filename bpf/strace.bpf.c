@@ -15,7 +15,7 @@
 #error "only x86_64 architecture is supported for ebpf-strace now"
 #endif
 
-#include "syscall/syscall_ent.h"
+#include "msg_ent.h"
 #include "syscall/syscall_nr.h"
 #include "utils.h"
 
@@ -266,9 +266,25 @@ int signal_deliver(struct bpf_raw_tracepoint_args *args)
     if (select_pid == 0 || select_pid != cur_pid)
         return 0;
 
-    int sig = args->args[0];
+    size_t total_size = sizeof(msg_ent_t) + sizeof(signal_ent_t);
+    msg_ent_t *ringbuf_ent = bpf_ringbuf_reserve(&msg_ringbuf, total_size, 0);
+    if (!ringbuf_ent) {
+        /* FIXME: Drop the syscall directly. Any better approach to guarantee
+         * to record the syscall on ring buffer?*/
+        return 0;
+    }
+    ringbuf_ent->msg_type = MSG_SIGNAL;
 
-    bpf_printk("get %d", sig);
+    /* FIXME: We simply assume that kernel_siginfo is the subset of siginfo,
+     * but is this always correct? */
+    int signo = args->args[0];
+    struct kernel_siginfo *ksiginfo = (struct kernel_siginfo *) args->args[1];
+    signal_ent_t *ent = (signal_ent_t *) ringbuf_ent->inner;
+    ent->signo = signo;
+    if (ksiginfo) {
+        bpf_core_read(&ent->siginfo, sizeof(struct kernel_siginfo), ksiginfo);
+    }
+    bpf_ringbuf_submit(ringbuf_ent, 0);
 
     return 0;
 }
