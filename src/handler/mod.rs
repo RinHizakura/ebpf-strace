@@ -1,9 +1,9 @@
-use plain::Plain;
-use crate::handler::syscall::syscall_ent_handler;
 use crate::handler::signal::signal_ent_handler;
+use crate::handler::syscall::syscall_ent_handler;
+use plain::Plain;
 
-mod syscall;
 mod signal;
+mod syscall;
 
 #[repr(C)]
 struct MsgEnt {

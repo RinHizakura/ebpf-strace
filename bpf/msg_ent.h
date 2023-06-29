@@ -136,7 +136,11 @@ typedef struct {
 } rt_sigreturn_args_t;
 
 typedef struct {
+    int fd;
+    unsigned long request;
+    unsigned long arg;
 } ioctl_args_t;
+
 typedef struct {
 } pread64_args_t;
 typedef struct {

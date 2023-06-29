@@ -16,6 +16,7 @@ mod execve;
 mod exit;
 mod handler;
 mod io;
+mod ioctl;
 mod lseek;
 mod mem;
 mod open_close;

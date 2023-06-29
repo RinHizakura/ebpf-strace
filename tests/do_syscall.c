@@ -1,7 +1,9 @@
 #include <fcntl.h>
+#include <linux/random.h>
 #include <poll.h>
 #include <signal.h>
 #include <stdlib.h>
+#include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/syscall.h>
@@ -105,14 +107,11 @@ int do_signal()
     sigemptyset(&set);
     sigaddset(&set, SIGUSR2);
     sigaddset(&set, SIGCHLD);
-    sigaddset(&set, RT_0 +  3);
+    sigaddset(&set, RT_0 + 3);
     if (sigprocmask(SIG_SETMASK, &set, &oldset))
         return -1;
 
-    struct sigaction sa = {
-        .sa_sigaction = handler,
-        .sa_flags = SA_SIGINFO
-    };
+    struct sigaction sa = {.sa_sigaction = handler, .sa_flags = SA_SIGINFO};
     if (sigaction(SIGUSR1, &sa, NULL))
         return -1;
 
@@ -125,6 +124,16 @@ int do_signal()
     return 0;
 }
 
+int do_ioctl()
+{
+    int ent_count;
+    int random_fd = open("/dev/random", O_RDONLY);
+    if (ioctl(random_fd, RNDGETENTCNT, &ent_count) != 0)
+        return -1;
+
+    return 0;
+}
+
 int main()
 {
     // TEST(do_file_operation);
@@ -132,7 +141,8 @@ int main()
     // TEST(do_poll);
     // TEST(do_map);
     // TEST(do_mem);
-    TEST(do_signal);
+    // TEST(do_signal);
+    TEST(do_ioctl);
 
     return 0;
 }

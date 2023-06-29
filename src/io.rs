@@ -1,5 +1,3 @@
-use std::ffi::c_int;
-
 use crate::common::*;
 
 #[repr(C)]

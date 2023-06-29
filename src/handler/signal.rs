@@ -67,8 +67,8 @@ fn format_si_info(sip: &SigInfo) -> String {
     let pad = &sip.pad;
     match sip.si_code {
         SI_TKILL => {
-             let si_kill = get_args::<SiKill>(pad);
-             format!("si_pid={}, si_uid={}", si_kill.pid, si_kill.uid)
+            let si_kill = get_args::<SiKill>(pad);
+            format!("si_pid={}, si_uid={}", si_kill.pid, si_kill.uid)
         }
         _ => "".to_string(),
     }

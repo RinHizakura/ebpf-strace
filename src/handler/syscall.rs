@@ -1,6 +1,6 @@
 use crate::syscall::syscall_nr::*;
 use crate::syscall::syscall_tbl::SYSCALLS;
-use crate::{execve, exit, io, lseek, mem, open_close, poll, rt_sigreturn, signal, stat};
+use crate::{execve, exit, io, ioctl, lseek, mem, open_close, poll, rt_sigreturn, signal, stat};
 use plain::Plain;
 
 #[repr(C)]
@@ -28,6 +28,7 @@ fn handle_args(id: u64, args: &[u8], ret: u64) -> String {
         SYS_RT_SIGACTION => signal::handle_rt_sigaction_args(args),
         SYS_RT_SIGPROCMASK => signal::handle_rt_sigprocmask_args(args),
         SYS_RT_SIGRETURN => rt_sigreturn::handle_rt_sigreturn_args(args),
+        SYS_IOCTL => ioctl::handle_ioctl_args(args),
         SYS_NEWFSTATAT => stat::handle_newfstatat_args(args),
         SYS_EXECVE => execve::handle_execve_args(args),
         SYS_OPENAT => open_close::handle_openat_args(args),

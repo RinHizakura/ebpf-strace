@@ -1,6 +1,6 @@
 use crate::arch::*;
 use crate::utils::next_set_bit;
-pub use std::ffi::{c_int, c_long};
+pub use std::ffi::{c_int, c_long, c_ulong};
 
 pub const ARR_ENT_SIZE: usize = 4;
 pub const BUF_SIZE: usize = 32;
