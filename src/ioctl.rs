@@ -21,6 +21,12 @@ const _IOC_WRITE: c_ulong = 1;
 const _IOC_READ: c_ulong = 2;
 
 const RNDGETENTCNT: c_ulong = _IOR::<c_int>(b'R', 0x00);
+const RNDADDTOENTCNT: c_ulong = _IOW::<c_int>(b'R', 0x01);
+const RNDGETPOOL: c_ulong = _IOR::<[c_int; 2]>(b'R', 0x02);
+const RNDADDENTROPY: c_ulong = _IOW::<[c_int; 2]>(b'R', 0x03);
+const RNDZAPENTCNT: c_ulong = _IO(b'R', 0x04);
+const RNDCLEARPOOL: c_ulong = _IO(b'R', 0x06);
+const RNDRESEEDCRNG: c_ulong = _IO(b'R', 0x07);
 
 /* These are originated from Linux. They don't follow snake case to
  * align definition in Linux.
@@ -61,19 +67,23 @@ struct IoctlArgs {
 }
 unsafe impl plain::Plain for IoctlArgs {}
 
-fn random_ioctl(code: c_ulong, arg: c_ulong) -> String {
+fn random_ioctl(code: c_ulong, arg: c_ulong) -> Option<String> {
+    let arg_int = (arg & 0xFFFF_FFFF) as u32 as i32;
     match code {
-        RNDGETENTCNT => format!("{}", arg & 0xFFFF_FFFF),
-        _ => todo!(),
+        RNDGETENTCNT | RNDADDTOENTCNT => Some(format!("{}", arg_int)),
+        RNDGETPOOL | RNDADDENTROPY | RNDZAPENTCNT | RNDCLEARPOOL | RNDRESEEDCRNG => None, // TODO: support decoding of other request code
+        _ => unreachable!(),
     }
 }
 
-fn ioctl_decode(code: c_ulong, arg: c_ulong) -> String {
+fn ioctl_decode(code: c_ulong, arg: c_ulong) -> Option<String> {
     let ioc_type = _IOC_TYPE(code);
-    match ioc_type {
+    let result = match ioc_type {
         b'R' => random_ioctl(code, arg),
-        _ => "".to_string(),
-    }
+        _ => None, // TODO: support decoding for other ioctl
+    };
+
+    result
 }
 
 pub(super) fn handle_ioctl_args(args: &[u8]) -> String {
@@ -83,5 +93,11 @@ pub(super) fn handle_ioctl_args(args: &[u8]) -> String {
     let arg = ioctl.arg;
     let decode = ioctl_decode(code, arg);
 
-    return format!("{}, {}, {}", ioctl.fd, code, decode);
+    let (comma, decode) = if decode.is_none() {
+        ("".to_string(), "".to_string())
+    } else {
+        (", ".to_string(), decode.unwrap())
+    };
+
+    return format!("{}, {}{}{}", ioctl.fd, code, comma, decode);
 }

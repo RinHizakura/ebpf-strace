@@ -124,13 +124,13 @@ int do_signal()
     return 0;
 }
 
-int do_ioctl()
+int do_ioctl_random()
 {
     int ent_count;
     int random_fd = open("/dev/random", O_RDONLY);
     if (ioctl(random_fd, RNDGETENTCNT, &ent_count) != 0)
         return -1;
-
+    close(random_fd);
     return 0;
 }
 
@@ -142,7 +142,7 @@ int main()
     // TEST(do_map);
     // TEST(do_mem);
     // TEST(do_signal);
-    TEST(do_ioctl);
+    TEST(do_ioctl_random);
 
     return 0;
 }
