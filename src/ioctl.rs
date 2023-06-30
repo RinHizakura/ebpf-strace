@@ -1,5 +1,58 @@
 use crate::common::*;
 
+/* FIXME: Consider different platform for these magic bits */
+const _IOC_NRBITS: c_ulong = 8;
+const _IOC_TYPEBITS: c_ulong = 8;
+const _IOC_SIZEBITS: c_ulong = 14;
+const _IOC_DIRBITS: c_long = 2;
+
+const _IOC_NRMASK: c_ulong = (1 << _IOC_NRBITS) - 1;
+const _IOC_TYPEMASK: c_ulong = (1 << _IOC_TYPEBITS) - 1;
+const _IOC_SIZEMASK: c_ulong = (1 << _IOC_SIZEBITS) - 1;
+const _IOC_DIRMASK: c_ulong = (1 << _IOC_DIRBITS) - 1;
+
+const _IOC_NRSHIFT: c_ulong = 0;
+const _IOC_TYPESHIFT: c_ulong = _IOC_NRSHIFT + _IOC_NRBITS;
+const _IOC_SIZESHIFT: c_ulong = _IOC_TYPESHIFT + _IOC_TYPEBITS;
+const _IOC_DIRSHIFT: c_ulong = _IOC_SIZESHIFT + _IOC_SIZEBITS;
+
+const _IOC_NONE: c_ulong = 0;
+const _IOC_WRITE: c_ulong = 1;
+const _IOC_READ: c_ulong = 2;
+
+const RNDGETENTCNT: c_ulong = _IOR::<c_int>(b'R', 0x00);
+
+/* These are originated from Linux. They don't follow snake case to
+ * align definition in Linux.
+ * https://github.com/torvalds/linux/blob/master/rust/kernel/ioctl.rs */
+#[allow(non_snake_case)]
+const fn _IOC(dir: c_ulong, ty: u8, nr: c_ulong, size: usize) -> c_ulong {
+    (dir << _IOC_DIRSHIFT)
+        | ((ty as c_ulong) << _IOC_TYPESHIFT)
+        | (nr << _IOC_NRSHIFT)
+        | ((size as c_ulong) << _IOC_SIZESHIFT)
+}
+
+#[allow(non_snake_case)]
+const fn _IO(ty: u8, nr: c_ulong) -> c_ulong {
+    _IOC(_IOC_NONE, ty, nr, 0)
+}
+
+#[allow(non_snake_case)]
+const fn _IOR<T>(ty: u8, nr: c_ulong) -> c_ulong {
+    _IOC(_IOC_READ, ty, nr, core::mem::size_of::<T>())
+}
+
+#[allow(non_snake_case)]
+const fn _IOW<T>(ty: u8, nr: c_ulong) -> c_ulong {
+    _IOC(_IOC_WRITE, ty, nr, core::mem::size_of::<T>())
+}
+
+#[allow(non_snake_case)]
+fn _IOC_TYPE(nr: c_ulong) -> u8 {
+    ((nr >> _IOC_TYPESHIFT) & _IOC_TYPEMASK) as u8
+}
+
 #[repr(C)]
 struct IoctlArgs {
     fd: c_int,
@@ -8,24 +61,7 @@ struct IoctlArgs {
 }
 unsafe impl plain::Plain for IoctlArgs {}
 
-/* FIXME: Consider different platform for these magic bits */
-const IOC_NRBITS: c_ulong = 8;
-const IOC_TYPEBITS: c_ulong = 8;
-
-const IOC_TYPEMASK: c_ulong = (1 << IOC_TYPEBITS) - 1;
-
-const IOC_NRSHIFT: c_ulong = 0;
-const IOC_TYPESHIFT: c_ulong = IOC_NRSHIFT + IOC_NRBITS;
-
-macro_rules! ioc_type {
-    ( $nr:expr ) => {
-        ((($nr) >> IOC_TYPESHIFT) & IOC_TYPEMASK) as u8
-    };
-}
-
 fn random_ioctl(code: c_ulong, arg: c_ulong) -> String {
-    // FIXME: miss in libc?
-    let RNDGETENTCNT: c_ulong = 2147766784;
     match code {
         RNDGETENTCNT => format!("{}", arg & 0xFFFF_FFFF),
         _ => todo!(),
@@ -33,7 +69,7 @@ fn random_ioctl(code: c_ulong, arg: c_ulong) -> String {
 }
 
 fn ioctl_decode(code: c_ulong, arg: c_ulong) -> String {
-    let ioc_type = ioc_type!(code);
+    let ioc_type = _IOC_TYPE(code);
     match ioc_type {
         b'R' => random_ioctl(code, arg),
         _ => "".to_string(),
