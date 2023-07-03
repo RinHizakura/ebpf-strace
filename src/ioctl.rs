@@ -1,4 +1,5 @@
 use crate::common::*;
+use std::sync::{Mutex, Once};
 
 /* FIXME: Consider different platform for these magic bits */
 const _IOC_NRBITS: c_ulong = 8;
@@ -67,6 +68,31 @@ struct IoctlArgs {
 }
 unsafe impl plain::Plain for IoctlArgs {}
 
+static INIT_IOCTL_ENTS: Once = Once::new();
+/* Note: this is not created as const because we would like to
+ * sort it for better search time. */
+lazy_static! {
+    pub static ref IOCTL_ENTS: Mutex<Vec<Desc>> = Mutex::new(vec![
+        desc!(RNDGETENTCNT),
+        desc!(RNDADDTOENTCNT),
+        desc!(RNDGETPOOL),
+        desc!(RNDADDENTROPY),
+        desc!(RNDZAPENTCNT),
+        desc!(RNDCLEARPOOL),
+        desc!(RNDRESEEDCRNG),
+    ]);
+}
+
+fn ioctl_lookup(code: c_ulong) -> String {
+    let mut ioctl_ents_raw = IOCTL_ENTS.lock().unwrap();
+
+    INIT_IOCTL_ENTS.call_once(|| {
+        ioctl_ents_raw.sort_by_key(|desc| desc.val);
+    });
+
+    format_value_sorted(code, "??", &ioctl_ents_raw)
+}
+
 fn random_ioctl(code: c_ulong, arg: c_ulong) -> Option<String> {
     let arg_int = (arg & 0xFFFF_FFFF) as u32 as i32;
     match code {
@@ -89,9 +115,9 @@ fn ioctl_decode(code: c_ulong, arg: c_ulong) -> Option<String> {
 pub(super) fn handle_ioctl_args(args: &[u8]) -> String {
     let ioctl = get_args::<IoctlArgs>(args);
 
-    let code = ioctl.request;
+    let code = ioctl_lookup(ioctl.request);
     let arg = ioctl.arg;
-    let decode = ioctl_decode(code, arg);
+    let decode = ioctl_decode(ioctl.request, arg);
 
     let (comma, decode) = if decode.is_none() {
         ("".to_string(), "".to_string())

@@ -104,13 +104,23 @@ pub fn format_flags(mut flags: u64, sep: char, descs: &[Desc]) -> String {
 }
 
 pub fn format_value(val: u64, default: &str, descs: &[Desc]) -> String {
-    for v in descs {
-        if val == v.val {
-            return v.name.to_owned();
-        }
+    let result = descs.iter().find(|desc| desc.val == val);
+    if let Some(desc) = result {
+        return desc.name.to_owned();
     }
 
     /* Print the value directly if no hit */
+    return format!("0x{:x} /* {} */", val, default);
+}
+
+/* Note: the input descs should be sorted, otherwise the results
+ * are undefined. */
+pub fn format_value_sorted(val: u64, default: &str, descs: &[Desc]) -> String {
+    let result = descs.binary_search_by_key(&val, |desc| desc.val);
+    if let Ok(idx) = result {
+        return descs[idx].name.to_owned();
+    }
+
     return format!("0x{:x} /* {} */", val, default);
 }
 
