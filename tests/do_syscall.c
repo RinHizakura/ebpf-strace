@@ -2,7 +2,9 @@
 #include <linux/random.h>
 #include <poll.h>
 #include <signal.h>
+#include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -24,8 +26,18 @@ int do_file_operation()
     if (fd < 0)
         return -1;
 
+    int new_fd = open("/tmp/test", O_CREAT | O_WRONLY, 0666);
+    if (new_fd < 0)
+        return -1;
+
     lseek(fd, 0, SEEK_SET);
 
+    uint8_t buf[32];
+    pread(fd, buf, 32, 32);
+    memset(buf, 'A', sizeof(buf));
+    pwrite(new_fd, buf, 32, 32);
+
+    close(new_fd);
     close(fd);
     close(dirfd);
 
@@ -136,13 +148,13 @@ int do_ioctl_random()
 
 int main()
 {
-    // TEST(do_file_operation);
+    TEST(do_file_operation);
     // TEST(do_stat);
     // TEST(do_poll);
     // TEST(do_map);
     // TEST(do_mem);
     // TEST(do_signal);
-    TEST(do_ioctl_random);
+    // TEST(do_ioctl_random);
 
     return 0;
 }

@@ -157,6 +157,9 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
     case SYS_PREAD64:
         sys_pread_enter(ent, parm1, (void *) parm2, parm3, parm4);
         break;
+    case SYS_PWRITE64:
+        sys_pwrite_enter(ent, parm1, (void *) parm2, parm3, parm4);
+        break;
     case SYS_RT_SIGPROCMASK:
         sys_rt_sigprocmask_enter(ent, parm1, (void *) parm2, (void *) parm3,
                                  parm4);

@@ -149,7 +149,12 @@ typedef struct {
 } pread64_args_t;
 
 typedef struct {
+    int fd;
+    u8 buf[BUF_SIZE];
+    size_t count;
+    off_t offset;
 } pwrite64_args_t;
+
 typedef struct {
 } readv_args_t;
 typedef struct {

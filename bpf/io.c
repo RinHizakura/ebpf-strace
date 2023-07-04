@@ -63,3 +63,19 @@ static void sys_pread_exit(syscall_ent_t *ent)
     if (buf_addr_ptr != NULL)
         bpf_core_read_user(pread->buf, cpy_count, *buf_addr_ptr);
 }
+
+static void sys_pwrite_enter(syscall_ent_t *ent,
+                             int fd,
+                             void *buf,
+                             size_t count,
+                             off_t offset)
+{
+    pwrite64_args_t *pwrite = (pwrite64_args_t *) ent->bytes;
+    pwrite->fd = fd;
+    pwrite->count = count;
+    pwrite->offset = offset;
+
+    memset(pwrite->buf, 0, sizeof(pwrite->buf));
+    size_t cpy_count = count > BUF_SIZE ? BUF_SIZE : count;
+    bpf_core_read_user(pwrite->buf, cpy_count, buf);
+}
