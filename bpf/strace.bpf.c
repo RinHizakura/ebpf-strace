@@ -154,6 +154,9 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
     case SYS_IOCTL:
         sys_ioctl_enter(ent, parm1, parm2, (void *) parm3);
         break;
+    case SYS_PREAD64:
+        sys_pread_enter(ent, parm1, (void *) parm2, parm3, parm4);
+        break;
     case SYS_RT_SIGPROCMASK:
         sys_rt_sigprocmask_enter(ent, parm1, (void *) parm2, (void *) parm3,
                                  parm4);
@@ -241,6 +244,9 @@ int sys_exit(struct bpf_raw_tracepoint_args *args)
         break;
     case SYS_IOCTL:
         sys_ioctl_exit(ent);
+        break;
+    case SYS_PREAD64:
+        sys_pread_exit(ent);
         break;
     case SYS_NEWFSTATAT:
         sys_newfstatat_exit(ent);

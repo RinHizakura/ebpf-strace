@@ -35,3 +35,31 @@ static void sys_write_enter(syscall_ent_t *ent, int fd, void *buf, size_t count)
     size_t cpy_count = count > BUF_SIZE ? BUF_SIZE : count;
     bpf_core_read_user(write->buf, cpy_count, buf);
 }
+
+static void sys_pread_enter(syscall_ent_t *ent,
+                            int fd,
+                            void *buf,
+                            size_t count,
+                            off_t offset)
+{
+    pread64_args_t *pread = (pread64_args_t *) ent->bytes;
+    pread->fd = fd;
+    pread->count = count;
+    pread->offset = offset;
+
+    void **buf_addr_ptr = bpf_g_buf_addr_lookup_elem(&INDEX_0);
+    if (buf_addr_ptr != NULL)
+        *buf_addr_ptr = buf;
+}
+
+static void sys_pread_exit(syscall_ent_t *ent)
+{
+    pread64_args_t *pread = (pread64_args_t *) ent->bytes;
+    void **buf_addr_ptr = bpf_g_buf_addr_lookup_elem(&INDEX_0);
+    size_t count = pread->count;
+
+    memset(pread->buf, 0, sizeof(pread->buf));
+    size_t cpy_count = count > BUF_SIZE ? BUF_SIZE : count;
+    if (buf_addr_ptr != NULL)
+        bpf_core_read_user(pread->buf, cpy_count, *buf_addr_ptr);
+}

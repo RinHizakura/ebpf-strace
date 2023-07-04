@@ -142,7 +142,12 @@ typedef struct {
 } ioctl_args_t;
 
 typedef struct {
+    int fd;
+    u8 buf[BUF_SIZE];
+    size_t count;
+    off_t offset;
 } pread64_args_t;
+
 typedef struct {
 } pwrite64_args_t;
 typedef struct {
