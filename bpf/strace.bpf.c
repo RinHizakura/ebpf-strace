@@ -115,7 +115,7 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
         sys_write_enter(ent, parm1, (void *) parm2, parm3);
         break;
     case SYS_OPEN:
-        sys_open_enter(ent, (char *) parm1, parm2);
+        sys_open_enter(ent, (char *) parm1, parm2, parm3);
         break;
     case SYS_CLOSE:
         sys_close_enter(ent, parm1);
@@ -177,7 +177,7 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
         sys_exit_group_enter(ent, parm1);
         break;
     case SYS_OPENAT:
-        sys_openat_enter(ent, parm1, (char *) parm2, parm3);
+        sys_openat_enter(ent, parm1, (char *) parm2, parm3, parm4);
         break;
     default:
         break;

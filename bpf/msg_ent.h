@@ -50,6 +50,7 @@ typedef struct {
 typedef struct {
     u8 pathname[BUF_SIZE];
     int flags;
+    mode_t mode;
 } open_args_t;
 
 typedef struct {
@@ -646,6 +647,7 @@ typedef struct {
     u8 pathname[BUF_SIZE];
     int dirfd;
     int flags;
+    mode_t mode;
 } openat_args_t;
 
 typedef struct {

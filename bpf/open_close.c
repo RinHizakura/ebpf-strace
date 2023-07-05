@@ -1,7 +1,11 @@
-static void sys_open_enter(syscall_ent_t *ent, char *pathname, int flags)
+static void sys_open_enter(syscall_ent_t *ent,
+                           char *pathname,
+                           int flags,
+                           mode_t mode)
 {
     open_args_t *open = (open_args_t *) ent->bytes;
     open->flags = flags;
+    open->mode = mode;
 
     /* FIXME: It looks like we should read this until sys_exit.
      * But what's the reason for us to do this? How about
@@ -22,17 +26,19 @@ static void sys_open_exit(syscall_ent_t *ent)
     memset(open->pathname, 0, sizeof(open->pathname));
     if (buf_addr_ptr != NULL)
         bpf_core_read_user(open->pathname, sizeof(open->pathname),
-                               *buf_addr_ptr);
+                           *buf_addr_ptr);
 }
 
 static void sys_openat_enter(syscall_ent_t *ent,
                              int dirfd,
                              char *pathname,
-                             int flags)
+                             int flags,
+                             mode_t mode)
 {
     openat_args_t *openat = (openat_args_t *) ent->bytes;
     openat->dirfd = dirfd;
     openat->flags = flags;
+    openat->mode = mode;
 
     void **buf_addr_ptr = bpf_g_buf_addr_lookup_elem(&INDEX_0);
     if (buf_addr_ptr != NULL)
@@ -46,7 +52,7 @@ static void sys_openat_exit(syscall_ent_t *ent)
     memset(openat->pathname, 0, sizeof(openat->pathname));
     if (buf_addr_ptr != NULL)
         bpf_core_read_user(openat->pathname, sizeof(openat->pathname),
-                               *buf_addr_ptr);
+                           *buf_addr_ptr);
 }
 
 static void sys_close_enter(syscall_ent_t *ent, int fd)
