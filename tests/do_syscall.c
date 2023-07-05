@@ -10,6 +10,7 @@
 #include <sys/stat.h>
 #include <sys/syscall.h>
 #include <sys/types.h>
+#include <sys/uio.h>
 #include <unistd.h>
 
 #define TEST(f) \
@@ -36,6 +37,13 @@ int do_file_operation()
     pread(fd, buf, 32, 32);
     memset(buf, 'A', sizeof(buf));
     pwrite(new_fd, buf, 32, 32);
+
+    struct iovec read_iov = (struct iovec){
+        .iov_base = buf,
+        .iov_len = 32,
+    };
+    readv(fd, &read_iov, 1);
+
 
     close(new_fd);
     close(fd);

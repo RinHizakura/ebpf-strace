@@ -66,3 +66,31 @@ pub(super) fn handle_pwrite_args(args: &[u8]) -> String {
         pwrite.fd, buf, pwrite.count, pwrite.offset
     );
 }
+
+#[repr(C)]
+struct IovTrace {
+    iov_base: [u8; BUF_SIZE],
+    iov_len: usize,
+}
+
+#[repr(C)]
+struct ReadvArgs {
+    iov: [IovTrace; ARR_ENT_SIZE],
+    fd: c_int,
+    iovcnt: c_int,
+}
+unsafe impl plain::Plain for ReadvArgs {}
+
+fn format_struct_iov(iov: &IovTrace) -> String {
+    let iov_len = iov.iov_len;
+    let iov_base = format_buf(&iov.iov_base, iov_len);
+    return format!("iov_base={}, iov_len={}", iov_base, iov_len);
+}
+
+pub(super) fn handle_readv_args(args: &[u8]) -> String {
+    let readv = get_args::<ReadvArgs>(args);
+
+    /* TODO: show the */
+    let iov = format_arr(&readv.iov, readv.iovcnt as usize, format_struct_iov);
+    return format!("{}, {}, {}", readv.fd, iov, readv.iovcnt);
+}

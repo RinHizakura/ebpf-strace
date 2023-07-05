@@ -79,3 +79,44 @@ static void sys_pwrite_enter(syscall_ent_t *ent,
     size_t cpy_count = count > BUF_SIZE ? BUF_SIZE : count;
     bpf_core_read_user(pwrite->buf, cpy_count, buf);
 }
+
+static void sys_readv_enter(syscall_ent_t *ent,
+                            int fd,
+                            struct iovec *iov,
+                            int iovcnt)
+{
+    readv_args_t *readv = (readv_args_t *) ent->bytes;
+    readv->fd = fd;
+    readv->iovcnt = iovcnt;
+
+    void **buf_addr_ptr = bpf_g_buf_addr_lookup_elem(&INDEX_0);
+    if (buf_addr_ptr != NULL)
+        *buf_addr_ptr = iov;
+}
+
+static void sys_readv_exit(syscall_ent_t *ent)
+{
+    readv_args_t *readv = (readv_args_t *) ent->bytes;
+
+    void **buf_addr_ptr = bpf_g_buf_addr_lookup_elem(&INDEX_0);
+    if (!buf_addr_ptr)
+        return;
+
+    struct iovec *iov = *buf_addr_ptr;
+    for (int i = 0; (i < ARR_ENT_SIZE) && (i < readv->iovcnt); i++) {
+        struct iovec iov_tmp;
+        bpf_core_read_user(&iov_tmp, sizeof(struct iovec), iov + i);
+
+        void *iov_base = iov_tmp.iov_base;
+        size_t iov_len = iov_tmp.iov_len;
+
+        memset(readv->iov[i].iov_base, 0, BUF_SIZE);
+        readv->iov[i].iov_len = 0;
+
+        if (iov_base) {
+            size_t len = iov_len > BUF_SIZE ? BUF_SIZE : iov_len;
+            bpf_core_read_user(readv->iov[i].iov_base, len, iov_base);
+        }
+        readv->iov[i].iov_len = iov_len;
+    }
+}

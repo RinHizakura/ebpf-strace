@@ -157,7 +157,16 @@ typedef struct {
 } pwrite64_args_t;
 
 typedef struct {
+    u8 iov_base[BUF_SIZE];
+    size_t iov_len;
+} iovec_trace_t;
+
+typedef struct {
+    iovec_trace_t iov[ARR_ENT_SIZE];
+    int fd;
+    int iovcnt;
 } readv_args_t;
+
 typedef struct {
 } writev_args_t;
 typedef struct {
