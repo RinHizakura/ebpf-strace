@@ -119,11 +119,11 @@ pub(super) fn handle_ioctl_args(args: &[u8]) -> String {
     let arg = ioctl.arg;
     let decode = ioctl_decode(ioctl.request, arg);
 
-    let (comma, decode) = if decode.is_none() {
-        ("".to_string(), "".to_string())
+    let result = if decode.is_none() {
+        format!("{}, {}", ioctl.fd, code)
     } else {
-        (", ".to_string(), decode.unwrap())
+        format!("{}, {}, {}", ioctl.fd, code, decode.unwrap())
     };
 
-    return format!("{}, {}{}{}", ioctl.fd, code, comma, decode);
+    return result;
 }
