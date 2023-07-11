@@ -10,6 +10,7 @@ use std::time::Duration;
 
 #[macro_use]
 mod common;
+mod access;
 mod arch;
 mod bump_memlock_rlimit;
 mod execve;

@@ -15,8 +15,12 @@ int do_file()
     if (fd < 0)
         return -1;
 
-    int new_fd = open("/tmp/test", O_CREAT | O_WRONLY, 0666);
+    char *tmpfile = "/tmp/test";
+    int new_fd = open(tmpfile, O_CREAT | O_WRONLY, 0666);
     if (new_fd < 0)
+        return -1;
+
+    if (access(tmpfile, R_OK | W_OK))
         return -1;
 
     lseek(fd, 0, SEEK_SET);

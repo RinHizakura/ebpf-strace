@@ -174,7 +174,10 @@ typedef struct {
 } writev_args_t;
 
 typedef struct {
+    u8 pathname[BUF_SIZE];
+    int mode;
 } access_args_t;
+
 typedef struct {
 } pipe_args_t;
 typedef struct {
