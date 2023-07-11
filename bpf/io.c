@@ -111,12 +111,35 @@ static void sys_readv_exit(syscall_ent_t *ent)
         size_t iov_len = iov_tmp.iov_len;
 
         memset(readv->iov[i].iov_base, 0, BUF_SIZE);
-        readv->iov[i].iov_len = 0;
-
         if (iov_base) {
             size_t len = iov_len > BUF_SIZE ? BUF_SIZE : iov_len;
             bpf_core_read_user(readv->iov[i].iov_base, len, iov_base);
         }
         readv->iov[i].iov_len = iov_len;
+    }
+}
+
+static void sys_writev_enter(syscall_ent_t *ent,
+                             int fd,
+                             struct iovec *iov,
+                             int iovcnt)
+{
+    writev_args_t *writev = (writev_args_t *) ent->bytes;
+    writev->fd = fd;
+    writev->iovcnt = iovcnt;
+
+    for (int i = 0; (i < ARR_ENT_SIZE) && (i < iovcnt); i++) {
+        struct iovec iov_tmp;
+        bpf_core_read_user(&iov_tmp, sizeof(struct iovec), iov + i);
+
+        void *iov_base = iov_tmp.iov_base;
+        size_t iov_len = iov_tmp.iov_len;
+
+        memset(writev->iov[i].iov_base, 0, BUF_SIZE);
+        if (iov_base) {
+            size_t len = iov_len > BUF_SIZE ? BUF_SIZE : iov_len;
+            bpf_core_read_user(writev->iov[i].iov_base, len, iov_base);
+        }
+        writev->iov[i].iov_len = iov_len;
     }
 }

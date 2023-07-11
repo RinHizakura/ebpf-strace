@@ -32,6 +32,7 @@ fn handle_args(id: u64, args: &[u8], ret: u64) -> String {
         SYS_PREAD64 => io::handle_pread_args(args, ret as usize),
         SYS_PWRITE64 => io::handle_pwrite_args(args),
         SYS_READV => io::handle_readv_args(args),
+        SYS_WRITEV => io::handle_writev_args(args),
         SYS_NEWFSTATAT => stat::handle_newfstatat_args(args),
         SYS_EXECVE => execve::handle_execve_args(args),
         SYS_OPENAT => open_close::handle_openat_args(args),

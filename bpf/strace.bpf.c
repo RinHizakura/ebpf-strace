@@ -163,6 +163,9 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
     case SYS_READV:
         sys_readv_enter(ent, parm1, (void *) parm2, parm3);
         break;
+    case SYS_WRITEV:
+        sys_writev_enter(ent, parm1, (void *) parm2, parm3);
+        break;
     case SYS_RT_SIGPROCMASK:
         sys_rt_sigprocmask_enter(ent, parm1, (void *) parm2, (void *) parm3,
                                  parm4);

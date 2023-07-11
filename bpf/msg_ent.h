@@ -168,7 +168,11 @@ typedef struct {
 } readv_args_t;
 
 typedef struct {
+    iovec_trace_t iov[ARR_ENT_SIZE];
+    int fd;
+    int iovcnt;
 } writev_args_t;
+
 typedef struct {
 } access_args_t;
 typedef struct {

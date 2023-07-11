@@ -38,12 +38,13 @@ int do_file_operation()
     memset(buf, 'A', sizeof(buf));
     pwrite(new_fd, buf, 32, 32);
 
-    struct iovec read_iov = (struct iovec){
+    struct iovec iov = (struct iovec){
         .iov_base = buf,
         .iov_len = 32,
     };
-    readv(fd, &read_iov, 1);
-
+    readv(fd, &iov, 1);
+    memset(buf, 'A', sizeof(buf));
+    writev(new_fd, &iov, 1);
 
     close(new_fd);
     close(fd);
