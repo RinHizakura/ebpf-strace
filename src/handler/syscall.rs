@@ -1,7 +1,7 @@
 use crate::syscall::syscall_nr::*;
 use crate::syscall::syscall_tbl::SYSCALLS;
 use crate::{
-    access, execve, exit, io, ioctl, lseek, mem, open_close, poll, rt_sigreturn, signal, stat,
+    access, execve, exit, io, ioctl, lseek, mem, net, open_close, poll, rt_sigreturn, signal, stat,
 };
 use plain::Plain;
 
@@ -36,6 +36,7 @@ fn handle_args(id: u64, args: &[u8], ret: u64) -> String {
         SYS_READV => io::handle_readv_args(args),
         SYS_WRITEV => io::handle_writev_args(args),
         SYS_ACCESS => access::handle_access_args(args),
+        SYS_PIPE => net::handle_pipe_args(args),
         SYS_NEWFSTATAT => stat::handle_newfstatat_args(args),
         SYS_EXECVE => execve::handle_execve_args(args),
         SYS_OPENAT => open_close::handle_openat_args(args),

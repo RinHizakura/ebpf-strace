@@ -179,7 +179,9 @@ typedef struct {
 } access_args_t;
 
 typedef struct {
+    int pipefd[2];
 } pipe_args_t;
+
 typedef struct {
 } select_args_t;
 typedef struct {

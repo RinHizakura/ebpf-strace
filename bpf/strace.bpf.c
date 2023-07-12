@@ -55,6 +55,7 @@ struct {
 #include "bpf/ioctl.c"
 #include "bpf/lseek.c"
 #include "bpf/mem.c"
+#include "bpf/net.c"
 #include "bpf/open_close.c"
 #include "bpf/poll.c"
 #include "bpf/rt_sigreturn.c"
@@ -170,6 +171,9 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
     case SYS_ACCESS:
         sys_access_enter(ent, (void *) parm1, parm2);
         break;
+    case SYS_PIPE:
+        sys_pipe_enter(ent, (void *) parm1);
+        break;
     case SYS_RT_SIGPROCMASK:
         sys_rt_sigprocmask_enter(ent, parm1, (void *) parm2, (void *) parm3,
                                  parm4);
@@ -266,6 +270,9 @@ int sys_exit(struct bpf_raw_tracepoint_args *args)
         break;
     case SYS_ACCESS:
         sys_access_exit(ent);
+        break;
+    case SYS_PIPE:
+        sys_pipe_exit(ent);
         break;
     case SYS_NEWFSTATAT:
         sys_newfstatat_exit(ent);

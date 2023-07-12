@@ -6,13 +6,14 @@
 
 int main()
 {
-    TEST(do_file);
+    // TEST(do_file);
     // TEST(do_stat);
     // TEST(do_poll);
     // TEST(do_map);
     // TEST(do_mem);
     // TEST(do_signal);
     // TEST(do_ioctl_random);
+    TEST(do_pipe);
 
     return 0;
 }

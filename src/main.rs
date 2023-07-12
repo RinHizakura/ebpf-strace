@@ -20,6 +20,7 @@ mod io;
 mod ioctl;
 mod lseek;
 mod mem;
+mod net;
 mod open_close;
 mod poll;
 mod rt_sigreturn;
