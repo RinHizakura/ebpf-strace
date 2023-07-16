@@ -182,8 +182,25 @@ typedef struct {
     int pipefd[2];
 } pipe_args_t;
 
+/* FIXME: Is it possible to have this in vmlinux.h? */
+struct timeval {
+    long tv_sec;
+    long tv_usec;
+};
+
 typedef struct {
+    int nfds;
+    fd_set readfds;
+    fd_set writefds;
+    fd_set exceptfds;
+    struct timeval timeout;
+
+    bool is_readfds_exist;
+    bool is_writefds_exist;
+    bool is_exceptfds_exist;
+    bool is_timeout_exist;
 } select_args_t;
+
 typedef struct {
 } sched_yield_args_t;
 typedef struct {

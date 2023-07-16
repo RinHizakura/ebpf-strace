@@ -1,7 +1,7 @@
 use crate::syscall::syscall_nr::*;
 use crate::syscall::syscall_tbl::SYSCALLS;
 use crate::{
-    access, execve, exit, io, ioctl, lseek, mem, net, open_close, poll, rt_sigreturn, signal, stat,
+    access, desc, execve, exit, io, ioctl, lseek, mem, net, open, poll, rt_sigreturn, signal, stat,
 };
 use plain::Plain;
 
@@ -16,8 +16,8 @@ fn handle_args(id: u64, args: &[u8], ret: u64) -> String {
     match id {
         SYS_READ => io::handle_read_args(args, ret as usize),
         SYS_WRITE => io::handle_write_args(args),
-        SYS_OPEN => open_close::handle_open_args(args),
-        SYS_CLOSE => open_close::handle_close_args(args),
+        SYS_OPEN => open::handle_open_args(args),
+        SYS_CLOSE => desc::handle_close_args(args),
         SYS_STAT => stat::handle_stat_args(args),
         SYS_FSTAT => stat::handle_fstat_args(args),
         SYS_LSTAT => stat::handle_lstat_args(args),
@@ -37,9 +37,10 @@ fn handle_args(id: u64, args: &[u8], ret: u64) -> String {
         SYS_WRITEV => io::handle_writev_args(args),
         SYS_ACCESS => access::handle_access_args(args),
         SYS_PIPE => net::handle_pipe_args(args),
+        SYS_SELECT => desc::handle_select_args(args),
         SYS_NEWFSTATAT => stat::handle_newfstatat_args(args),
         SYS_EXECVE => execve::handle_execve_args(args),
-        SYS_OPENAT => open_close::handle_openat_args(args),
+        SYS_OPENAT => open::handle_openat_args(args),
         SYS_EXIT_GROUP => exit::handle_exit_group_args(args),
         _ => "".to_string(),
     }

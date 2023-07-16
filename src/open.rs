@@ -78,15 +78,3 @@ pub(super) fn handle_openat_args(args: &[u8]) -> String {
 
     return result;
 }
-
-#[repr(C)]
-struct CloseArgs {
-    fd: c_int,
-}
-unsafe impl plain::Plain for CloseArgs {}
-
-pub(super) fn handle_close_args(args: &[u8]) -> String {
-    let close = get_args::<CloseArgs>(args);
-
-    return format!("{}", close.fd);
-}

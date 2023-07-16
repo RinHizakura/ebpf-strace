@@ -13,7 +13,8 @@ int main()
     // TEST(do_mem);
     // TEST(do_signal);
     // TEST(do_ioctl_random);
-    TEST(do_pipe);
+    // TEST(do_pipe);
+    TEST(do_select);
 
     return 0;
 }

@@ -49,6 +49,7 @@ struct {
 } msg_ringbuf SEC(".maps");
 
 #include "bpf/access.c"
+#include "bpf/desc.c"
 #include "bpf/execve.c"
 #include "bpf/exit.c"
 #include "bpf/io.c"
@@ -56,7 +57,7 @@ struct {
 #include "bpf/lseek.c"
 #include "bpf/mem.c"
 #include "bpf/net.c"
-#include "bpf/open_close.c"
+#include "bpf/open.c"
 #include "bpf/poll.c"
 #include "bpf/rt_sigreturn.c"
 #include "bpf/signal.c"
@@ -173,6 +174,10 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
         break;
     case SYS_PIPE:
         sys_pipe_enter(ent, (void *) parm1);
+        break;
+    case SYS_SELECT:
+        sys_select_enter(ent, parm1, (void *) parm2, (void *) parm3,
+                         (void *) parm4);
         break;
     case SYS_RT_SIGPROCMASK:
         sys_rt_sigprocmask_enter(ent, parm1, (void *) parm2, (void *) parm3,
