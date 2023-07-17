@@ -48,11 +48,7 @@ const SIGACT_FLAGS_DESCS: &[Desc] = &[
 fn format_sigaction(act: &Sigaction) -> String {
     let sa_mask = format_sigset(&act.sa_mask);
     let sa_flags = format_flags(act.sa_flags as u64, '|', SIGACT_FLAGS_DESCS);
-    let sa_restorer = if act.sa_restorer != 0 {
-        format!("0x{:x}", act.sa_restorer)
-    } else {
-        "NULL".to_string()
-    };
+    let sa_restorer = format_addr(act.sa_restorer);
 
     return format!(
         "{{sa_handler=0x{:x}, sa_mask={}, sa_flags={}, sa_restorer={}}}",
@@ -64,17 +60,17 @@ pub(super) fn handle_rt_sigaction_args(args: &[u8]) -> String {
     let rt_sigaction = get_args::<RtSigactionArgs>(args);
 
     let signum = format_signum(rt_sigaction.signum);
-    let act = if rt_sigaction.is_act_exist {
-        format_sigaction(&rt_sigaction.act)
-    } else {
-        "NULL".to_string()
-    };
-    let oldact = if rt_sigaction.is_oldact_exist {
-        format_sigaction(&rt_sigaction.oldact)
-    } else {
-        "NULL".to_string()
-    };
+    let act = format_or_null!(
+        format_sigaction,
+        rt_sigaction.is_act_exist,
+        &rt_sigaction.act
+    );
 
+    let oldact = format_or_null!(
+        format_sigaction,
+        rt_sigaction.is_oldact_exist,
+        &rt_sigaction.oldact
+    );
     return format!(
         "{}, {}, {}, {}",
         signum, act, oldact, rt_sigaction.sigsetsize
@@ -98,17 +94,17 @@ pub(super) fn handle_rt_sigprocmask_args(args: &[u8]) -> String {
     let rt_sigprocmask = get_args::<RtSigprocmaskArgs>(args);
 
     let how = format_value(rt_sigprocmask.how as u64, "SIG_???", &SIGPROCMASK_HOW_DESCS);
-    let set = if rt_sigprocmask.is_set_exist {
-        format_sigset(&rt_sigprocmask.set)
-    } else {
-        "NULL".to_string()
-    };
+    let set = format_or_null!(
+        format_sigset,
+        rt_sigprocmask.is_set_exist,
+        &rt_sigprocmask.set
+    );
+    let oldset = format_or_null!(
+        format_sigset,
+        rt_sigprocmask.is_oldset_exist,
+        &rt_sigprocmask.oldset
+    );
 
-    let oldset = if rt_sigprocmask.is_oldset_exist {
-        format_sigset(&rt_sigprocmask.oldset)
-    } else {
-        "NULL".to_string()
-    };
     return format!(
         "{}, {}, {}, {}",
         how, set, oldset, rt_sigprocmask.sigsetsize

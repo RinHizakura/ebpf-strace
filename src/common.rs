@@ -4,6 +4,7 @@ pub use std::ffi::{c_int, c_long, c_ulong};
 
 pub const ARR_ENT_SIZE: usize = 4;
 pub const BUF_SIZE: usize = 32;
+pub const NULL_STR: &'static str = "NULL";
 
 #[macro_export]
 macro_rules! desc {
@@ -13,6 +14,17 @@ macro_rules! desc {
             name: stringify!($flag),
         }
     };
+}
+
+#[macro_export]
+macro_rules! format_or_null {
+    ( $formatter: ident, $cond: expr, $($args: expr),+) => {
+        if $cond {
+            $formatter($($args,)+)
+        } else {
+            NULL_STR.to_owned()
+        }
+    }
 }
 
 pub(super) fn format_buf(buf: &[u8], count: usize) -> String {
@@ -71,7 +83,7 @@ pub struct Desc {
     pub name: &'static str,
 }
 
-pub fn format_flags(mut flags: u64, sep: char, descs: &[Desc]) -> String {
+pub(super) fn format_flags(mut flags: u64, sep: char, descs: &[Desc]) -> String {
     let mut output_str: String = String::new();
 
     let mut zero_flag_str = "0";
@@ -103,7 +115,7 @@ pub fn format_flags(mut flags: u64, sep: char, descs: &[Desc]) -> String {
     output_str
 }
 
-pub fn format_value(val: u64, default: &str, descs: &[Desc]) -> String {
+pub(super) fn format_value(val: u64, default: &str, descs: &[Desc]) -> String {
     let result = descs.iter().find(|desc| desc.val == val);
     if let Some(desc) = result {
         return desc.name.to_owned();
@@ -115,7 +127,7 @@ pub fn format_value(val: u64, default: &str, descs: &[Desc]) -> String {
 
 /* Note: the input descs should be sorted, otherwise the results
  * are undefined. */
-pub fn format_value_sorted(val: u64, default: &str, descs: &[Desc]) -> String {
+pub(super) fn format_value_sorted(val: u64, default: &str, descs: &[Desc]) -> String {
     let result = descs.binary_search_by_key(&val, |desc| desc.val);
     if let Ok(idx) = result {
         return descs[idx].name.to_owned();
@@ -124,7 +136,7 @@ pub fn format_value_sorted(val: u64, default: &str, descs: &[Desc]) -> String {
     return format!("0x{:x} /* {} */", val, default);
 }
 
-pub fn format_dirfd(fd: c_int) -> String {
+pub(super) fn format_dirfd(fd: c_int) -> String {
     if fd == libc::AT_FDCWD {
         "AT_FDCWD".to_string()
     } else {
@@ -133,7 +145,7 @@ pub fn format_dirfd(fd: c_int) -> String {
 }
 
 /* FIXME: We should make the implementation prettier if there's the way :( */
-pub fn format_arr<T, F>(arr: &[T], arr_size: usize, formatter: F) -> String
+pub(super) fn format_arr<T, F>(arr: &[T], arr_size: usize, formatter: F) -> String
 where
     F: Fn(&T) -> String,
 {
@@ -161,7 +173,7 @@ where
 
 pub(super) fn format_addr(addr: usize) -> String {
     if addr == 0 {
-        "NULL".to_string()
+        NULL_STR.to_owned()
     } else {
         format!("0x{:x}", addr)
     }
