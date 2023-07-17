@@ -1,5 +1,5 @@
 use crate::arch::*;
-use crate::utils::next_set_bit;
+use crate::utils::*;
 pub use std::ffi::{c_int, c_long, c_ulong};
 
 pub const ARR_ENT_SIZE: usize = 4;
@@ -196,7 +196,9 @@ pub(super) fn format_sigset(sig_mask: &KernlSigset) -> String {
     let mut s = String::new();
     s.push('[');
 
-    let mut i = next_set_bit(&sig_mask.sig, 0);
+    let bitsize = sig_mask.sig.len() as c_int * LONG_BIT;
+
+    let mut i = next_set_bit(&sig_mask.sig, 0, bitsize);
     while i >= 0 {
         i += 1;
         if i < SIGRTMIN as c_int {
@@ -205,7 +207,7 @@ pub(super) fn format_sigset(sig_mask: &KernlSigset) -> String {
             s.push_str(&format!("RT_{}", i - SIGRTMIN as c_int));
         }
         s.push(' ');
-        i = next_set_bit(&sig_mask.sig, i);
+        i = next_set_bit(&sig_mask.sig, i, bitsize);
     }
     /* It means we don't just put the first '[' in the string. Pop
      * the last space. */
