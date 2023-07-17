@@ -20,7 +20,8 @@ struct SigInfo {
     pub si_signo: c_int,
     pub si_errno: c_int,
     pub si_code: c_int,
-    pub pad: [u8; 29 * 4],
+    _pad: [u8; 1 * 4],
+    pub sifields: [u8; 28 * 4],
     _align: [u64; 0],
 }
 unsafe impl Plain for SigInfo {}
@@ -64,10 +65,10 @@ pub(super) fn signal_ent_handler(bytes: &[u8]) -> i32 {
 }
 
 fn format_si_info(sip: &SigInfo) -> String {
-    let pad = &sip.pad;
+    let sifields = &sip.sifields;
     match sip.si_code {
         SI_TKILL => {
-            let si_kill = get_args::<SiKill>(pad);
+            let si_kill = get_args::<SiKill>(sifields);
             format!("si_pid={}, si_uid={}", si_kill.pid, si_kill.uid)
         }
         _ => "".to_string(),
