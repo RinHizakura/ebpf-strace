@@ -1,3 +1,5 @@
+use libc::timeval;
+
 use crate::arch::*;
 use crate::utils::*;
 pub use std::ffi::{c_int, c_long, c_ulong};
@@ -216,6 +218,10 @@ pub(super) fn format_sigset(sig_mask: &KernlSigset) -> String {
     }
     s.push(']');
     return s;
+}
+
+pub(super) fn format_timeval(timeval: &timeval) -> String {
+    return format!("{{tv_sec={}, tv_usec={}}}", timeval.tv_sec, timeval.tv_usec);
 }
 
 pub fn get_args<T: plain::Plain>(args: &[u8]) -> &T {

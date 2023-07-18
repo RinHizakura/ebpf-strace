@@ -10,7 +10,6 @@ int do_select()
 
     FD_ZERO(&rfds);
     FD_SET(0, &rfds);
-    FD_SET(1, &rfds);
     FD_SET(2, &rfds);
 
     tv.tv_sec = 1;

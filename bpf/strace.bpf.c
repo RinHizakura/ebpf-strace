@@ -176,8 +176,11 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
         sys_pipe_enter(ent, (void *) parm1);
         break;
     case SYS_SELECT:
-        sys_select_enter(ent, parm1, (void *) parm2, (void *) parm3,
-                         (void *) parm4);
+        /* Divide the enter into two part because ABI doesn't allow
+         * many too arguments */
+        sys_select_enter1(ent, parm1, (void *) parm2, (void *) parm3,
+                          (void *) parm4);
+        sys_select_enter2(ent, (void *) parm5);
         break;
     case SYS_RT_SIGPROCMASK:
         sys_rt_sigprocmask_enter(ent, parm1, (void *) parm2, (void *) parm3,

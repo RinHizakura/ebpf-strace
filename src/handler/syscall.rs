@@ -58,6 +58,17 @@ pub(super) fn syscall_ent_handler(bytes: &[u8]) -> i32 {
     let syscall = &SYSCALLS[id as usize];
     let args_str = handle_args(id, args, ret);
 
+    let aux = match id {
+        SYS_SELECT => {
+            if ret == 0 {
+                " (Timeout)"
+            } else {
+                ""
+            }
+        }
+        _ => "",
+    };
+
     match id {
         SYS_BRK | SYS_MMAP => eprint!("{}({}) = 0x{:x}\n", syscall.name, args_str, ret),
         SYS_RT_SIGRETURN => eprint!("{}({}) = ?\n", syscall.name, args_str),
@@ -67,7 +78,7 @@ pub(super) fn syscall_ent_handler(bytes: &[u8]) -> i32 {
              * traced process exits normally. */
             return -libc::EINTR;
         }
-        _ => eprint!("{}({}) = {}\n", syscall.name, args_str, ret as i64),
+        _ => eprint!("{}({}) = {}{}\n", syscall.name, args_str, ret as i64, aux),
     }
 
     0

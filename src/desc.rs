@@ -37,7 +37,12 @@ struct SelectArgs {
 }
 unsafe impl plain::Plain for SelectArgs {}
 
-fn format_fd_set(fds: &FdSet, nfds: c_int) -> String {
+fn format_fd_set(fds: &FdSet, mut nfds: c_int) -> String {
+    /* Adjust nfds to not overflow the array */
+    if nfds > FD_SETSIZE as c_int {
+        nfds = FD_SETSIZE as c_int;
+    }
+
     let mut s = String::new();
     s.push('[');
 
@@ -78,6 +83,10 @@ pub(super) fn handle_select_args(args: &[u8]) -> String {
         &select.exceptfds,
         nfds
     );
+    let timeout = format_or_null!(format_timeval, select.is_timeout_exist, &select.timeout);
 
-    return format!("{}, {}, {}, {}", nfds, readfds, writefds, exceptfds);
+    return format!(
+        "{}, {}, {}, {}, {}",
+        nfds, readfds, writefds, exceptfds, timeout
+    );
 }

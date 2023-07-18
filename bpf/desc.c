@@ -4,11 +4,11 @@ static void sys_close_enter(syscall_ent_t *ent, int fd)
     close->fd = fd;
 }
 
-static void sys_select_enter(syscall_ent_t *ent,
-                             int nfds,
-                             fd_set *readfds,
-                             fd_set *writefds,
-                             fd_set *exceptfds)
+static void sys_select_enter1(syscall_ent_t *ent,
+                              int nfds,
+                              fd_set *readfds,
+                              fd_set *writefds,
+                              fd_set *exceptfds)
 {
     select_args_t *select = (select_args_t *) ent->bytes;
 
@@ -34,11 +34,16 @@ static void sys_select_enter(syscall_ent_t *ent,
     } else {
         select->is_exceptfds_exist = false;
     }
+}
 
-    /*if (timeout) {
+static void sys_select_enter2(syscall_ent_t *ent, struct timeval *timeout)
+{
+    select_args_t *select = (select_args_t *) ent->bytes;
+
+    if (timeout) {
         bpf_core_read_user(&select->timeout, sizeof(struct timeval), timeout);
         select->is_timeout_exist = true;
     } else {
         select->is_timeout_exist = false;
-    }*/
+    }
 }
