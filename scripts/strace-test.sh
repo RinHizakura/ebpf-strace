@@ -6,6 +6,10 @@ OUTPUT_LOG="/tmp/output.log"
 
 # Run this first to build required binaries
 make &> /dev/null
+if [ $? != 0 ]; then
+   echo "Build project fail, please check"
+   exit $?
+fi
 
 r=$'\r'
 RED='\033[0;31m'
@@ -13,6 +17,7 @@ GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
 RETURN=0
+FAIL_STOP=1
 FILES=$(ls build | grep '.out')
 for FILE in ${FILES}; do
     RSLT=0
@@ -34,9 +39,13 @@ for FILE in ${FILES}; do
         echo -e "${r}run test: ${FILE}... ${RED}fail${NC}"
         echo "Fail at line $n: can't match $line"
         RETURN=1
+        if [ $FAIL_STOP = 1 ] ; then
+            break;
+        fi
     else
         echo -e "${r}run test: ${FILE}... ${GREEN}pass${NC}"
     fi
+
 done
 
 exit $RETURN

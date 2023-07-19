@@ -46,40 +46,55 @@ fn handle_args(id: u64, args: &[u8], ret: u64) -> String {
     }
 }
 
+fn handle_return(id: u64, ret: u64) -> String {
+    match id {
+        SYS_BRK | SYS_MMAP => format!("0x{:x}", ret),
+        SYS_RT_SIGRETURN | SYS_EXIT_GROUP => "?".to_owned(),
+        _ => {
+            if (ret as i64) < 0 {
+                "-1".to_owned()
+            } else {
+                ret.to_string()
+            }
+        }
+    }
+}
+
+fn handle_aux(id: u64, ret: u64) -> String {
+    let ret = ret as i64 as i32;
+
+    if ret < 0 {
+        return format!(" {}", std::io::Error::from_raw_os_error(-ret));
+    }
+
+    if id == SYS_SELECT && ret == 0 {
+        return " (Timeout)".to_string();
+    }
+
+    return "".to_string();
+}
+
 pub(super) fn syscall_ent_handler(bytes: &[u8]) -> i32 {
+    let mut rslt = 0;
+
     let ent_size = std::mem::size_of::<SyscallEnt>();
     let ent = plain::from_bytes::<SyscallEnt>(&bytes[0..ent_size])
         .expect("Fail to cast bytes to SyscallEnt");
     let args = &bytes[ent_size..];
 
     let id = ent.id;
-    let ret = ent.ret;
-
     let syscall = &SYSCALLS[id as usize];
-    let args_str = handle_args(id, args, ret);
+    let args_str = handle_args(id, args, ent.ret);
+    let ret = handle_return(id, ent.ret);
+    let aux = handle_aux(id, ent.ret);
 
-    let aux = match id {
-        SYS_SELECT => {
-            if ret == 0 {
-                " (Timeout)"
-            } else {
-                ""
-            }
-        }
-        _ => "",
-    };
-
-    match id {
-        SYS_BRK | SYS_MMAP => eprint!("{}({}) = 0x{:x}\n", syscall.name, args_str, ret),
-        SYS_RT_SIGRETURN => eprint!("{}({}) = ?\n", syscall.name, args_str),
-        SYS_EXIT_GROUP => {
-            eprint!("{}({}) = ?\n", syscall.name, args_str);
-            /* Simulate an ctrl-c interrupt here to hint that the
-             * traced process exits normally. */
-            return -libc::EINTR;
-        }
-        _ => eprint!("{}({}) = {}{}\n", syscall.name, args_str, ret as i64, aux),
+    if id == SYS_EXIT_GROUP {
+        /* Simulate an ctrl-c interrupt here to hint that the
+         * traced process exits normally. */
+        rslt = -libc::EINTR;
     }
 
-    0
+    eprint!("{}({}) = {}{}\n", syscall.name, args_str, ret, aux);
+
+    rslt
 }
