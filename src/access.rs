@@ -15,7 +15,7 @@ pub(super) fn handle_access_args(args: &[u8]) -> String {
     let access = get_args::<AccessArgs>(args);
 
     let pathname = format_str(&access.pathname);
-    let mode = format_flags(access.mode as u64, '|', ACCESS_MODE_DESCS);
+    let mode = format_flags(access.mode as u64, '|', ACCESS_MODE_DESCS, Format::Octal);
 
     return format!("{}, {}", pathname, mode);
 }

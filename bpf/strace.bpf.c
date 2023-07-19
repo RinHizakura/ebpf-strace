@@ -45,7 +45,7 @@ DEFINE_BPF_MAP(g_ent, BPF_MAP_TYPE_ARRAY, u32, syscall_ent_t, 1);
 
 struct {
     __uint(type, BPF_MAP_TYPE_RINGBUF);
-    __uint(max_entries, 4096);
+    __uint(max_entries, 4096 * 2);
 } msg_ringbuf SEC(".maps");
 
 #include "bpf/access.c"
@@ -71,6 +71,7 @@ static void submit_syscall(syscall_ent_t *ent, size_t args_size)
     if (!ringbuf_ent) {
         /* FIXME: Drop the syscall directly. Any better approach to guarantee
          * to record the syscall on ring buffer?*/
+        bpf_printk("Drop syscall entry %d", ent->basic.id);
         return;
     }
     ringbuf_ent->msg_type = MSG_SYSCALL;

@@ -53,8 +53,8 @@ pub(super) fn handle_mmap_args(args: &[u8]) -> String {
     let mmap = get_args::<MmapArgs>(args);
 
     let addr = format_addr(mmap.addr);
-    let prot = format_flags(mmap.prot as u64, '|', &MMAP_PROT_DESCS);
-    let flags = format_flags(mmap.flags as u64, '|', &MMAP_FLAGS_DESCS);
+    let prot = format_flags(mmap.prot as u64, '|', &MMAP_PROT_DESCS, Format::Hex);
+    let flags = format_flags(mmap.flags as u64, '|', &MMAP_FLAGS_DESCS, Format::Hex);
     return format!(
         "{}, {}, {}, {}, {}, 0x{:x}",
         addr, mmap.length, prot, flags, mmap.fd, mmap.offset
@@ -73,7 +73,7 @@ pub(super) fn handle_mprotect_args(args: &[u8]) -> String {
     let mprotect = get_args::<MprotectArgs>(args);
 
     let addr = format_addr(mprotect.addr);
-    let prot = format_flags(mprotect.prot as u64, '|', &MMAP_PROT_DESCS);
+    let prot = format_flags(mprotect.prot as u64, '|', &MMAP_PROT_DESCS, Format::Hex);
     return format!("{}, {}, {}", addr, mprotect.length, prot);
 }
 

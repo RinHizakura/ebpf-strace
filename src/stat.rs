@@ -81,7 +81,12 @@ fn format_timestamp(millis: i64) -> String {
 fn format_struct_stat(statbuf: &libc::stat) -> String {
     let st_dev = format_dev(statbuf.st_dev);
     let st_ino = statbuf.st_ino;
-    let st_mode = format_flags(statbuf.st_mode as u64, '|', STAT_STMODE_DESCS);
+    let st_mode = format_flags(
+        statbuf.st_mode as u64,
+        '|',
+        STAT_STMODE_DESCS,
+        Format::Octal,
+    );
     let st_nlink = statbuf.st_nlink;
     let st_uid = statbuf.st_uid;
     let st_gid = statbuf.st_gid;
@@ -100,9 +105,9 @@ fn format_struct_stat(statbuf: &libc::stat) -> String {
         "{{st_dev={st_dev}, st_ino={st_ino}, st_mode={st_mode}, \
                    st_nlink={st_nlink}, st_uid={st_uid}, st_gid={st_gid}, \
                    st_blksize={st_blksize}, st_blocks={st_blocks}, st_size={st_size}, \
-                   st_atim={st_atim} /* {adt} */, \
-                   st_mtim={st_mtim} /* {mdt} */, \
-                   st_ctim={st_ctim} /* {cdt} */}}"
+                   st_atime={st_atim} /* {adt} */, \
+                   st_mtime={st_mtim} /* {mdt} */, \
+                   st_ctime={st_ctim} /* {cdt} */}}"
     );
 }
 
@@ -140,6 +145,6 @@ pub(super) fn handle_newfstatat_args(args: &[u8]) -> String {
     let dirfd = format_dirfd(newfstatat.dirfd);
     let pathname = format_str(&newfstatat.pathname);
     let statbuf = format_struct_stat(&newfstatat.statbuf);
-    let flags = format_flags(newfstatat.flags as u64, '|', AT_FLAGS_DESCS);
+    let flags = format_flags(newfstatat.flags as u64, '|', AT_FLAGS_DESCS, Format::Octal);
     return format!("{}, {}, {}, {}", dirfd, pathname, statbuf, flags);
 }

@@ -45,7 +45,7 @@ pub(super) fn handle_open_args(args: &[u8]) -> String {
     let open = get_args::<OpenArgs>(args);
 
     let pathname = format_str(&open.pathname);
-    let flags = format_flags(open.flags as u32 as u64, '|', OPEN_FLAGS_DESCS);
+    let flags = format_flags(open.flags as u32 as u64, '|', OPEN_FLAGS_DESCS, Format::Hex);
     let result = if (open.flags & O_CREAT) != 0 {
         format!("{}, {}, 0{:o}", pathname, flags, open.mode)
     } else {
@@ -69,7 +69,7 @@ pub(super) fn handle_openat_args(args: &[u8]) -> String {
 
     let dirfd = format_dirfd(openat.dirfd);
     let pathname = format_str(&openat.pathname);
-    let flags = format_flags(openat.flags as u64, '|', OPEN_FLAGS_DESCS);
+    let flags = format_flags(openat.flags as u64, '|', OPEN_FLAGS_DESCS, Format::Hex);
     let result = if (openat.flags & O_CREAT) != 0 {
         format!("{}, {}, {}, 0{:o}", dirfd, pathname, flags, openat.mode)
     } else {

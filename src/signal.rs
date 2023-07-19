@@ -47,7 +47,7 @@ const SIGACT_FLAGS_DESCS: &[Desc] = &[
 
 fn format_sigaction(act: &Sigaction) -> String {
     let sa_mask = format_sigset(&act.sa_mask);
-    let sa_flags = format_flags(act.sa_flags as u64, '|', SIGACT_FLAGS_DESCS);
+    let sa_flags = format_flags(act.sa_flags as u64, '|', SIGACT_FLAGS_DESCS, Format::Hex);
     let sa_restorer = format_addr(act.sa_restorer);
 
     return format!(

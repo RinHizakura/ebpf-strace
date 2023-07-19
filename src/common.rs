@@ -85,7 +85,12 @@ pub struct Desc {
     pub name: &'static str,
 }
 
-pub(super) fn format_flags(mut flags: u64, sep: char, descs: &[Desc]) -> String {
+pub enum Format {
+    Octal,
+    Hex,
+}
+
+pub(super) fn format_flags(mut flags: u64, sep: char, descs: &[Desc], format: Format) -> String {
     let mut output_str: String = String::new();
 
     let mut zero_flag_str = "0";
@@ -103,8 +108,10 @@ pub(super) fn format_flags(mut flags: u64, sep: char, descs: &[Desc]) -> String 
     }
 
     if flags != 0 {
-        /* FIXME: The format(base, width) should be specified by caller */
-        output_str.push_str(&format!("0x{:x}", flags));
+        output_str.push_str(&match format {
+            Format::Hex => format!("0x{:x}", flags),
+            Format::Octal => format!("0{:o}", flags),
+        });
     } else {
         if output_str.is_empty() {
             output_str.push_str(zero_flag_str);
