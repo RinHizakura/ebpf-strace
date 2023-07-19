@@ -20,16 +20,19 @@ for FILE in ${FILES}; do
 
     echo -n "run test: ${FILE}..."
 
+    n=1
     while read line; do
         rslt=`grep -Fx "$line" $STRACE_LOG`
         if [ "$rslt" = "" ] ; then
             RSLT=1
             break
         fi
+        n=$((n+1))
     done < $OUTPUT_LOG
 
     if [ $RSLT != 0 ] ; then
         echo -e "${r}run test: ${FILE}... ${RED}fail${NC}"
+        echo "Fail at line $n: can't match $line"
         RETURN=1
     else
         echo -e "${r}run test: ${FILE}... ${GREEN}pass${NC}"

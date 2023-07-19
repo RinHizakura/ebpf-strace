@@ -104,7 +104,7 @@ pub(super) fn format_flags(mut flags: u64, sep: char, descs: &[Desc]) -> String 
 
     if flags != 0 {
         /* FIXME: The format(base, width) should be specified by caller */
-        output_str.push_str(&format!("{:o}", flags));
+        output_str.push_str(&format!("0x{:x}", flags));
     } else {
         if output_str.is_empty() {
             output_str.push_str(zero_flag_str);
