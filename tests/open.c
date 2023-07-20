@@ -41,5 +41,5 @@ end:
     if (fd3 > 0)
         close(fd3);
     puts("+++ exited with 0 +++");
-    return 0;
+    return ret;
 }

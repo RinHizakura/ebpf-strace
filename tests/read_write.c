@@ -50,5 +50,5 @@ end:
         close(outfd2);
 
     puts("+++ exited with 0 +++");
-    return 0;
+    return ret;
 }

@@ -3,9 +3,9 @@ use std::ffi::c_int;
 use crate::common::*;
 use chrono::{Local, TimeZone};
 use libc::{
-    AT_EMPTY_PATH, AT_NO_AUTOMOUNT, AT_RECURSIVE, AT_REMOVEDIR, AT_SYMLINK_FOLLOW,
-    AT_SYMLINK_NOFOLLOW, S_IFBLK, S_IFCHR, S_IFDIR, S_IFIFO, S_IFLNK, S_IFREG, S_IFSOCK, S_ISGID,
-    S_ISUID, S_ISVTX,
+    mode_t, AT_EMPTY_PATH, AT_NO_AUTOMOUNT, AT_RECURSIVE, AT_REMOVEDIR, AT_SYMLINK_FOLLOW,
+    AT_SYMLINK_NOFOLLOW, S_IFBLK, S_IFCHR, S_IFDIR, S_IFIFO, S_IFLNK, S_IFMT, S_IFREG, S_IFSOCK,
+    S_ISGID, S_ISUID, S_ISVTX,
 };
 
 #[repr(C)]
@@ -38,7 +38,7 @@ struct NewfstatatArgs {
 }
 unsafe impl plain::Plain for NewfstatatArgs {}
 
-const STAT_STMODE_DESCS: &[Desc] = &[
+const STAT_STMODE_IF_DESCS: &[Desc] = &[
     desc!(S_IFREG),
     desc!(S_IFSOCK),
     desc!(S_IFIFO),
@@ -46,10 +46,9 @@ const STAT_STMODE_DESCS: &[Desc] = &[
     desc!(S_IFDIR),
     desc!(S_IFBLK),
     desc!(S_IFCHR),
-    desc!(S_ISUID),
-    desc!(S_ISGID),
-    desc!(S_ISVTX),
 ];
+
+const STAT_STMODE_IS_DESCS: &[Desc] = &[desc!(S_ISUID), desc!(S_ISGID), desc!(S_ISVTX)];
 
 const AT_FLAGS_DESCS: &[Desc] = &[
     desc!(AT_SYMLINK_NOFOLLOW),
@@ -78,15 +77,33 @@ fn format_timestamp(millis: i64) -> String {
         .to_string()
 }
 
+fn format_mode(mode: mode_t) -> String {
+    let ifmt = format_value(
+        (mode & S_IFMT) as u64,
+        Some("S_IF??"),
+        STAT_STMODE_IF_DESCS,
+        Format::Octal,
+    );
+
+    let mut ismt = format_flags(
+        (mode & (S_ISGID | S_ISUID | S_ISVTX)) as u64,
+        '|',
+        STAT_STMODE_IS_DESCS,
+        Format::Octal,
+    );
+    if ismt.len() != 0 {
+        ismt.push('|');
+    }
+
+    let perms = mode & !(S_IFMT | S_ISGID | S_ISUID | S_ISVTX);
+
+    return format!("{}|{}0{:o}", ifmt, ismt, perms);
+}
+
 fn format_struct_stat(statbuf: &libc::stat) -> String {
     let st_dev = format_dev(statbuf.st_dev);
     let st_ino = statbuf.st_ino;
-    let st_mode = format_flags(
-        statbuf.st_mode as u64,
-        '|',
-        STAT_STMODE_DESCS,
-        Format::Octal,
-    );
+    let st_mode = format_mode(statbuf.st_mode);
     let st_nlink = statbuf.st_nlink;
     let st_uid = statbuf.st_uid;
     let st_gid = statbuf.st_gid;

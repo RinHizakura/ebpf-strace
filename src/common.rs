@@ -93,10 +93,10 @@ pub enum Format {
 pub(super) fn format_flags(mut flags: u64, sep: char, descs: &[Desc], format: Format) -> String {
     let mut output_str: String = String::new();
 
-    let mut zero_flag_str = "0";
+    let mut zero_flag_str = None;
     for f in descs {
         if f.val == 0 {
-            zero_flag_str = f.name;
+            zero_flag_str = Some(f.name);
             continue;
         }
 
@@ -113,25 +113,39 @@ pub(super) fn format_flags(mut flags: u64, sep: char, descs: &[Desc], format: Fo
             Format::Octal => format!("0{:o}", flags),
         });
     } else {
-        if output_str.is_empty() {
-            output_str.push_str(zero_flag_str);
-        } else {
-            // Pop out the last seperator if there's any
+        if !output_str.is_empty() {
+            /* Pop out the last seperator */
             output_str.pop();
+        } else if let Some(zs) = zero_flag_str {
+            output_str.push_str(zs);
         }
     }
 
     output_str
 }
 
-pub(super) fn format_value(val: u64, default: &str, descs: &[Desc]) -> String {
+pub(super) fn format_value(
+    val: u64,
+    default: Option<&str>,
+    descs: &[Desc],
+    format: Format,
+) -> String {
     let result = descs.iter().find(|desc| desc.val == val);
     if let Some(desc) = result {
         return desc.name.to_owned();
     }
 
     /* Print the value directly if no hit */
-    return format!("0x{:x} /* {} */", val, default);
+    let mut s = match format {
+        Format::Hex => format!("0x{:x}", val),
+        Format::Octal => format!("0{:o}", val),
+    };
+
+    if let Some(def) = default {
+        s.push_str(&format!(" /* {} */", def));
+    }
+
+    s
 }
 
 /* Note: the input descs should be sorted, otherwise the results

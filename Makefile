@@ -12,6 +12,8 @@ TEST_SRCS = $(shell find ./tests -name '*.c')
 _TEST_OBJ =  $(notdir $(TEST_SRCS))
 TEST_OBJ = $(_TEST_OBJ:%.c=$(TEST_OUT)/%.out)
 
+CFLAGS = -Wall -Wextra -Werror
+
 vpath %.c $(sort $(dir $(TEST_SRCS)))
 
 all: $(BIN) $(GIT_HOOKS) $(TEST_OBJ)
@@ -24,7 +26,7 @@ $(BIN): $(SRCS) $(VMLINUX_H)
 	cargo build
 
 $(TEST_OUT)/%.out: %.c
-	gcc $< -o $@
+	gcc $(CFLAGS) $< -o $@
 
 $(VMLINUX_H):
 	bpftool btf dump file /sys/kernel/btf/vmlinux format c > $(VMLINUX_H)

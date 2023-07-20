@@ -22,7 +22,12 @@ unsafe impl plain::Plain for LseekArgs {}
 
 pub(super) fn handle_lseek_args(args: &[u8]) -> String {
     let lseek = get_args::<LseekArgs>(args);
-    let whence = format_value(lseek.whence as u64, "SEEK_???", &LSEEK_WHENCE_DESCS);
+    let whence = format_value(
+        lseek.whence as u64,
+        Some("SEEK_???"),
+        &LSEEK_WHENCE_DESCS,
+        Format::Hex,
+    );
 
     return format!("{}, {}, {}", lseek.fd, lseek.offset, whence);
 }

@@ -93,7 +93,12 @@ const SIGPROCMASK_HOW_DESCS: &[Desc] = &[desc!(SIG_BLOCK), desc!(SIG_UNBLOCK), d
 pub(super) fn handle_rt_sigprocmask_args(args: &[u8]) -> String {
     let rt_sigprocmask = get_args::<RtSigprocmaskArgs>(args);
 
-    let how = format_value(rt_sigprocmask.how as u64, "SIG_???", &SIGPROCMASK_HOW_DESCS);
+    let how = format_value(
+        rt_sigprocmask.how as u64,
+        Some("SIG_???"),
+        &SIGPROCMASK_HOW_DESCS,
+        Format::Hex,
+    );
     let set = format_or_null!(
         format_sigset,
         rt_sigprocmask.is_set_exist,

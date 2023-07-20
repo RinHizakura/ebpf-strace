@@ -77,7 +77,12 @@ fn format_si_info(sip: &SigInfo) -> String {
 
 fn format_siginfo(siginfo: &SigInfo) -> String {
     let si_signo = format_signum(siginfo.si_signo);
-    let si_code = format_value(siginfo.si_code as u64, "SI_??", &SI_CODE_DESCS);
+    let si_code = format_value(
+        siginfo.si_code as u64,
+        Some("SI_??"),
+        &SI_CODE_DESCS,
+        Format::Hex,
+    );
     let si_info = format_si_info(siginfo);
 
     return format!("si_signo={}, si_code={}, {}", si_signo, si_code, si_info);
