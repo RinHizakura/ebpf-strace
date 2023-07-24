@@ -27,7 +27,7 @@ for FILE in ${FILES}; do
 
     n=1
     while read line; do
-        rslt=`grep -Fx "$line" $STRACE_LOG`
+        rslt=`grep -Fx -- "$line" $STRACE_LOG`
         if [ "$rslt" = "" ] ; then
             RSLT=1
             break

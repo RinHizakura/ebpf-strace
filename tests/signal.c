@@ -3,9 +3,17 @@
 #include <stdint.h>
 #include <stdio.h>
 
-static void handler()
+static void handler(int sig,
+                    siginfo_t *info,
+                    __attribute__((unused)) void *ucontext)
 {
-    /* dummy */
+    /* FIXME: The printf function is not Async-Signal-Safety,
+     * considering other replacement. */
+    if (sig == SIGUSR1 && info->si_code == SI_TKILL)
+        printf(
+            "--- SIGUSR1 {si_signo=SIGUSR1, si_code=SI_TKILL, si_pid=%d, "
+            "si_uid=%d} ---\n",
+            info->si_pid, info->si_uid);
 }
 
 #define RT_0 32
