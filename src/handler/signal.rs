@@ -71,7 +71,7 @@ fn format_si_info(sip: &SigInfo) -> String {
             let si_kill = get_args::<SiKill>(sifields);
             format!("si_pid={}, si_uid={}", si_kill.pid, si_kill.uid)
         }
-        _ => "".to_string(),
+        _ => EMPTY_STR.to_owned(),
     }
 }
 

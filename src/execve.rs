@@ -22,6 +22,6 @@ pub(super) fn handle_execve_args(args: &[u8]) -> String {
         argv_list,
         execve.envp,
         execve.envp_cnt,
-        if execve.envp_cnt > 1 { "s" } else { "" }
+        if execve.envp_cnt > 1 { "s" } else { EMPTY_STR }
     );
 }

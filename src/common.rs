@@ -7,6 +7,7 @@ pub use std::ffi::{c_int, c_long, c_ulong};
 pub const ARR_ENT_SIZE: usize = 4;
 pub const BUF_SIZE: usize = 32;
 pub const NULL_STR: &'static str = "NULL";
+pub const EMPTY_STR: &'static str = "";
 
 #[macro_export]
 macro_rules! desc {
@@ -31,7 +32,7 @@ macro_rules! format_or_null {
 
 pub(super) fn format_buf(buf: &[u8], count: usize) -> String {
     let len = buf.len();
-    let extra = if count > len { "..." } else { "" };
+    let extra = if count > len { "..." } else { EMPTY_STR };
     let count = count.min(len);
 
     let mut s = String::new();
@@ -74,7 +75,7 @@ pub(super) fn format_str(buf: &[u8; BUF_SIZE]) -> String {
     }
 
     /* If we can't find the ended zero in the buffer, this is an incomplete string. */
-    let extra = if idx >= len { "..." } else { "" };
+    let extra = if idx >= len { "..." } else { EMPTY_STR };
     s.push_str(&format!("\"{}", extra));
 
     s
@@ -93,10 +94,10 @@ pub enum Format {
 pub(super) fn format_flags(mut flags: u64, sep: char, descs: &[Desc], format: Format) -> String {
     let mut output_str: String = String::new();
 
-    let mut zero_flag_str = None;
+    let mut zero_flag_str = "0";
     for f in descs {
         if f.val == 0 {
-            zero_flag_str = Some(f.name);
+            zero_flag_str = f.name;
             continue;
         }
 
@@ -116,8 +117,8 @@ pub(super) fn format_flags(mut flags: u64, sep: char, descs: &[Desc], format: Fo
         if !output_str.is_empty() {
             /* Pop out the last seperator */
             output_str.pop();
-        } else if let Some(zs) = zero_flag_str {
-            output_str.push_str(zs);
+        } else {
+            output_str.push_str(zero_flag_str);
         }
     }
 

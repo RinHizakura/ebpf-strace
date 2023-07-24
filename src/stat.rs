@@ -91,8 +91,11 @@ fn format_mode(mode: mode_t) -> String {
         STAT_STMODE_IS_DESCS,
         Format::Octal,
     );
-    if ismt.len() != 0 {
+    if ismt.len() != 1 {
         ismt.push('|');
+    } else {
+        // It means the string becomes "0", we'll ignore this case
+        ismt.pop();
     }
 
     let perms = mode & !(S_IFMT | S_ISGID | S_ISUID | S_ISVTX);

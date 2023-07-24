@@ -1,3 +1,4 @@
+use crate::common::EMPTY_STR;
 use crate::syscall::syscall_nr::*;
 use crate::syscall::syscall_tbl::SYSCALLS;
 use crate::{
@@ -42,36 +43,32 @@ fn handle_args(id: u64, args: &[u8], ret: u64) -> String {
         SYS_EXECVE => execve::handle_execve_args(args),
         SYS_OPENAT => open::handle_openat_args(args),
         SYS_EXIT_GROUP => exit::handle_exit_group_args(args),
-        _ => "".to_string(),
+        _ => EMPTY_STR.to_owned(),
     }
 }
 
-fn handle_return(id: u64, ret: u64) -> String {
-    match id {
-        SYS_BRK | SYS_MMAP => format!("0x{:x}", ret),
-        SYS_RT_SIGRETURN | SYS_EXIT_GROUP => "?".to_owned(),
-        _ => {
-            if (ret as i64) < 0 {
-                "-1".to_owned()
-            } else {
-                ret.to_string()
-            }
+fn handle_return(id: u64, ret_val: u64) -> (String, String) {
+    let ret_val = ret_val as i64;
+
+    let ret = if ret_val < 0 {
+        "-1".to_owned()
+    } else {
+        match id {
+            SYS_BRK | SYS_MMAP => format!("0x{:x}", ret_val),
+            SYS_RT_SIGRETURN | SYS_EXIT_GROUP => "?".to_owned(),
+            _ => ret_val.to_string(),
         }
-    }
-}
+    };
 
-fn handle_aux(id: u64, ret: u64) -> String {
-    let ret = ret as i64 as i32;
+    let aux = if ret_val < 0 {
+        format!(" {}", std::io::Error::from_raw_os_error(-(ret_val as i32)))
+    } else if id == SYS_SELECT && ret_val == 0 {
+        " (Timeout)".to_string()
+    } else {
+        EMPTY_STR.to_owned()
+    };
 
-    if ret < 0 {
-        return format!(" {}", std::io::Error::from_raw_os_error(-ret));
-    }
-
-    if id == SYS_SELECT && ret == 0 {
-        return " (Timeout)".to_string();
-    }
-
-    return "".to_string();
+    (ret, aux)
 }
 
 pub(super) fn syscall_ent_handler(bytes: &[u8]) -> i32 {
@@ -85,8 +82,7 @@ pub(super) fn syscall_ent_handler(bytes: &[u8]) -> i32 {
     let id = ent.id;
     let syscall = &SYSCALLS[id as usize];
     let args_str = handle_args(id, args, ent.ret);
-    let ret = handle_return(id, ent.ret);
-    let aux = handle_aux(id, ent.ret);
+    let (ret, aux) = handle_return(id, ent.ret);
 
     if id == SYS_EXIT_GROUP {
         /* Simulate an ctrl-c interrupt here to hint that the
