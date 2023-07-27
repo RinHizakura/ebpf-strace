@@ -31,7 +31,6 @@ int main()
     int w = write(outfd1, buf, cnt);
     printf("write(%d, \"%s\", %d) = %d\n", outfd1, buf, cnt, w);
 
-    tmpfile = "/tmp/tmpfile";
     outfd2 = open(tmpfile, O_RDONLY);
     if (outfd2 < 0) {
         ret = -1;
