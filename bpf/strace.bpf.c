@@ -155,6 +155,13 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
         sys_rt_sigaction_enter(ent, parm1, (void *) parm2, (void *) parm3,
                                parm4);
         break;
+    case SYS_RT_SIGPROCMASK:
+        sys_rt_sigprocmask_enter(ent, parm1, (void *) parm2, (void *) parm3,
+                                 parm4);
+        break;
+    case SYS_RT_SIGRETURN:
+        sys_rt_sigreturn_enter(ent, pt_regs);
+        break;
     case SYS_IOCTL:
         sys_ioctl_enter(ent, parm1, parm2, (void *) parm3);
         break;
@@ -182,13 +189,6 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
         sys_select_enter1(ent, parm1, (void *) parm2, (void *) parm3,
                           (void *) parm4);
         sys_select_enter2(ent, (void *) parm5);
-        break;
-    case SYS_RT_SIGPROCMASK:
-        sys_rt_sigprocmask_enter(ent, parm1, (void *) parm2, (void *) parm3,
-                                 parm4);
-        break;
-    case SYS_RT_SIGRETURN:
-        sys_rt_sigreturn_enter(ent, pt_regs);
         break;
     case SYS_NEWFSTATAT:
         sys_newfstatat_enter(ent, parm1, (void *) parm2, (void *) parm3, parm4);
