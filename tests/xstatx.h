@@ -33,7 +33,9 @@ static inline int format_mode(char *buf, size_t buf_sz, mode_t mode)
         pos += snprintf(buf, buf_sz, "%#o", mode & S_IFMT);
 
     pos += snprintf(buf + pos, buf_sz - pos, "|");
-    return snprintf(buf + pos, buf_sz - pos, "%#o", mode & ~S_IFMT);
+    pos += snprintf(buf + pos, buf_sz - pos, "%#o", mode & ~S_IFMT);
+
+    return pos;
 }
 
 static inline void format_stat(char *buf, size_t buf_sz, struct stat *sb)
