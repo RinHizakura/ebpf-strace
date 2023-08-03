@@ -32,7 +32,7 @@ $(VMLINUX_H):
 	bpftool btf dump file /sys/kernel/btf/vmlinux format c > $(VMLINUX_H)
 
 test:
-	scripts/strace-test.sh
+	.ci/strace-test.sh
 
 check:
 	sudo cat /sys/kernel/debug/tracing/trace_pipe
