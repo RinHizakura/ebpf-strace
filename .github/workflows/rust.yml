@@ -27,6 +27,6 @@ jobs:
           make
           sudo make install
     - name: Build
-      run: cargo build --verbose
+      run: make
     - name: Run tests
-      run: cargo test --verbose
+      run: .ci/strace-test.sh
