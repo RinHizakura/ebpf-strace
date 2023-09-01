@@ -40,3 +40,21 @@ static void sys_brk_enter(syscall_ent_t *ent, void *addr)
     brk_args_t *brk = (brk_args_t *) ent->bytes;
     brk->addr = addr;
 }
+
+static void sys_mremap_enter(syscall_ent_t *ent,
+                             void *old_address,
+                             size_t old_size,
+                             size_t new_size,
+                             int flags,
+                             void *new_address)
+{
+    mremap_args_t *mremap = (mremap_args_t *) ent->bytes;
+
+    mremap->old_address = old_address;
+    mremap->old_size = old_size;
+    mremap->new_size = new_size;
+    mremap->flags = flags;
+    /* This member is valid only for specific flags. Here we just fill it
+     * with the possible value and ensure it at userspace program. */
+    mremap->new_address = new_address;
+}

@@ -203,8 +203,15 @@ typedef struct {
 
 typedef struct {
 } sched_yield_args_t;
+
 typedef struct {
+    void *old_address;
+    void *new_address;
+    size_t old_size;
+    size_t new_size;
+    int flags;
 } mremap_args_t;
+
 typedef struct {
 } msync_args_t;
 typedef struct {

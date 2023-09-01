@@ -39,6 +39,7 @@ fn handle_args(id: u64, args: &[u8], ret: u64) -> String {
         SYS_ACCESS => access::handle_access_args(args),
         SYS_PIPE => net::handle_pipe_args(args),
         SYS_SELECT => desc::handle_select_args(args),
+        SYS_MREMAP => mem::handle_mremap_args(args),
         SYS_NEWFSTATAT => stat::handle_newfstatat_args(args),
         SYS_EXECVE => execve::handle_execve_args(args),
         SYS_OPENAT => open::handle_openat_args(args),
@@ -54,7 +55,7 @@ fn handle_return(id: u64, ret_val: u64) -> (String, String) {
         "-1".to_owned()
     } else {
         match id {
-            SYS_BRK | SYS_MMAP => format!("0x{:x}", ret_val),
+            SYS_BRK | SYS_MMAP | SYS_MREMAP => format!("0x{:x}", ret_val),
             SYS_RT_SIGRETURN | SYS_EXIT_GROUP => "?".to_owned(),
             _ => ret_val.to_string(),
         }

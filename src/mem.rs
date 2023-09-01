@@ -3,8 +3,9 @@ use std::ffi::c_int;
 use libc::{
     MAP_32BIT, MAP_ANONYMOUS, MAP_DENYWRITE, MAP_EXECUTABLE, MAP_FILE, MAP_FIXED,
     MAP_FIXED_NOREPLACE, MAP_GROWSDOWN, MAP_HUGETLB, MAP_LOCKED, MAP_NONBLOCK, MAP_NORESERVE,
-    MAP_POPULATE, MAP_PRIVATE, MAP_SHARED, MAP_SHARED_VALIDATE, MAP_STACK, MAP_SYNC, PROT_EXEC,
-    PROT_GROWSDOWN, PROT_GROWSUP, PROT_NONE, PROT_READ, PROT_WRITE,
+    MAP_POPULATE, MAP_PRIVATE, MAP_SHARED, MAP_SHARED_VALIDATE, MAP_STACK, MAP_SYNC,
+    MREMAP_DONTUNMAP, MREMAP_FIXED, MREMAP_MAYMOVE, PROT_EXEC, PROT_GROWSDOWN, PROT_GROWSUP,
+    PROT_NONE, PROT_READ, PROT_WRITE,
 };
 
 use crate::common::*;
@@ -103,4 +104,42 @@ pub(super) fn handle_brk_args(args: &[u8]) -> String {
 
     let addr = format_addr(brk.addr);
     return format!("{}", addr);
+}
+
+#[repr(C)]
+struct MremapArgs {
+    old_address: usize,
+    new_address: usize,
+    old_size: usize,
+    new_size: usize,
+    flags: c_int,
+}
+unsafe impl plain::Plain for MremapArgs {}
+
+const MREMAP_FLAGS_DESCS: &[Desc] = &[
+    desc!(MREMAP_MAYMOVE),
+    desc!(MREMAP_FIXED),
+    desc!(MREMAP_DONTUNMAP),
+];
+
+pub(super) fn handle_mremap_args(args: &[u8]) -> String {
+    let mremap = get_args::<MremapArgs>(args);
+
+    let old_address = format_addr(mremap.old_address);
+    let new_address = mremap.new_address;
+    let flags = mremap.flags;
+
+    let extra_new_address =
+        if flags & (MREMAP_MAYMOVE | MREMAP_FIXED) == (MREMAP_MAYMOVE | MREMAP_FIXED) {
+            format!(", {}", format_addr(new_address))
+        } else {
+            EMPTY_STR.to_owned()
+        };
+
+    let flags = format_flags(flags as u64, '|', &MREMAP_FLAGS_DESCS, Format::Hex);
+
+    return format!(
+        "{}, {}, {}, {}{}",
+        old_address, mremap.old_size, mremap.new_size, flags, extra_new_address,
+    );
 }

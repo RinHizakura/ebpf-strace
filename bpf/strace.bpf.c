@@ -190,6 +190,10 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
                           (void *) parm4);
         sys_select_enter2(ent, (void *) parm5);
         break;
+    case SYS_MREMAP:
+        sys_mremap_enter(ent, (void *) parm1, parm2, parm3, parm4,
+                         (void *) parm5);
+        break;
     case SYS_NEWFSTATAT:
         sys_newfstatat_enter(ent, parm1, (void *) parm2, (void *) parm3, parm4);
         break;
