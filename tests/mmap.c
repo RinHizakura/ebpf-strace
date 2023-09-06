@@ -43,24 +43,30 @@ static int map_valid()
         ret = -1;
         goto end;
     }
-    printf("mmap(NULL, %ld, PROT_READ, MAP_PRIVATE, %d, 0x%lx) = 0x%lx\n",
-           length, fd, pa_offset, (uintptr_t) addr);
+    printf("mmap(NULL, %ld, PROT_READ, MAP_PRIVATE, %d, 0x%lx) = %p\n", length,
+           fd, pa_offset, addr);
 
-    int result = mprotect(addr, length, PROT_READ | PROT_WRITE);
+    int result = msync(addr, length, MS_SYNC);
     if (result != 0) {
         ret = -1;
         goto end;
     }
-    printf("mprotect(0x%lx, %ld, PROT_READ|PROT_WRITE) = %d\n",
-           (uintptr_t) addr, length, result);
+    printf("msync(%p, %lu, MS_SYNC) = %d\n", addr, length, result);
+
+    result = mprotect(addr, length, PROT_READ | PROT_WRITE);
+    if (result != 0) {
+        ret = -1;
+        goto end;
+    }
+    printf("mprotect(%p, %ld, PROT_READ|PROT_WRITE) = %d\n", addr, length,
+           result);
 
     void *p = mremap(addr, length, length2, 0);
     if (p == MAP_FAILED) {
         ret = -1;
         goto end;
     }
-    printf("mremap(0x%lx, %ld, %ld, 0) = 0x%lx\n", (uintptr_t) addr, length,
-           length2, (uintptr_t) p);
+    printf("mremap(%p, %ld, %ld, 0) = %p\n", addr, length, length2, p);
 
     void *p2 =
         mremap(p, length2, length3, MREMAP_MAYMOVE | MREMAP_FIXED, p + length2);
@@ -68,13 +74,11 @@ static int map_valid()
         ret = -1;
         goto end;
     }
-    printf(
-        "mremap(0x%lx, %ld, %ld, MREMAP_MAYMOVE|MREMAP_FIXED, 0x%lx) = 0x%lx\n",
-        (uintptr_t) p, length2, length3, (uintptr_t) p + length2,
-        (uintptr_t) p2);
+    printf("mremap(%p, %ld, %ld, MREMAP_MAYMOVE|MREMAP_FIXED, %p) = %p\n", p,
+           length2, length3, p + length2, p2);
 
     result = munmap(p2, length3);
-    printf("munmap(0x%lx, %ld) = %d\n", (uintptr_t) p2, length3, result);
+    printf("munmap(%p, %ld) = %d\n", p2, length3, result);
 
 end:
     close(fd);

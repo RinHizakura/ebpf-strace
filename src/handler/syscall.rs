@@ -40,6 +40,7 @@ fn handle_args(id: u64, args: &[u8], ret: u64) -> String {
         SYS_PIPE => net::handle_pipe_args(args),
         SYS_SELECT => desc::handle_select_args(args),
         SYS_MREMAP => mem::handle_mremap_args(args),
+        SYS_MSYNC => mem::handle_msync_args(args),
         SYS_NEWFSTATAT => stat::handle_newfstatat_args(args),
         SYS_EXECVE => execve::handle_execve_args(args),
         SYS_OPENAT => open::handle_openat_args(args),

@@ -213,7 +213,11 @@ typedef struct {
 } mremap_args_t;
 
 typedef struct {
+    void *addr;
+    size_t length;
+    int flags;
 } msync_args_t;
+
 typedef struct {
 } mincore_args_t;
 typedef struct {

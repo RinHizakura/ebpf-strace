@@ -58,3 +58,15 @@ static void sys_mremap_enter(syscall_ent_t *ent,
      * with the possible value and ensure it at userspace program. */
     mremap->new_address = new_address;
 }
+
+static void sys_msync_enter(syscall_ent_t *ent,
+                            void *addr,
+                            size_t length,
+                            int flags)
+{
+    msync_args_t *msync = (msync_args_t *) ent->bytes;
+
+    msync->addr = addr;
+    msync->length = length;
+    msync->flags = flags;
+}

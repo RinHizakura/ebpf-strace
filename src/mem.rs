@@ -4,8 +4,8 @@ use libc::{
     MAP_32BIT, MAP_ANONYMOUS, MAP_DENYWRITE, MAP_EXECUTABLE, MAP_FILE, MAP_FIXED,
     MAP_FIXED_NOREPLACE, MAP_GROWSDOWN, MAP_HUGETLB, MAP_LOCKED, MAP_NONBLOCK, MAP_NORESERVE,
     MAP_POPULATE, MAP_PRIVATE, MAP_SHARED, MAP_SHARED_VALIDATE, MAP_STACK, MAP_SYNC,
-    MREMAP_DONTUNMAP, MREMAP_FIXED, MREMAP_MAYMOVE, PROT_EXEC, PROT_GROWSDOWN, PROT_GROWSUP,
-    PROT_NONE, PROT_READ, PROT_WRITE,
+    MREMAP_DONTUNMAP, MREMAP_FIXED, MREMAP_MAYMOVE, MS_ASYNC, MS_INVALIDATE, MS_SYNC, PROT_EXEC,
+    PROT_GROWSDOWN, PROT_GROWSUP, PROT_NONE, PROT_READ, PROT_WRITE,
 };
 
 use crate::common::*;
@@ -142,4 +142,24 @@ pub(super) fn handle_mremap_args(args: &[u8]) -> String {
         "{}, {}, {}, {}{}",
         old_address, mremap.old_size, mremap.new_size, flags, extra_new_address,
     );
+}
+
+#[repr(C)]
+struct MsyncArgs {
+    addr: usize,
+    length: usize,
+    flags: c_int,
+}
+unsafe impl plain::Plain for MsyncArgs {}
+
+const MSYNC_FLAGS_DESCS: &[Desc] = &[desc!(MS_SYNC), desc!(MS_ASYNC), desc!(MS_INVALIDATE)];
+
+pub(super) fn handle_msync_args(args: &[u8]) -> String {
+    let msync = get_args::<MsyncArgs>(args);
+
+    let addr = format_addr(msync.addr);
+    let length = msync.length;
+    let flags = format_flags(msync.flags as u64, '|', &MSYNC_FLAGS_DESCS, Format::Hex);
+
+    return format!("{}, {}, {}", addr, length, flags);
 }
