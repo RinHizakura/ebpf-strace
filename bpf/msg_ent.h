@@ -219,7 +219,11 @@ typedef struct {
 } msync_args_t;
 
 typedef struct {
+    void *addr;
+    size_t length;
+    unsigned char vec[ARR_ENT_SIZE];
 } mincore_args_t;
+
 typedef struct {
 } madvise_args_t;
 typedef struct {

@@ -70,3 +70,35 @@ static void sys_msync_enter(syscall_ent_t *ent,
     msync->length = length;
     msync->flags = flags;
 }
+
+static void sys_mincore_enter(syscall_ent_t *ent,
+                              void *addr,
+                              size_t length,
+                              unsigned char *vec)
+{
+    mincore_args_t *mincore = (mincore_args_t *) ent->bytes;
+
+    mincore->addr = addr;
+    mincore->length = length;
+
+    void **buf_addr_ptr = bpf_g_buf_addr_lookup_elem(&INDEX_0);
+    if (buf_addr_ptr != NULL)
+        *buf_addr_ptr = vec;
+}
+
+static void sys_mincore_exit(syscall_ent_t *ent)
+{
+    mincore_args_t *mincore = (mincore_args_t *) ent->bytes;
+    void **buf_addr_ptr = bpf_g_buf_addr_lookup_elem(&INDEX_0);
+
+    /* FIXME: Get the page shift reasonably instead of using the hardcoded one.
+     */
+    size_t page_shift = 12;
+    size_t page_mask = (1 << page_shift) - 1;
+    size_t nmemb = (mincore->length + page_mask) >> page_shift;
+
+    size_t cpy_count =
+        (nmemb > ARR_ENT_SIZE ? ARR_ENT_SIZE : nmemb) * sizeof(unsigned char);
+    if (buf_addr_ptr != NULL)
+        bpf_core_read_user(mincore->vec, cpy_count, *buf_addr_ptr);
+}

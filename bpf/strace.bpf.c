@@ -197,6 +197,9 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
     case SYS_MSYNC:
         sys_msync_enter(ent, (void *) parm1, parm2, parm3);
         break;
+    case SYS_MINCORE:
+        sys_mincore_enter(ent, (void *) parm1, parm2, (void *) parm3);
+        break;
     case SYS_NEWFSTATAT:
         sys_newfstatat_enter(ent, parm1, (void *) parm2, (void *) parm3, parm4);
         break;
@@ -289,6 +292,9 @@ int sys_exit(struct bpf_raw_tracepoint_args *args)
         break;
     case SYS_PIPE:
         sys_pipe_exit(ent);
+        break;
+    case SYS_MINCORE:
+        sys_mincore_exit(ent);
         break;
     case SYS_NEWFSTATAT:
         sys_newfstatat_exit(ent);

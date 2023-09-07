@@ -1,11 +1,11 @@
-use std::ffi::c_int;
+use std::ffi::{c_int, c_uchar};
 
 use libc::{
-    MAP_32BIT, MAP_ANONYMOUS, MAP_DENYWRITE, MAP_EXECUTABLE, MAP_FILE, MAP_FIXED,
+    sysconf, MAP_32BIT, MAP_ANONYMOUS, MAP_DENYWRITE, MAP_EXECUTABLE, MAP_FILE, MAP_FIXED,
     MAP_FIXED_NOREPLACE, MAP_GROWSDOWN, MAP_HUGETLB, MAP_LOCKED, MAP_NONBLOCK, MAP_NORESERVE,
     MAP_POPULATE, MAP_PRIVATE, MAP_SHARED, MAP_SHARED_VALIDATE, MAP_STACK, MAP_SYNC,
     MREMAP_DONTUNMAP, MREMAP_FIXED, MREMAP_MAYMOVE, MS_ASYNC, MS_INVALIDATE, MS_SYNC, PROT_EXEC,
-    PROT_GROWSDOWN, PROT_GROWSUP, PROT_NONE, PROT_READ, PROT_WRITE,
+    PROT_GROWSDOWN, PROT_GROWSUP, PROT_NONE, PROT_READ, PROT_WRITE, _SC_PAGE_SIZE,
 };
 
 use crate::common::*;
@@ -162,4 +162,31 @@ pub(super) fn handle_msync_args(args: &[u8]) -> String {
     let flags = format_flags(msync.flags as u64, '|', &MSYNC_FLAGS_DESCS, Format::Hex);
 
     return format!("{}, {}, {}", addr, length, flags);
+}
+
+#[repr(C)]
+struct MincoreArgs {
+    addr: usize,
+    length: usize,
+    vec: [c_uchar; ARR_ENT_SIZE],
+}
+unsafe impl plain::Plain for MincoreArgs {}
+
+fn format_vec_entry(c: &c_uchar) -> String {
+    return format!("{}", c);
+}
+
+pub(super) fn handle_mincore_args(args: &[u8]) -> String {
+    let mincore = get_args::<MincoreArgs>(args);
+
+    let addr = format_addr(mincore.addr);
+    let length = mincore.length;
+
+    let pagesize = unsafe { sysconf(_SC_PAGE_SIZE) as usize };
+    let page_mask = pagesize - 1;
+    let page_shift = pagesize.trailing_zeros();
+    let vec_size = (length + page_mask) >> page_shift;
+    let vec = format_arr(&mincore.vec, vec_size, format_vec_entry);
+
+    return format!("{}, {}, {}", addr, length, vec);
 }
