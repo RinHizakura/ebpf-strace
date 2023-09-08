@@ -1,11 +1,14 @@
 use std::ffi::{c_int, c_uchar};
 
 use libc::{
-    sysconf, MAP_32BIT, MAP_ANONYMOUS, MAP_DENYWRITE, MAP_EXECUTABLE, MAP_FILE, MAP_FIXED,
-    MAP_FIXED_NOREPLACE, MAP_GROWSDOWN, MAP_HUGETLB, MAP_LOCKED, MAP_NONBLOCK, MAP_NORESERVE,
-    MAP_POPULATE, MAP_PRIVATE, MAP_SHARED, MAP_SHARED_VALIDATE, MAP_STACK, MAP_SYNC,
-    MREMAP_DONTUNMAP, MREMAP_FIXED, MREMAP_MAYMOVE, MS_ASYNC, MS_INVALIDATE, MS_SYNC, PROT_EXEC,
-    PROT_GROWSDOWN, PROT_GROWSUP, PROT_NONE, PROT_READ, PROT_WRITE, _SC_PAGE_SIZE,
+    sysconf, MADV_DODUMP, MADV_DOFORK, MADV_DONTDUMP, MADV_DONTFORK, MADV_DONTNEED, MADV_FREE,
+    MADV_HUGEPAGE, MADV_HWPOISON, MADV_MERGEABLE, MADV_NOHUGEPAGE, MADV_NORMAL, MADV_RANDOM,
+    MADV_REMOVE, MADV_SEQUENTIAL, MADV_SOFT_OFFLINE, MADV_UNMERGEABLE, MADV_WILLNEED, MAP_32BIT,
+    MAP_ANONYMOUS, MAP_DENYWRITE, MAP_EXECUTABLE, MAP_FILE, MAP_FIXED, MAP_FIXED_NOREPLACE,
+    MAP_GROWSDOWN, MAP_HUGETLB, MAP_LOCKED, MAP_NONBLOCK, MAP_NORESERVE, MAP_POPULATE, MAP_PRIVATE,
+    MAP_SHARED, MAP_SHARED_VALIDATE, MAP_STACK, MAP_SYNC, MREMAP_DONTUNMAP, MREMAP_FIXED,
+    MREMAP_MAYMOVE, MS_ASYNC, MS_INVALIDATE, MS_SYNC, PROT_EXEC, PROT_GROWSDOWN, PROT_GROWSUP,
+    PROT_NONE, PROT_READ, PROT_WRITE, _SC_PAGE_SIZE,
 };
 
 use crate::common::*;
@@ -172,10 +175,6 @@ struct MincoreArgs {
 }
 unsafe impl plain::Plain for MincoreArgs {}
 
-fn format_vec_entry(c: &c_uchar) -> String {
-    return format!("{}", c);
-}
-
 pub(super) fn handle_mincore_args(args: &[u8]) -> String {
     let mincore = get_args::<MincoreArgs>(args);
 
@@ -186,7 +185,50 @@ pub(super) fn handle_mincore_args(args: &[u8]) -> String {
     let page_mask = pagesize - 1;
     let page_shift = pagesize.trailing_zeros();
     let vec_size = (length + page_mask) >> page_shift;
-    let vec = format_arr(&mincore.vec, vec_size, format_vec_entry);
+    let vec = format_arr(&mincore.vec, vec_size, u8::to_string);
 
     return format!("{}, {}, {}", addr, length, vec);
+}
+
+#[repr(C)]
+struct MadviseArgs {
+    addr: usize,
+    length: usize,
+    advice: c_int,
+}
+unsafe impl plain::Plain for MadviseArgs {}
+
+const MADVISE_MADV_DESCS: &[Desc] = &[
+    desc!(MADV_NORMAL),
+    desc!(MADV_RANDOM),
+    desc!(MADV_SEQUENTIAL),
+    desc!(MADV_WILLNEED),
+    desc!(MADV_DONTNEED),
+    desc!(MADV_FREE),
+    desc!(MADV_REMOVE),
+    desc!(MADV_DONTFORK),
+    desc!(MADV_DOFORK),
+    desc!(MADV_MERGEABLE),
+    desc!(MADV_UNMERGEABLE),
+    desc!(MADV_HUGEPAGE),
+    desc!(MADV_NOHUGEPAGE),
+    desc!(MADV_DONTDUMP),
+    desc!(MADV_DODUMP),
+    desc!(MADV_HWPOISON),
+    desc!(MADV_SOFT_OFFLINE),
+];
+
+pub(super) fn handle_madvise_args(args: &[u8]) -> String {
+    let madvise = get_args::<MadviseArgs>(args);
+
+    let addr = format_addr(madvise.addr);
+    let length = madvise.length;
+    let advice = format_value(
+        madvise.advice as u32 as u64,
+        Some("MADV_??"),
+        &MADVISE_MADV_DESCS,
+        Format::Hex,
+    );
+
+    return format!("{}, {}, {}", addr, length, advice);
 }

@@ -42,6 +42,7 @@ fn handle_args(id: u64, args: &[u8], ret: u64) -> String {
         SYS_MREMAP => mem::handle_mremap_args(args),
         SYS_MSYNC => mem::handle_msync_args(args),
         SYS_MINCORE => mem::handle_mincore_args(args),
+        SYS_MADVISE => mem::handle_madvise_args(args),
         SYS_NEWFSTATAT => stat::handle_newfstatat_args(args),
         SYS_EXECVE => execve::handle_execve_args(args),
         SYS_OPENAT => open::handle_openat_args(args),

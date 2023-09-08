@@ -102,3 +102,15 @@ static void sys_mincore_exit(syscall_ent_t *ent)
     if (buf_addr_ptr != NULL)
         bpf_core_read_user(mincore->vec, cpy_count, *buf_addr_ptr);
 }
+
+static void sys_madvise_enter(syscall_ent_t *ent,
+                              void *addr,
+                              size_t length,
+                              int advice)
+{
+    madvise_args_t *madvise = (madvise_args_t *) ent->bytes;
+
+    madvise->addr = addr;
+    madvise->length = length;
+    madvise->advice = advice;
+}

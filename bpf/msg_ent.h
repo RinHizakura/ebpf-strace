@@ -225,7 +225,11 @@ typedef struct {
 } mincore_args_t;
 
 typedef struct {
+    void *addr;
+    size_t length;
+    int advice;
 } madvise_args_t;
+
 typedef struct {
 } shmget_args_t;
 typedef struct {
