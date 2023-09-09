@@ -57,7 +57,7 @@ int main()
     if (test_mincore(5))
         goto end;
 
-    puts("+++ exited with 0 +++");
 end:
+    puts("+++ exited with 0 +++");
     return 0;
 }
