@@ -2,7 +2,8 @@ use crate::common::EMPTY_STR;
 use crate::syscall::syscall_nr::*;
 use crate::syscall::syscall_tbl::SYSCALLS;
 use crate::{
-    access, desc, execve, exit, io, ioctl, lseek, mem, net, open, poll, rt_sigreturn, signal, stat,
+    access, desc, execve, exit, io, ioctl, ipc_shm, lseek, mem, net, open, poll, rt_sigreturn,
+    signal, stat,
 };
 use plain::Plain;
 
@@ -43,6 +44,9 @@ fn handle_args(id: u64, args: &[u8], ret: u64) -> String {
         SYS_MSYNC => mem::handle_msync_args(args),
         SYS_MINCORE => mem::handle_mincore_args(args),
         SYS_MADVISE => mem::handle_madvise_args(args),
+        SYS_SHMGET => ipc_shm::handle_shmget_args(args),
+        SYS_SHMAT => ipc_shm::handle_shmat_args(args),
+        SYS_SHMCTL => ipc_shm::handle_shmctl_args(args),
         SYS_NEWFSTATAT => stat::handle_newfstatat_args(args),
         SYS_EXECVE => execve::handle_execve_args(args),
         SYS_OPENAT => open::handle_openat_args(args),

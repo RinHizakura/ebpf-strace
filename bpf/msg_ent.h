@@ -231,11 +231,22 @@ typedef struct {
 } madvise_args_t;
 
 typedef struct {
+    key_t key;
+    size_t size;
+    int shmflg;
 } shmget_args_t;
+
 typedef struct {
+    int shmid;
+    void *shmaddr;
+    int shmflg;
 } shmat_args_t;
+
 typedef struct {
+    int cmd;
+    struct shmid_ds buf;
 } shmctl_args_t;
+
 typedef struct {
 } dup_args_t;
 typedef struct {

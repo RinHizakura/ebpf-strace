@@ -54,6 +54,7 @@ struct {
 #include "bpf/exit.c"
 #include "bpf/io.c"
 #include "bpf/ioctl.c"
+#include "bpf/ipc_shm.c"
 #include "bpf/lseek.c"
 #include "bpf/mem.c"
 #include "bpf/net.c"
@@ -202,6 +203,15 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
         break;
     case SYS_MADVISE:
         sys_madvise_enter(ent, (void *) parm1, parm2, parm3);
+        break;
+    case SYS_SHMGET:
+        sys_shmget_enter(ent, parm1, parm2, parm3);
+        break;
+    case SYS_SHMAT:
+        sys_shmat_enter(ent, parm1, (void *) parm2, parm3);
+        break;
+    case SYS_SHMCTL:
+        sys_shmctl_enter(ent, parm1, (void *) parm2);
         break;
     case SYS_NEWFSTATAT:
         sys_newfstatat_enter(ent, parm1, (void *) parm2, (void *) parm3, parm4);

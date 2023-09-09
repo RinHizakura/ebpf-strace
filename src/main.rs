@@ -19,6 +19,7 @@ mod exit;
 mod handler;
 mod io;
 mod ioctl;
+mod ipc_shm;
 mod lseek;
 mod mem;
 mod net;
