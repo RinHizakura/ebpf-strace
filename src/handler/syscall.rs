@@ -62,7 +62,7 @@ fn handle_return(id: u64, ret_val: u64) -> (String, String) {
         "-1".to_owned()
     } else {
         match id {
-            SYS_BRK | SYS_MMAP | SYS_MREMAP => format!("0x{:x}", ret_val),
+            SYS_BRK | SYS_MMAP | SYS_MREMAP | SYS_SHMAT => format!("0x{:x}", ret_val),
             SYS_RT_SIGRETURN | SYS_EXIT_GROUP => "?".to_owned(),
             _ => ret_val.to_string(),
         }

@@ -1,6 +1,9 @@
 use crate::common::*;
 
-use libc::{key_t, shmid_ds, IPC_CREAT, IPC_EXCL, IPC_PRIVATE, SHM_HUGETLB, SHM_NORESERVE};
+use libc::{
+    key_t, shmid_ds, IPC_CREAT, IPC_EXCL, IPC_PRIVATE, SHM_EXEC, SHM_HUGETLB, SHM_NORESERVE,
+    SHM_RDONLY, SHM_REMAP, SHM_RND,
+};
 
 #[repr(C)]
 struct ShmgetArgs {
@@ -57,8 +60,25 @@ struct ShmatArgs {
 }
 unsafe impl plain::Plain for ShmatArgs {}
 
+const SHMAT_FLAGS_DESCS: &[Desc] = &[
+    desc!(SHM_RDONLY),
+    desc!(SHM_RND),
+    desc!(SHM_REMAP),
+    desc!(SHM_EXEC),
+];
+
 pub(super) fn handle_shmat_args(args: &[u8]) -> String {
-    return format!("");
+    let shmat = get_args::<ShmatArgs>(args);
+    let shmid = shmat.shmid;
+    let shmaddr = format_addr(shmat.shmaddr);
+    let shmflg = format_flags(
+        shmat.shmflg as u32 as u64,
+        '|',
+        &SHMAT_FLAGS_DESCS,
+        Format::Hex,
+    );
+
+    return format!("{}, {}, {}", shmid, shmaddr, shmflg);
 }
 
 #[repr(C)]
