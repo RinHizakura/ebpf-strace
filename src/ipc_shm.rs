@@ -1,9 +1,9 @@
 use crate::common::*;
 
 use libc::{
-    c_ushort, gid_t, key_t, mode_t, pid_t, time_t, uid_t, IPC_CREAT, IPC_EXCL, IPC_INFO,
-    IPC_PRIVATE, IPC_RMID, IPC_SET, IPC_STAT, SHM_EXEC, SHM_HUGETLB, SHM_LOCK, SHM_NORESERVE,
-    SHM_RDONLY, SHM_REMAP, SHM_RND, SHM_UNLOCK,
+    ipc_perm, key_t, shmid_ds, IPC_CREAT, IPC_EXCL, IPC_INFO, IPC_PRIVATE, IPC_RMID, IPC_SET,
+    IPC_STAT, SHM_EXEC, SHM_HUGETLB, SHM_LOCK, SHM_NORESERVE, SHM_RDONLY, SHM_REMAP, SHM_RND,
+    SHM_UNLOCK,
 };
 
 #[repr(C)]
@@ -82,39 +82,11 @@ pub(super) fn handle_shmat_args(args: &[u8]) -> String {
     return format!("{}, {}, {}", shmid, shmaddr, shmflg);
 }
 
-/* FIXME: Consider the mismatch between rust libc and
- * kernel definition(vmliunux.h) */
-#[repr(C)]
-struct IpcPerm {
-    key: key_t,
-    uid: uid_t,
-    gid: gid_t,
-    cuid: uid_t,
-    cgid: gid_t,
-    mode: mode_t,
-    seq: c_ushort,
-}
-
-#[repr(C)]
-struct ShmidDs {
-    pub shm_perm: IpcPerm,
-    pub shm_segsz: c_int,
-    pub shm_atime: time_t,
-    pub shm_dtime: time_t,
-    pub shm_ctime: time_t,
-    pub shm_cpid: pid_t,
-    pub shm_lpid: pid_t,
-    pub shm_nattch: c_ushort,
-    __shm_unused: c_ushort,
-    __shm_unused2: usize,
-    __shm_unused3: usize,
-}
-
 #[repr(C)]
 struct ShmctlArgs {
     shmid: c_int,
     cmd: c_int,
-    buf: ShmidDs,
+    buf: shmid_ds,
     buf_addr: usize,
 }
 unsafe impl plain::Plain for ShmctlArgs {}
@@ -136,11 +108,11 @@ const SHMCTL_CMD_DESCS: &[Desc] = &[
     desc!(SHM_STAT_ANY),
 ];
 
-fn format_ipc_perm(ipc_perm: &IpcPerm) -> String {
+fn format_ipc_perm(ipc_perm: &ipc_perm) -> String {
     let uid = ipc_perm.uid;
     let gid = ipc_perm.gid;
-    let mode = format!("0x{:x}", ipc_perm.mode);
-    let key = ipc_perm.key;
+    let mode = format!("0{:o}", ipc_perm.mode);
+    let key = ipc_perm.__key;
     let cuid = ipc_perm.cuid;
     let cgid = ipc_perm.cgid;
 
@@ -150,7 +122,7 @@ fn format_ipc_perm(ipc_perm: &IpcPerm) -> String {
     );
 }
 
-fn format_shmid_ds(shmid_ds: &ShmidDs) -> String {
+fn format_shmid_ds(shmid_ds: &shmid_ds) -> String {
     let shm_perm = format_ipc_perm(&shmid_ds.shm_perm);
     let shm_segsz = shmid_ds.shm_segsz;
     let shm_cpid = shmid_ds.shm_cpid;

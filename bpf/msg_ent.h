@@ -242,10 +242,14 @@ typedef struct {
     int shmflg;
 } shmat_args_t;
 
+/* FIXME: This should be defined carefully according to the platform */
+#define NAME_OF_STRUCT_SHMID_DS shmid64_ds
+typedef struct NAME_OF_STRUCT_SHMID_DS shmid_ds_t;
+
 typedef struct {
     int shmid;
     int cmd;
-    struct shmid_ds buf;
+    shmid_ds_t buf;
     void *buf_addr;
 } shmctl_args_t;
 

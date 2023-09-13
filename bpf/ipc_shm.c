@@ -25,25 +25,20 @@ static void sys_shmat_enter(syscall_ent_t *ent,
 static void sys_shmctl_enter(syscall_ent_t *ent,
                              int shmid,
                              int cmd,
-                             struct shmid_ds *bbuf)
+                             shmid_ds_t *buf)
 {
     shmctl_args_t *shmctl = (shmctl_args_t *) ent->bytes;
 
     shmctl->shmid = shmid;
     shmctl->cmd = cmd;
-    shmctl->buf_addr = bbuf;
-
-    void **buf_addr_ptr = bpf_g_buf_addr_lookup_elem(&INDEX_0);
-    if (buf_addr_ptr != NULL)
-        *buf_addr_ptr = bbuf;
+    shmctl->buf_addr = buf;
 }
 
 static void sys_shmctl_exit(syscall_ent_t *ent)
 {
     shmctl_args_t *shmctl = (shmctl_args_t *) ent->bytes;
-    void **buf_addr_ptr = bpf_g_buf_addr_lookup_elem(&INDEX_0);
+    void *buf = shmctl->buf_addr;
 
-    if (buf_addr_ptr != NULL && shmctl->buf_addr != 0)
-        bpf_core_read_user(&shmctl->buf, sizeof(struct shmid_ds),
-                           *buf_addr_ptr);
+    if (buf != NULL)
+        bpf_core_read_user(&shmctl->buf, sizeof(shmid_ds_t), buf);
 }
