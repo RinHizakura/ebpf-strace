@@ -243,8 +243,10 @@ typedef struct {
 } shmat_args_t;
 
 typedef struct {
+    int shmid;
     int cmd;
     struct shmid_ds buf;
+    void *buf_addr;
 } shmctl_args_t;
 
 typedef struct {

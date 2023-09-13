@@ -211,7 +211,7 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
         sys_shmat_enter(ent, parm1, (void *) parm2, parm3);
         break;
     case SYS_SHMCTL:
-        sys_shmctl_enter(ent, parm1, (void *) parm2);
+        sys_shmctl_enter(ent, parm1, parm2, (void *) parm3);
         break;
     case SYS_NEWFSTATAT:
         sys_newfstatat_enter(ent, parm1, (void *) parm2, (void *) parm3, parm4);
@@ -308,6 +308,9 @@ int sys_exit(struct bpf_raw_tracepoint_args *args)
         break;
     case SYS_MINCORE:
         sys_mincore_exit(ent);
+        break;
+    case SYS_SHMCTL:
+        sys_shmctl_exit(ent);
         break;
     case SYS_NEWFSTATAT:
         sys_newfstatat_exit(ent);
