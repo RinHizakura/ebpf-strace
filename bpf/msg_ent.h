@@ -249,8 +249,8 @@ typedef struct NAME_OF_STRUCT_SHMID_DS shmid_ds_t;
 typedef struct {
     int shmid;
     int cmd;
-    shmid_ds_t buf;
     void *buf_addr;
+    shmid_ds_t buf;
 } shmctl_args_t;
 
 typedef struct {
