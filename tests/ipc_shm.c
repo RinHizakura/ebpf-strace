@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/ipc.h>
@@ -28,7 +29,6 @@ static void print_shmid_ds(char *str_ipc_cmd, struct shmid_ds *ds, int rc)
         (unsigned) ds->shm_ctime, rc);
 }
 
-
 int main()
 {
     int ret = 0;
@@ -45,6 +45,16 @@ int main()
     }
     print_shmid_ds("IPC_STAT", &ds, rc);
 
+    rc = shmctl(id, IPC_SET, &ds);
+    printf("shmctl(%d, IPC_SET, {shm_perm={uid=%u, gid=%u, mode=%#o}}) = 0\n",
+           id, (unsigned) ds.shm_perm.uid, (unsigned) ds.shm_perm.gid,
+           (unsigned) ds.shm_perm.mode);
+
+    rc = shmctl(id, SHM_STAT, &ds);
+    print_shmid_ds("SHM_STAT", &ds, rc);
+
+    rc = shmctl(id, SHM_STAT_ANY, &ds);
+    print_shmid_ds("SHM_STAT_ANY", &ds, rc);
 end:
     puts("+++ exited with 0 +++");
     return ret;

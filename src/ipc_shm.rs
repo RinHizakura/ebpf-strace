@@ -86,8 +86,8 @@ pub(super) fn handle_shmat_args(args: &[u8]) -> String {
 struct ShmctlArgs {
     shmid: c_int,
     cmd: c_int,
-    buf: shmid_ds,
     buf_addr: usize,
+    buf: shmid_ds,
 }
 unsafe impl plain::Plain for ShmctlArgs {}
 
@@ -139,6 +139,16 @@ fn format_shmid_ds(shmid_ds: &shmid_ds) -> String {
     );
 }
 
+/* Special formatter for IPC_SET */
+fn format_shmid_ds_set(shmid_ds: &shmid_ds) -> String {
+    let ipc_perm = &shmid_ds.shm_perm;
+    let uid = ipc_perm.uid;
+    let gid = ipc_perm.gid;
+    let mode = format!("0{:o}", ipc_perm.mode);
+
+    return format!("{{shm_perm={{uid={uid}, gid={gid}, mode={mode}}}}}");
+}
+
 pub(super) fn handle_shmctl_args(args: &[u8]) -> String {
     let shmctl = get_args::<ShmctlArgs>(args);
 
@@ -151,12 +161,8 @@ pub(super) fn handle_shmctl_args(args: &[u8]) -> String {
     let buf;
     if shmctl.buf_addr != 0 {
         buf = match shmctl.cmd {
-            IPC_SET => todo!(),
-            IPC_STAT => format_shmid_ds(&shmctl.buf),
-            SHM_STAT => todo!(),
-            SHM_STAT_ANY => todo!(),
-            IPC_INFO => todo!(),
-            SHM_INFO => todo!(),
+            IPC_SET => format_shmid_ds_set(&shmctl.buf),
+            IPC_STAT | SHM_STAT | SHM_STAT_ANY => format_shmid_ds(&shmctl.buf),
             _ => format_addr(shmctl.buf_addr),
         };
     } else {

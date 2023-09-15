@@ -39,6 +39,8 @@ static void sys_shmctl_exit(syscall_ent_t *ent)
     shmctl_args_t *shmctl = (shmctl_args_t *) ent->bytes;
     void *buf = shmctl->buf_addr;
 
-    if (buf != NULL)
+    if (buf != NULL) {
+        /* TODO: Let's consider IPC_INFO and SHM_INFO */
         bpf_core_read_user(&shmctl->buf, sizeof(shmid_ds_t), buf);
+    }
 }
