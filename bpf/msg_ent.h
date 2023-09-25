@@ -254,9 +254,14 @@ typedef struct {
 } shmctl_args_t;
 
 typedef struct {
+    int oldfd;
 } dup_args_t;
+
 typedef struct {
+    int oldfd;
+    int newfd;
 } dup2_args_t;
+
 typedef struct {
 } pause_args_t;
 typedef struct {

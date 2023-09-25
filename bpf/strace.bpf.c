@@ -50,6 +50,7 @@ struct {
 
 #include "bpf/access.c"
 #include "bpf/desc.c"
+#include "bpf/dup.c"
 #include "bpf/execve.c"
 #include "bpf/exit.c"
 #include "bpf/io.c"
@@ -212,6 +213,12 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
         break;
     case SYS_SHMCTL:
         sys_shmctl_enter(ent, parm1, parm2, (void *) parm3);
+        break;
+    case SYS_DUP:
+        sys_dup_enter(ent, parm1);
+        break;
+    case SYS_DUP2:
+        sys_dup2_enter(ent, parm1, parm2);
         break;
     case SYS_NEWFSTATAT:
         sys_newfstatat_enter(ent, parm1, (void *) parm2, (void *) parm3, parm4);

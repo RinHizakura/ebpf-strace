@@ -14,6 +14,7 @@ mod access;
 mod arch;
 mod bump_memlock_rlimit;
 mod desc;
+mod dup;
 mod execve;
 mod exit;
 mod handler;
