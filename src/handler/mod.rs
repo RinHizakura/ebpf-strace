@@ -66,7 +66,11 @@ pub fn time_msg_handler(bytes: &[u8]) -> i32 {
         rslt = -libc::EINTR;
     }
 
-    eprint!("{}: {}ns\n", syscall.name, ent.end_time - ent.start_time);
+    eprint!(
+        "{}: {} ms\n",
+        syscall.name,
+        (ent.end_time - ent.start_time) as f32 / 10.0_f32.powi(6)
+    );
 
     rslt
 }
