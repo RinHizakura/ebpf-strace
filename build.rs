@@ -167,7 +167,7 @@ fn main() -> Result<()> {
     let skel = Path::new("bpf/.output/strace.skel.rs");
     SkeletonBuilder::new()
         .source(SKEL_SRC)
-        .clang_args("-I. -Wextra -Wall -Werror")
+        .clang_args(["-I.", "-Wextra", "-Wall", "-Werror"])
         .build_and_generate(&skel)?;
 
     println!("cargo:rerun-if-changed={}/{}", SYSCALL_SRC, SKEL_SRC);

@@ -2,6 +2,7 @@ use crate::bump_memlock_rlimit::*;
 use crate::handler::msg_ent_handler;
 use crate::sys::*;
 use anyhow::{anyhow, Result};
+use libbpf_rs::skel::{OpenSkel, Skel, SkelBuilder};
 use libbpf_rs::RingBufferBuilder;
 use std::env;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -51,7 +52,8 @@ fn load_ebpf_prog() -> Result<StraceSkel<'static>> {
     /* Open BPF application */
     let open_skel = builder.open()?;
     /* Load & verify BPF programs */
-    open_skel.load().map_err(anyhow::Error::msg)
+    let skel = open_skel.load()?;
+    Ok(skel)
 }
 
 fn main() -> Result<()> {
@@ -72,7 +74,7 @@ fn main() -> Result<()> {
             /* We have to set select_pid by child process
              * itself because only it knows when it is going
              * to do execvp. */
-            skel.bss().select_pid = pid;
+            unsafe { (*skel.bss_mut_raw()).select_pid = pid };
             execvp(&args)?;
             unreachable!();
         }
@@ -89,13 +91,14 @@ fn main() -> Result<()> {
 
     /* Access the ringbuffer in our ebpf code */
     let mut builder = RingBufferBuilder::new();
-    builder.add(skel.maps().msg_ringbuf(), msg_ent_handler)?;
+    let skel_maps = skel.maps();
+    builder.add(skel_maps.msg_ringbuf(), msg_ent_handler)?;
     let syscall_record = builder.build()?;
 
     while running.load(Ordering::SeqCst) {
         let result = syscall_record.poll(Duration::MAX);
         if let Err(r) = &result {
-            if matches!(r, libbpf_rs::Error::System(libc::EINTR)) {
+            if matches!(r.kind(), libbpf_rs::ErrorKind::Interrupted) {
                 break;
             }
             /* FIXME: Any better way to convert any Error to anyhow::Error? */
