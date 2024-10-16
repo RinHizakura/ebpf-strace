@@ -1,4 +1,4 @@
-name: Rust
+name: strace-test
 
 on:
   push:
@@ -15,18 +15,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Install-dependencies
       run: |
           sudo apt-get update
           sudo apt-get install clang llvm libelf1 libelf-dev zlib1g-dev
+
+    - name: Install-bpftool
+      run: |
           git clone https://github.com/libbpf/bpftool.git
           cd bpftool
           git submodule update --init
           cd src
           make
           sudo make install
+
     - name: Build
       run: make
+
     - name: Run tests
       run: .ci/strace-test.sh
