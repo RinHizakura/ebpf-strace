@@ -2,13 +2,15 @@
 
 A tiny tool to trace syscalls by eBPF
 
-> WARNING: It could only be run on x86_64 architecture currently
+> WARNING: Currently, the tool can only be run on x86_64. Besides,
+> only a few syscalls's arguments can be traced.
 
 ## Usage
 
 These dependencies are required to build ebpf-strace.
+
 ```
-$ apt install clang llvm libelf1 libelf-dev zlib1g-dev
+$ sudo apt install clang llvm libelf1 libelf-dev zlib1g-dev
 ```
 
 You will also need `bpftool` for the generating of `vmlinux.h`.
@@ -22,13 +24,13 @@ $ make
 $ sudo make install
 ```
 
-After those installation, you should be able to build `ebpf-strace` now.
+After the installations, you can build `ebpf-strace` now.
+```
+$ make
+```
+
 For example, we can trace which system calls are run during the execution
 of `echo hello` with the following command:
 ```
-$ make
-$ sudo target/debug/ebpf-strace echo hello
+$ sudo ./ebpf-strace echo hello
 ```
-
-Note that the result doesn't perfectly match the output of `strace` because
-this project is still work in process.
