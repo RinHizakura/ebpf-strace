@@ -36,6 +36,11 @@ typedef struct {
 } syscall_ent_t;
 
 typedef struct {
+    u64 start_time;
+    u64 end_time;
+} time_elapsed_t;
+
+typedef struct {
     int fd;
     u8 buf[BUF_SIZE];
     size_t count;

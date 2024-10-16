@@ -1,10 +1,10 @@
 use crate::bump_memlock_rlimit::*;
-use crate::handler::msg_ent_handler;
+use crate::handler::{msg_ent_handler, time_msg_handler};
 use crate::sys::*;
 use anyhow::{anyhow, Result};
+use clap::Parser;
 use libbpf_rs::skel::{OpenSkel, Skel, SkelBuilder};
 use libbpf_rs::RingBufferBuilder;
-use std::env;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
@@ -42,7 +42,7 @@ use strace::*;
 #[macro_use]
 extern crate lazy_static;
 
-fn load_ebpf_prog() -> Result<StraceSkel<'static>> {
+fn open_ebpf_prog() -> Result<OpenStraceSkel<'static>> {
     /* We may have to bump RLIMIT_MEMLOCK for libbpf explicitly */
     if cfg!(bump_memlock_rlimit_manually) {
         bump_memlock_rlimit()?;
@@ -51,20 +51,39 @@ fn load_ebpf_prog() -> Result<StraceSkel<'static>> {
     let builder = StraceSkelBuilder::default();
     /* Open BPF application */
     let open_skel = builder.open()?;
-    /* Load & verify BPF programs */
-    let skel = open_skel.load()?;
-    Ok(skel)
+    Ok(open_skel)
+}
+
+#[derive(Parser)]
+struct Cli {
+    #[arg(
+        short,
+        long,
+        default_value_t = false,
+        help = "whether to focus on the time cost of syscall"
+    )]
+    time_mode: bool,
+
+    #[arg(trailing_var_arg = true, help = "command to run for trace")]
+    cmd: Vec<String>,
 }
 
 fn main() -> Result<()> {
-    let mut skel = load_ebpf_prog()?;
+    let mut open_skel = open_ebpf_prog()?;
+
+    let cli = Cli::parse();
+    let time_mode = cli.time_mode;
+    open_skel.rodata_mut().time_mode = time_mode as i32;
+
+    /* Load & verify BPF programs */
+    let mut skel = open_skel.load()?;
     /* Attach tracepoint handler */
     let _tracepoint = skel.attach()?;
 
     /* Spawn a thread to run the executable, and then trace it
      * in our eBPF code. */
-    let args: Vec<String> = env::args().skip(1).collect();
-    if args.len() == 0 {
+    let cmd = cli.cmd;
+    if cmd.len() == 0 {
         return Err(anyhow!("Command cannot be empty"));
     }
 
@@ -75,7 +94,7 @@ fn main() -> Result<()> {
              * itself because only it knows when it is going
              * to do execvp. */
             unsafe { (*skel.bss_mut_raw()).select_pid = pid };
-            execvp(&args)?;
+            execvp(&cmd)?;
             unreachable!();
         }
         pid => pid,
@@ -92,9 +111,14 @@ fn main() -> Result<()> {
     /* Access the ringbuffer in our ebpf code */
     let mut builder = RingBufferBuilder::new();
     let skel_maps = skel.maps();
-    builder.add(skel_maps.msg_ringbuf(), msg_ent_handler)?;
-    let syscall_record = builder.build()?;
 
+    if time_mode {
+        builder.add(skel_maps.msg_ringbuf(), time_msg_handler)?;
+    } else {
+        builder.add(skel_maps.msg_ringbuf(), msg_ent_handler)?;
+    }
+
+    let syscall_record = builder.build()?;
     while running.load(Ordering::SeqCst) {
         let result = syscall_record.poll(Duration::MAX);
         if let Err(r) = &result {

@@ -13,6 +13,7 @@ libbpf-rs = "0.23.0"
 plain = "0.2.3"
 lazy_static = "1.4.0"
 chrono = { version = "0.4", features = ["unstable-locales"] }
+clap = { version = "4.5.4", features = ["derive"] }
 
 [build-dependencies]
 anyhow = "1.0"

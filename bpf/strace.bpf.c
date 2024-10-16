@@ -22,6 +22,7 @@
 // We limit the iteration of loop by this definition to pass eBPF verifier
 #define LOOP_MAX 1024
 
+const volatile int time_mode = 0;
 pid_t select_pid = 0;
 /* The key to access the single entry BPF_MAP in array type. */
 u32 INDEX_0 = 0;
@@ -81,30 +82,33 @@ static void submit_syscall(syscall_ent_t *ent, size_t args_size)
     bpf_ringbuf_submit(ringbuf_ent, 0);
 }
 
-static void sys_enter_default(syscall_ent_t *ent, u64 id)
+static int sys_enter_time(struct bpf_raw_tracepoint_args *args)
 {
-    ent->basic.id = id;
-}
-
-SEC("raw_tracepoint/sys_enter")
-int sys_enter(struct bpf_raw_tracepoint_args *args)
-{
-    /* We'll only hook the pid which is specified by BPF loader.
-     * Note that the return value of "bpf_get_current_pid_tgid" will
-     * be "(u64) task->tgid << 32 | task->pid" */
-    pid_t cur_pid = (bpf_get_current_pid_tgid() >> 32);
-    if (select_pid == 0 || select_pid != cur_pid)
-        return 0;
-
-    /* Reference to the TP_PROTO macro for sys_enter under
-     * https://elixir.bootlin.com/linux/latest/source/include/trace/events/syscalls.h
-     */
-    u64 id = args->args[1];
     syscall_ent_t *ent = bpf_g_ent_lookup_elem(&INDEX_0);
     if (!ent)
         return -1;
 
-    sys_enter_default(ent, id);
+    time_elapsed_t *t = (time_elapsed_t *) ent->bytes;
+    t->start_time = bpf_ktime_get_ns();
+
+    u64 id = args->args[1];
+    switch (id) {
+    case SYS_RT_SIGRETURN:
+    case SYS_EXIT_GROUP:
+        t->end_time = t->start_time;
+        submit_syscall(ent, sizeof(time_elapsed_t));
+        break;
+    default:
+        break;
+    }
+    return 0;
+}
+
+static int sys_enter_args(struct bpf_raw_tracepoint_args *args)
+{
+    syscall_ent_t *ent = bpf_g_ent_lookup_elem(&INDEX_0);
+    if (!ent)
+        return -1;
 
     struct pt_regs *pt_regs = (struct pt_regs *) args->args[0];
     u64 parm1 = PT_REGS_PARM1_CORE_SYSCALL(pt_regs);
@@ -113,6 +117,8 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
     u64 parm4 = PT_REGS_PARM4_CORE_SYSCALL(pt_regs);
     u64 parm5 = PT_REGS_PARM5_CORE_SYSCALL(pt_regs);
     u64 parm6 = PT_REGS_PARM6_CORE_SYSCALL(pt_regs);
+
+    u64 id = args->args[1];
     switch (id) {
     case SYS_READ:
         sys_read_enter(ent, parm1, (void *) parm2, parm3);
@@ -254,27 +260,54 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
     return 0;
 }
 
-static void sys_exit_default(syscall_ent_t *ent, u64 ret)
+SEC("raw_tracepoint/sys_enter")
+int sys_enter(struct bpf_raw_tracepoint_args *args)
 {
-    ent->basic.ret = ret;
-}
-
-SEC("raw_tracepoint/sys_exit")
-int sys_exit(struct bpf_raw_tracepoint_args *args)
-{
+    /* We'll only hook the pid which is specified by BPF loader.
+     * Note that the return value of "bpf_get_current_pid_tgid" will
+     * be "(u64) task->tgid << 32 | task->pid" */
     pid_t cur_pid = (bpf_get_current_pid_tgid() >> 32);
     if (select_pid == 0 || select_pid != cur_pid)
         return 0;
 
-    struct pt_regs *pt_regs = (struct pt_regs *) args->args[0];
-    long ret = args->args[1];
-
-    u64 id = get_syscall_nr(pt_regs);
+    /* Reference to the TP_PROTO macro for sys_enter under
+     * https://elixir.bootlin.com/linux/latest/source/include/trace/events/syscalls.h
+     */
+    u64 id = args->args[1];
     syscall_ent_t *ent = bpf_g_ent_lookup_elem(&INDEX_0);
-    if (!ent || (ent->basic.id != id))
+    if (!ent)
         return -1;
 
-    sys_exit_default(ent, ret);
+    ent->basic.id = id;
+
+    if (time_mode)
+        return sys_enter_time(args);
+    else
+        return sys_enter_args(args);
+}
+
+static int sys_exit_time()
+{
+    syscall_ent_t *ent = bpf_g_ent_lookup_elem(&INDEX_0);
+    if (!ent) {
+        return -1;
+    }
+
+    time_elapsed_t *t = (time_elapsed_t *) ent->bytes;
+    t->end_time = bpf_ktime_get_ns();
+    submit_syscall(ent, sizeof(time_elapsed_t));
+    return 0;
+}
+
+static int sys_exit_args(struct bpf_raw_tracepoint_args *args)
+{
+    syscall_ent_t *ent = bpf_g_ent_lookup_elem(&INDEX_0);
+    if (!ent) {
+        return -1;
+    }
+
+    struct pt_regs *pt_regs = (struct pt_regs *) args->args[0];
+    u64 id = get_syscall_nr(pt_regs);
 
     switch (id) {
     case SYS_READ:
@@ -341,6 +374,31 @@ int sys_exit(struct bpf_raw_tracepoint_args *args)
     }
 
     return 0;
+}
+
+SEC("raw_tracepoint/sys_exit")
+int sys_exit(struct bpf_raw_tracepoint_args *args)
+{
+    pid_t cur_pid = (bpf_get_current_pid_tgid() >> 32);
+    if (select_pid == 0 || select_pid != cur_pid)
+        return 0;
+
+    struct pt_regs *pt_regs = (struct pt_regs *) args->args[0];
+    long ret = args->args[1];
+
+    u64 id = get_syscall_nr(pt_regs);
+    syscall_ent_t *ent = bpf_g_ent_lookup_elem(&INDEX_0);
+    if (!ent || (ent->basic.id != id)) {
+        bpf_printk("A syscall entry %d will be dropped", id);
+        return -1;
+    }
+
+    ent->basic.ret = ret;
+
+    if (time_mode)
+        return sys_exit_time();
+    else
+        return sys_exit_args(args);
 }
 
 SEC("raw_tracepoint/signal_deliver")
