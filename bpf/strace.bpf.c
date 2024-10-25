@@ -48,6 +48,15 @@ struct {
     __uint(max_entries, 4096 * 2);
 } msg_ringbuf SEC(".maps");
 
+struct input_parms {
+    u64 parm1;
+    u64 parm2;
+    u64 parm3;
+    u64 parm4;
+    u64 parm5;
+    u64 parm6;
+};
+
 #include "bpf/access.c"
 #include "bpf/desc.c"
 #include "bpf/dup.c"
@@ -94,126 +103,129 @@ static int __sys_enter(struct bpf_raw_tracepoint_args *args)
     u64 parm4 = PT_REGS_PARM4_CORE_SYSCALL(pt_regs);
     u64 parm5 = PT_REGS_PARM5_CORE_SYSCALL(pt_regs);
     u64 parm6 = PT_REGS_PARM6_CORE_SYSCALL(pt_regs);
+    struct input_parms parms = {
+        .parm1 = parm1,
+        .parm2 = parm2,
+        .parm3 = parm3,
+        .parm4 = parm4,
+        .parm5 = parm5,
+        .parm6 = parm6,
+    };
 
     u64 id = args->args[1];
+
+    if (id == SYS_RT_SIGRETURN) {
+        sys_rt_sigreturn_enter(ent, pt_regs);
+    }
+
     switch (id) {
     case SYS_READ:
-        sys_read_enter(ent, parm1, (void *) parm2, parm3);
+        sys_read_enter(ent, parms);
         break;
     case SYS_WRITE:
-        sys_write_enter(ent, parm1, (void *) parm2, parm3);
+        sys_write_enter(ent, parms);
         break;
     case SYS_OPEN:
-        sys_open_enter(ent, (char *) parm1, parm2, parm3);
+        sys_open_enter(ent, parms);
         break;
     case SYS_CLOSE:
-        sys_close_enter(ent, parm1);
+        sys_close_enter(ent, parms);
         break;
     case SYS_STAT:
-        sys_stat_enter(ent, (void *) parm1, (void *) parm2);
+        sys_stat_enter(ent, parms);
         break;
     case SYS_FSTAT:
-        sys_fstat_enter(ent, parm1, (void *) parm2);
+        sys_fstat_enter(ent, parms);
         break;
     case SYS_LSTAT:
-        sys_lstat_enter(ent, (void *) parm1, (void *) parm2);
+        sys_lstat_enter(ent, parms);
         break;
     case SYS_POLL:
-        sys_poll_enter(ent, (void *) parm1, parm2, parm3);
+        sys_poll_enter(ent, parms);
         break;
     case SYS_LSEEK:
-        sys_lseek_enter(ent, parm1, parm2, parm3);
+        sys_lseek_enter(ent, parms);
         break;
     case SYS_MMAP:
-        sys_mmap_enter(ent, (void *) parm1, parm2, parm3, parm4, parm5, parm6);
+        sys_mmap_enter(ent, parms);
         break;
     case SYS_MPROTECT:
-        sys_mprotect_enter(ent, (void *) parm1, parm2, parm3);
+        sys_mprotect_enter(ent, parms);
         break;
     case SYS_MUNMAP:
-        sys_munmap_enter(ent, (void *) parm1, parm2);
+        sys_munmap_enter(ent, parms);
         break;
     case SYS_BRK:
-        sys_brk_enter(ent, (void *) parm1);
+        sys_brk_enter(ent, parms);
         break;
     case SYS_RT_SIGACTION:
-        sys_rt_sigaction_enter(ent, parm1, (void *) parm2, (void *) parm3,
-                               parm4);
+        sys_rt_sigaction_enter(ent, parms);
         break;
     case SYS_RT_SIGPROCMASK:
-        sys_rt_sigprocmask_enter(ent, parm1, (void *) parm2, (void *) parm3,
-                                 parm4);
-        break;
-    case SYS_RT_SIGRETURN:
-        sys_rt_sigreturn_enter(ent, pt_regs);
+        sys_rt_sigprocmask_enter(ent, parms);
         break;
     case SYS_IOCTL:
-        sys_ioctl_enter(ent, parm1, parm2, (void *) parm3);
+        sys_ioctl_enter(ent, parms);
         break;
     case SYS_PREAD64:
-        sys_pread_enter(ent, parm1, (void *) parm2, parm3, parm4);
+        sys_pread_enter(ent, parms);
         break;
     case SYS_PWRITE64:
-        sys_pwrite_enter(ent, parm1, (void *) parm2, parm3, parm4);
+        sys_pwrite_enter(ent, parms);
         break;
     case SYS_READV:
-        sys_readv_enter(ent, parm1, (void *) parm2, parm3);
+        sys_readv_enter(ent, parms);
         break;
     case SYS_WRITEV:
-        sys_writev_enter(ent, parm1, (void *) parm2, parm3);
+        sys_writev_enter(ent, parms);
         break;
     case SYS_ACCESS:
-        sys_access_enter(ent, (void *) parm1, parm2);
+        sys_access_enter(ent, parms);
         break;
     case SYS_PIPE:
-        sys_pipe_enter(ent, (void *) parm1);
+        sys_pipe_enter(ent, parms);
         break;
     case SYS_SELECT:
-        /* Divide the enter into two part because ABI doesn't allow
-         * many too arguments */
-        sys_select_enter1(ent, parm1, (void *) parm2, (void *) parm3,
-                          (void *) parm4);
-        sys_select_enter2(ent, (void *) parm5);
+        sys_select_enter(ent, parms);
         break;
     case SYS_MREMAP:
-        sys_mremap_enter(ent, (void *) parm1, parm2, parm3, parm4,
-                         (void *) parm5);
+        sys_mremap_enter(ent, parms);
         break;
     case SYS_MSYNC:
-        sys_msync_enter(ent, (void *) parm1, parm2, parm3);
+        sys_msync_enter(ent, parms);
         break;
     case SYS_MINCORE:
-        sys_mincore_enter(ent, (void *) parm1, parm2, (void *) parm3);
+        sys_mincore_enter(ent, parms);
         break;
     case SYS_MADVISE:
-        sys_madvise_enter(ent, (void *) parm1, parm2, parm3);
+        sys_madvise_enter(ent, parms);
         break;
     case SYS_SHMGET:
-        sys_shmget_enter(ent, parm1, parm2, parm3);
+        sys_shmget_enter(ent, parms);
         break;
     case SYS_SHMAT:
-        sys_shmat_enter(ent, parm1, (void *) parm2, parm3);
+        sys_shmat_enter(ent, parms);
         break;
     case SYS_SHMCTL:
-        sys_shmctl_enter(ent, parm1, parm2, (void *) parm3);
+        sys_shmctl_enter(ent, parms);
         break;
     case SYS_DUP:
-        sys_dup_enter(ent, parm1);
+        sys_dup_enter(ent, parms);
         break;
     case SYS_DUP2:
-        sys_dup2_enter(ent, parm1, parm2);
+        sys_dup2_enter(ent, parms);
         break;
     case SYS_NEWFSTATAT:
-        sys_newfstatat_enter(ent, parm1, (void *) parm2, (void *) parm3, parm4);
+        sys_newfstatat_enter(ent, parms);
         break;
     case SYS_EXECVE:
-        sys_execve_enter(ent, (char *) parm1, (void *) parm2, (void *) parm3);
+        sys_execve_enter(ent, parms);
         break;
     case SYS_EXIT_GROUP:
-        sys_exit_group_enter(ent, parm1);
+        sys_exit_group_enter(ent, parms);
         break;
     case SYS_OPENAT:
-        sys_openat_enter(ent, parm1, (char *) parm2, parm3, parm4);
+        sys_openat_enter(ent, parms);
         break;
     default:
         break;

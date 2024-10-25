@@ -1,8 +1,9 @@
-static void sys_open_enter(syscall_ent_t *ent,
-                           char *pathname,
-                           int flags,
-                           mode_t mode)
+static void sys_open_enter(syscall_ent_t *ent, struct input_parms parms)
 {
+    char *pathname = (char *) parms.parm1;
+    int flags = parms.parm2;
+    mode_t mode = parms.parm3;
+
     open_args_t *open = (open_args_t *) ent->bytes;
     open->flags = flags;
     open->mode = mode;
@@ -29,12 +30,13 @@ static void sys_open_exit(syscall_ent_t *ent)
                            *buf_addr_ptr);
 }
 
-static void sys_openat_enter(syscall_ent_t *ent,
-                             int dirfd,
-                             char *pathname,
-                             int flags,
-                             mode_t mode)
+static void sys_openat_enter(syscall_ent_t *ent, struct input_parms parms)
 {
+    int dirfd = parms.parm1;
+    char *pathname = (char *) parms.parm2;
+    int flags = parms.parm3;
+    mode_t mode = parms.parm4;
+
     openat_args_t *openat = (openat_args_t *) ent->bytes;
     openat->dirfd = dirfd;
     openat->flags = flags;

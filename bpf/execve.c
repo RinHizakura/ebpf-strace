@@ -13,11 +13,12 @@ static size_t count_envp_len(char *arr[])
     return idx;
 }
 
-static void sys_execve_enter(syscall_ent_t *ent,
-                             char *pathname,
-                             char *argv[],
-                             char *envp[])
+static void sys_execve_enter(syscall_ent_t *ent, struct input_parms parms)
 {
+    char *pathname = (char *) parms.parm1;
+    char **argv = (void *) parms.parm2;
+    char **envp = (void *) parms.parm3;
+
     execve_args_t *execve = (execve_args_t *) ent->bytes;
 
     /* FIXME: In the current design of entry format under the
@@ -47,6 +48,5 @@ static void sys_execve_enter(syscall_ent_t *ent,
     execve->envp_cnt = count_envp_len(envp);
 
     memset(execve->pathname, 0, sizeof(execve->pathname));
-    bpf_core_read_user(execve->pathname, sizeof(execve->pathname),
-                           pathname);
+    bpf_core_read_user(execve->pathname, sizeof(execve->pathname), pathname);
 }

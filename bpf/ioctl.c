@@ -19,11 +19,12 @@
 #define _IOC_WRITE 1
 #define _IOC_READ 2
 
-static void sys_ioctl_enter(syscall_ent_t *ent,
-                            int fd,
-                            unsigned long request,
-                            void *arg)
+static void sys_ioctl_enter(syscall_ent_t *ent, struct input_parms parms)
 {
+    int fd = parms.parm1;
+    unsigned long request = parms.parm2;
+    void *arg = (void *) parms.parm3;
+
     ioctl_args_t *ioctl = (ioctl_args_t *) ent->bytes;
     ioctl->fd = fd;
     ioctl->request = request;

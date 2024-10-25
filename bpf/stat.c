@@ -28,10 +28,11 @@ static void load_statbuf(struct stat *statbuf)
         bpf_core_read_user(statbuf, sizeof(struct stat), *buf_addr_ptr);
 }
 
-static void sys_stat_enter(syscall_ent_t *ent,
-                           char *pathname,
-                           struct stat *statbuf)
+static void sys_stat_enter(syscall_ent_t *ent, struct input_parms parms)
 {
+    char *pathname = (char *) parms.parm1;
+    struct stat *statbuf = (struct stat *) parms.parm2;
+
     __attribute__((unused)) stat_args_t *stat = (stat_args_t *) ent->bytes;
     save_pathname(pathname);
     save_statbuf(statbuf);
@@ -44,8 +45,11 @@ static void sys_stat_exit(syscall_ent_t *ent)
     load_statbuf(&stat->statbuf);
 }
 
-static void sys_fstat_enter(syscall_ent_t *ent, int fd, struct stat *statbuf)
+static void sys_fstat_enter(syscall_ent_t *ent, struct input_parms parms)
 {
+    int fd = parms.parm1;
+    struct stat *statbuf = (struct stat *) parms.parm2;
+
     fstat_args_t *fstat = (fstat_args_t *) ent->bytes;
     fstat->fd = fd;
     save_statbuf(statbuf);
@@ -58,10 +62,11 @@ static void sys_fstat_exit(syscall_ent_t *ent)
     load_statbuf(&fstat->statbuf);
 }
 
-static void sys_lstat_enter(syscall_ent_t *ent,
-                            char *pathname,
-                            struct stat *statbuf)
+static void sys_lstat_enter(syscall_ent_t *ent, struct input_parms parms)
 {
+    char *pathname = (char *) parms.parm1;
+    struct stat *statbuf = (struct stat *) parms.parm2;
+
     __attribute__((unused)) lstat_args_t *lstat = (lstat_args_t *) ent->bytes;
     save_pathname(pathname);
     save_statbuf(statbuf);
@@ -74,12 +79,13 @@ static void sys_lstat_exit(syscall_ent_t *ent)
     load_statbuf(&lstat->statbuf);
 }
 
-static void sys_newfstatat_enter(syscall_ent_t *ent,
-                                 int dirfd,
-                                 char *pathname,
-                                 struct stat *statbuf,
-                                 int flags)
+static void sys_newfstatat_enter(syscall_ent_t *ent, struct input_parms parms)
 {
+    int dirfd = parms.parm1;
+    char *pathname = (char *) parms.parm2;
+    struct stat *statbuf = (struct stat *) parms.parm3;
+    int flags = parms.parm4;
+
     newfstatat_args_t *newfstatat = (newfstatat_args_t *) ent->bytes;
     newfstatat->dirfd = dirfd;
     newfstatat->flags = flags;

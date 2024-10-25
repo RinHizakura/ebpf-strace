@@ -1,11 +1,12 @@
-static void sys_mmap_enter(syscall_ent_t *ent,
-                           void *addr,
-                           size_t length,
-                           int prot,
-                           int flags,
-                           int fd,
-                           off_t offset)
+static void sys_mmap_enter(syscall_ent_t *ent, struct input_parms parms)
 {
+    void *addr = (void *) parms.parm1;
+    size_t length = parms.parm2;
+    int prot = parms.parm3;
+    int flags = parms.parm4;
+    int fd = parms.parm5;
+    off_t offset = parms.parm6;
+
     mmap_args_t *mmap = (mmap_args_t *) ent->bytes;
 
     mmap->addr = addr;
@@ -16,11 +17,12 @@ static void sys_mmap_enter(syscall_ent_t *ent,
     mmap->offset = offset;
 }
 
-static void sys_mprotect_enter(syscall_ent_t *ent,
-                               void *addr,
-                               size_t len,
-                               int prot)
+static void sys_mprotect_enter(syscall_ent_t *ent, struct input_parms parms)
 {
+    void *addr = (void *) parms.parm1;
+    size_t len = parms.parm2;
+    int prot = parms.parm3;
+
     mprotect_args_t *mprotect = (mprotect_args_t *) ent->bytes;
 
     mprotect->addr = addr;
@@ -28,26 +30,32 @@ static void sys_mprotect_enter(syscall_ent_t *ent,
     mprotect->prot = prot;
 }
 
-static void sys_munmap_enter(syscall_ent_t *ent, void *addr, size_t length)
+static void sys_munmap_enter(syscall_ent_t *ent, struct input_parms parms)
 {
+    void *addr = (void *) parms.parm1;
+    size_t length = parms.parm2;
+
     munmap_args_t *munmap = (munmap_args_t *) ent->bytes;
     munmap->addr = addr;
     munmap->length = length;
 }
 
-static void sys_brk_enter(syscall_ent_t *ent, void *addr)
+static void sys_brk_enter(syscall_ent_t *ent, struct input_parms parms)
 {
+    void *addr = (void *) parms.parm1;
+
     brk_args_t *brk = (brk_args_t *) ent->bytes;
     brk->addr = addr;
 }
 
-static void sys_mremap_enter(syscall_ent_t *ent,
-                             void *old_address,
-                             size_t old_size,
-                             size_t new_size,
-                             int flags,
-                             void *new_address)
+static void sys_mremap_enter(syscall_ent_t *ent, struct input_parms parms)
 {
+    void *old_address = (void *) parms.parm1;
+    size_t old_size = parms.parm2;
+    size_t new_size = parms.parm3;
+    int flags = parms.parm4;
+    void *new_address = (void *) parms.parm5;
+
     mremap_args_t *mremap = (mremap_args_t *) ent->bytes;
 
     mremap->old_address = old_address;
@@ -59,11 +67,12 @@ static void sys_mremap_enter(syscall_ent_t *ent,
     mremap->new_address = new_address;
 }
 
-static void sys_msync_enter(syscall_ent_t *ent,
-                            void *addr,
-                            size_t length,
-                            int flags)
+static void sys_msync_enter(syscall_ent_t *ent, struct input_parms parms)
 {
+    void *addr = (void *) parms.parm1;
+    size_t length = parms.parm2;
+    int flags = parms.parm3;
+
     msync_args_t *msync = (msync_args_t *) ent->bytes;
 
     msync->addr = addr;
@@ -71,11 +80,12 @@ static void sys_msync_enter(syscall_ent_t *ent,
     msync->flags = flags;
 }
 
-static void sys_mincore_enter(syscall_ent_t *ent,
-                              void *addr,
-                              size_t length,
-                              unsigned char *vec)
+static void sys_mincore_enter(syscall_ent_t *ent, struct input_parms parms)
 {
+    void *addr = (void *) parms.parm1;
+    size_t length = parms.parm2;
+    unsigned char *vec = (unsigned char *) parms.parm3;
+
     mincore_args_t *mincore = (mincore_args_t *) ent->bytes;
 
     mincore->addr = addr;
@@ -103,11 +113,12 @@ static void sys_mincore_exit(syscall_ent_t *ent)
         bpf_core_read_user(mincore->vec, cpy_count, *buf_addr_ptr);
 }
 
-static void sys_madvise_enter(syscall_ent_t *ent,
-                              void *addr,
-                              size_t length,
-                              int advice)
+static void sys_madvise_enter(syscall_ent_t *ent, struct input_parms parms)
 {
+    void *addr = (void *) parms.parm1;
+    size_t length = parms.parm2;
+    int advice = parms.parm3;
+
     madvise_args_t *madvise = (madvise_args_t *) ent->bytes;
 
     madvise->addr = addr;

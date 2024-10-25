@@ -1,9 +1,10 @@
-static void sys_rt_sigaction_enter(syscall_ent_t *ent,
-                                   int signum,
-                                   struct sigaction *act,
-                                   struct sigaction *oldact,
-                                   size_t sigsetsize)
+static void sys_rt_sigaction_enter(syscall_ent_t *ent, struct input_parms parms)
 {
+    int signum = parms.parm1;
+    struct sigaction *act = (struct sigaction *) parms.parm2;
+    struct sigaction *oldact = (struct sigaction *) parms.parm3;
+    size_t sigsetsize = parms.parm4;
+
     rt_sigaction_args_t *rt_sigaction = (rt_sigaction_args_t *) ent->bytes;
 
     memset(&rt_sigaction->act, 0, sizeof(struct sigaction));
@@ -41,11 +42,13 @@ static void sys_rt_sigaction_exit(syscall_ent_t *ent)
 }
 
 static void sys_rt_sigprocmask_enter(syscall_ent_t *ent,
-                                     int how,
-                                     sigset_t *set,
-                                     sigset_t *oldset,
-                                     size_t sigsetsize)
+                                     struct input_parms parms)
 {
+    int how = parms.parm1;
+    sigset_t *set = (sigset_t *) parms.parm2;
+    sigset_t *oldset = (sigset_t *) parms.parm3;
+    size_t sigsetsize = parms.parm4;
+
     rt_sigprocmask_args_t *rt_sigprocmask =
         (rt_sigprocmask_args_t *) ent->bytes;
 
