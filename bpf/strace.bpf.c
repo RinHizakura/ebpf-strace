@@ -22,7 +22,6 @@
 // We limit the iteration of loop by this definition to pass eBPF verifier
 #define LOOP_MAX 1024
 
-const volatile int time_mode = 0;
 pid_t select_pid = 0;
 /* The key to access the single entry BPF_MAP in array type. */
 u32 INDEX_0 = 0;
@@ -82,29 +81,7 @@ static void submit_syscall(syscall_ent_t *ent, size_t args_size)
     bpf_ringbuf_submit(ringbuf_ent, 0);
 }
 
-static int sys_enter_time(struct bpf_raw_tracepoint_args *args)
-{
-    syscall_ent_t *ent = bpf_g_ent_lookup_elem(&INDEX_0);
-    if (!ent)
-        return -1;
-
-    time_elapsed_t *t = (time_elapsed_t *) ent->bytes;
-    t->start_time = bpf_ktime_get_ns();
-
-    u64 id = args->args[1];
-    switch (id) {
-    case SYS_RT_SIGRETURN:
-    case SYS_EXIT_GROUP:
-        t->end_time = t->start_time;
-        submit_syscall(ent, sizeof(time_elapsed_t));
-        break;
-    default:
-        break;
-    }
-    return 0;
-}
-
-static int sys_enter_args(struct bpf_raw_tracepoint_args *args)
+static int __sys_enter(struct bpf_raw_tracepoint_args *args)
 {
     syscall_ent_t *ent = bpf_g_ent_lookup_elem(&INDEX_0);
     if (!ent)
@@ -257,6 +234,9 @@ static int sys_enter_args(struct bpf_raw_tracepoint_args *args)
         break;
     }
 
+    // Get the syscall enter time at the very last end as possible
+    ent->basic.start_time = bpf_ktime_get_ns();
+
     return 0;
 }
 
@@ -279,32 +259,21 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
         return -1;
 
     ent->basic.id = id;
+    ent->basic.start_time = 0;
+    ent->basic.end_time = 0;
 
-    if (time_mode)
-        return sys_enter_time(args);
-    else
-        return sys_enter_args(args);
+    return __sys_enter(args);
 }
 
-static int sys_exit_time()
+static int __sys_exit(struct bpf_raw_tracepoint_args *args)
 {
     syscall_ent_t *ent = bpf_g_ent_lookup_elem(&INDEX_0);
     if (!ent) {
         return -1;
     }
 
-    time_elapsed_t *t = (time_elapsed_t *) ent->bytes;
-    t->end_time = bpf_ktime_get_ns();
-    submit_syscall(ent, sizeof(time_elapsed_t));
-    return 0;
-}
-
-static int sys_exit_args(struct bpf_raw_tracepoint_args *args)
-{
-    syscall_ent_t *ent = bpf_g_ent_lookup_elem(&INDEX_0);
-    if (!ent) {
-        return -1;
-    }
+    // Get the syscall end time at the very early start as possible
+    ent->basic.end_time = bpf_ktime_get_ns();
 
     struct pt_regs *pt_regs = (struct pt_regs *) args->args[0];
     u64 id = get_syscall_nr(pt_regs);
@@ -395,10 +364,7 @@ int sys_exit(struct bpf_raw_tracepoint_args *args)
 
     ent->basic.ret = ret;
 
-    if (time_mode)
-        return sys_exit_time();
-    else
-        return sys_exit_args(args);
+    return __sys_exit(args);
 }
 
 SEC("raw_tracepoint/signal_deliver")

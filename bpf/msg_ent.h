@@ -28,17 +28,14 @@ typedef struct {
 typedef struct {
     u64 id;
     u64 ret;
+    u64 start_time;
+    u64 end_time;
 } basic_t;
 
 typedef struct {
     basic_t basic;
     u8 bytes[ARGS_SIZE];
 } syscall_ent_t;
-
-typedef struct {
-    u64 start_time;
-    u64 end_time;
-} time_elapsed_t;
 
 typedef struct {
     int fd;

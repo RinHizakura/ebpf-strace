@@ -1,4 +1,5 @@
 use crate::common::EMPTY_STR;
+use crate::config::CONFIG;
 use crate::syscall::syscall_nr::*;
 use crate::syscall::syscall_tbl::SYSCALLS;
 use crate::{
@@ -11,6 +12,8 @@ use plain::Plain;
 struct SyscallEnt {
     id: u64,
     ret: u64,
+    start_time: u64,
+    end_time: u64,
 }
 unsafe impl Plain for SyscallEnt {}
 
@@ -81,6 +84,17 @@ fn handle_return(id: u64, ret_val: u64) -> (String, String) {
     (ret, aux)
 }
 
+fn handle_time(start_time: u64, end_time: u64) -> String {
+    let time = (end_time - start_time) as f32 / 10.0_f32.powi(6);
+    let time_str = if CONFIG.syscall_times {
+        format!(" <{time} ms>")
+    } else {
+        EMPTY_STR.to_owned()
+    };
+
+    time_str
+}
+
 pub(super) fn syscall_ent_handler(bytes: &[u8]) -> i32 {
     let mut rslt = 0;
 
@@ -91,8 +105,11 @@ pub(super) fn syscall_ent_handler(bytes: &[u8]) -> i32 {
 
     let id = ent.id;
     let syscall = &SYSCALLS[id as usize];
+    let name = syscall.name;
+
     let args_str = handle_args(id, args, ent.ret);
     let (ret, aux) = handle_return(id, ent.ret);
+    let time = handle_time(ent.start_time, ent.end_time);
 
     if id == SYS_EXIT_GROUP {
         /* Simulate an ctrl-c interrupt here to hint that the
@@ -100,7 +117,7 @@ pub(super) fn syscall_ent_handler(bytes: &[u8]) -> i32 {
         rslt = -libc::EINTR;
     }
 
-    eprint!("{}({}) = {}{}\n", syscall.name, args_str, ret, aux);
+    eprint!("{name}({args_str}) = {ret}{aux}{time}\n");
 
     rslt
 }

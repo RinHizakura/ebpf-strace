@@ -1,8 +1,9 @@
 use crate::bump_memlock_rlimit::*;
-use crate::handler::{msg_ent_handler, time_msg_handler};
+use crate::config::CONFIG;
+use crate::handler::msg_ent_handler;
 use crate::sys::*;
+
 use anyhow::{anyhow, Result};
-use clap::Parser;
 use libbpf_rs::skel::{OpenSkel, Skel, SkelBuilder};
 use libbpf_rs::RingBufferBuilder;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -14,6 +15,7 @@ mod common;
 mod access;
 mod arch;
 mod bump_memlock_rlimit;
+mod config;
 mod desc;
 mod dup;
 mod execve;
@@ -54,26 +56,8 @@ fn open_ebpf_prog() -> Result<OpenStraceSkel<'static>> {
     Ok(open_skel)
 }
 
-#[derive(Parser)]
-struct Cli {
-    #[arg(
-        short,
-        long,
-        default_value_t = false,
-        help = "whether to focus on the time cost of syscall"
-    )]
-    time_mode: bool,
-
-    #[arg(trailing_var_arg = true, help = "command to run for trace")]
-    cmd: Vec<String>,
-}
-
 fn main() -> Result<()> {
-    let mut open_skel = open_ebpf_prog()?;
-
-    let cli = Cli::parse();
-    let time_mode = cli.time_mode;
-    open_skel.rodata_mut().time_mode = time_mode as i32;
+    let open_skel = open_ebpf_prog()?;
 
     /* Load & verify BPF programs */
     let mut skel = open_skel.load()?;
@@ -82,7 +66,8 @@ fn main() -> Result<()> {
 
     /* Spawn a thread to run the executable, and then trace it
      * in our eBPF code. */
-    let cmd = cli.cmd;
+    let config = &CONFIG;
+    let cmd = &config.cmd;
     if cmd.len() == 0 {
         return Err(anyhow!("Command cannot be empty"));
     }
@@ -112,11 +97,7 @@ fn main() -> Result<()> {
     let mut builder = RingBufferBuilder::new();
     let skel_maps = skel.maps();
 
-    if time_mode {
-        builder.add(skel_maps.msg_ringbuf(), time_msg_handler)?;
-    } else {
-        builder.add(skel_maps.msg_ringbuf(), msg_ent_handler)?;
-    }
+    builder.add(skel_maps.msg_ringbuf(), msg_ent_handler)?;
 
     let syscall_record = builder.build()?;
     while running.load(Ordering::SeqCst) {
