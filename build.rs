@@ -5,7 +5,6 @@ use std::path::Path;
 
 use libbpf_cargo::SkeletonBuilder;
 
-const SYSCALL_SRC: &str = "src/syscall/syscall.tbl";
 const SKEL_SRC: &str = "bpf/strace.bpf.c";
 
 fn open_read(path: &str) -> Result<File> {
@@ -106,13 +105,19 @@ fn gen_syscall_nr_rs(target: &mut File, line: Vec<&str>) -> Result<()> {
     Ok(())
 }
 
-fn generate<F, F2, F3>(path: &str, main_f: F, pro_f: Option<F2>, epi_f: Option<F3>) -> Result<()>
+fn generate<F, F2, F3>(
+    src: &str,
+    path: &str,
+    main_f: F,
+    pro_f: Option<F2>,
+    epi_f: Option<F3>,
+) -> Result<()>
 where
     F: Fn(&mut File, Vec<&str>) -> Result<()>,
     F2: Fn(&mut File) -> Result<()>,
     F3: Fn(&mut File) -> Result<()>,
 {
-    let src = open_read(SYSCALL_SRC)?;
+    let src = open_read(src)?;
     let mut target = open_write(path)?;
 
     if let Some(f) = pro_f {
@@ -136,28 +141,39 @@ fn main() -> Result<()> {
     // FIXME: Is it possible to output to env!("OUT_DIR")?
     std::env::set_var("BPF_OUT_DIR", "bpf/.output");
 
+    let arch = build_target::target_arch().unwrap().to_string();
+    let syscall_src = if arch == "aarch64" {
+        "src/arch/arm64/syscall.tbl"
+    } else {
+        "src/arch/x86_64/syscall.tbl"
+    };
+
     create_dir_all("bpf/.output")?;
 
     // Generate the syscall-related file automatically
     generate(
+        syscall_src,
         "bpf/syscall/syscall_tbl.h",
         gen_syscall_tbl_h,
         None::<Box<dyn Fn(&mut File) -> Result<()>>>,
         None::<Box<dyn Fn(&mut File) -> Result<()>>>,
     )?;
     generate(
+        syscall_src,
         "bpf/syscall/syscall_nr.h",
         gen_syscall_h,
         Some(gen_syscall_h_prologue),
         Some(gen_syscall_h_epilogue),
     )?;
     generate(
+        syscall_src,
         "src/syscall/syscall_tbl.rs",
         gen_syscall_tbl_rs,
         Some(gen_syscall_tbl_rs_prologue),
         Some(gen_syscall_tbl_rs_epilogue),
     )?;
     generate(
+        syscall_src,
         "src/syscall/syscall_nr.rs",
         gen_syscall_nr_rs,
         Some(gen_syscall_nr_rs_prologue),
@@ -170,7 +186,7 @@ fn main() -> Result<()> {
         .clang_args(["-I.", "-Wextra", "-Wall", "-Werror"])
         .build_and_generate(&skel)?;
 
-    println!("cargo:rerun-if-changed={}/{}", SYSCALL_SRC, SKEL_SRC);
+    println!("cargo:rerun-if-changed={}/{}", syscall_src, SKEL_SRC);
 
     Ok(())
 }
