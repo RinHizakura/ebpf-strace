@@ -272,9 +272,6 @@ static int __sys_exit(struct bpf_raw_tracepoint_args *args)
         return -1;
     }
 
-    // Get the syscall end time at the very early start as possible
-    ent->basic.end_time = bpf_ktime_get_ns();
-
     struct pt_regs *pt_regs = (struct pt_regs *) args->args[0];
     u64 id = get_syscall_nr(pt_regs);
 
@@ -348,6 +345,9 @@ static int __sys_exit(struct bpf_raw_tracepoint_args *args)
 SEC("raw_tracepoint/sys_exit")
 int sys_exit(struct bpf_raw_tracepoint_args *args)
 {
+    // Get the syscall end time at the very early start as possible
+    u64 end_time = bpf_ktime_get_ns();
+
     pid_t cur_pid = (bpf_get_current_pid_tgid() >> 32);
     if (select_pid == 0 || select_pid != cur_pid)
         return 0;
@@ -362,6 +362,8 @@ int sys_exit(struct bpf_raw_tracepoint_args *args)
         return -1;
     }
 
+    // Get the syscall end time at the very early start as possible
+    ent->basic.end_time = end_time;
     ent->basic.ret = ret;
 
     return __sys_exit(args);
