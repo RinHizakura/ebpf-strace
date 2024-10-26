@@ -11,6 +11,8 @@
 
 #ifdef __TARGET_ARCH_x86
 #include "arch/x86_64/syscall.h"
+#elif __TARGET_ARCH_arm64
+#include "arch/aarch64/syscall.h"
 #else
 #error "only x86_64 architecture is supported for ebpf-strace now"
 #endif
@@ -125,23 +127,11 @@ static int __sys_enter(struct bpf_raw_tracepoint_args *args)
     case SYS_WRITE:
         sys_write_enter(ent, parms);
         break;
-    case SYS_OPEN:
-        sys_open_enter(ent, parms);
-        break;
     case SYS_CLOSE:
         sys_close_enter(ent, parms);
         break;
-    case SYS_STAT:
-        sys_stat_enter(ent, parms);
-        break;
     case SYS_FSTAT:
         sys_fstat_enter(ent, parms);
-        break;
-    case SYS_LSTAT:
-        sys_lstat_enter(ent, parms);
-        break;
-    case SYS_POLL:
-        sys_poll_enter(ent, parms);
         break;
     case SYS_LSEEK:
         sys_lseek_enter(ent, parms);
@@ -179,15 +169,6 @@ static int __sys_enter(struct bpf_raw_tracepoint_args *args)
     case SYS_WRITEV:
         sys_writev_enter(ent, parms);
         break;
-    case SYS_ACCESS:
-        sys_access_enter(ent, parms);
-        break;
-    case SYS_PIPE:
-        sys_pipe_enter(ent, parms);
-        break;
-    case SYS_SELECT:
-        sys_select_enter(ent, parms);
-        break;
     case SYS_MREMAP:
         sys_mremap_enter(ent, parms);
         break;
@@ -212,9 +193,6 @@ static int __sys_enter(struct bpf_raw_tracepoint_args *args)
     case SYS_DUP:
         sys_dup_enter(ent, parms);
         break;
-    case SYS_DUP2:
-        sys_dup2_enter(ent, parms);
-        break;
     case SYS_NEWFSTATAT:
         sys_newfstatat_enter(ent, parms);
         break;
@@ -227,6 +205,32 @@ static int __sys_enter(struct bpf_raw_tracepoint_args *args)
     case SYS_OPENAT:
         sys_openat_enter(ent, parms);
         break;
+#ifdef __TARGET_ARCH_x86
+    case SYS_OPEN:
+        sys_open_enter(ent, parms);
+        break;
+    case SYS_STAT:
+        sys_stat_enter(ent, parms);
+        break;
+    case SYS_LSTAT:
+        sys_lstat_enter(ent, parms);
+        break;
+    case SYS_POLL:
+        sys_poll_enter(ent, parms);
+        break;
+    case SYS_ACCESS:
+        sys_access_enter(ent, parms);
+        break;
+    case SYS_PIPE:
+        sys_pipe_enter(ent, parms);
+        break;
+    case SYS_SELECT:
+        sys_select_enter(ent, parms);
+        break;
+    case SYS_DUP2:
+        sys_dup2_enter(ent, parms);
+        break;
+#endif
     default:
         break;
     }
@@ -291,17 +295,8 @@ static int __sys_exit(struct bpf_raw_tracepoint_args *args)
     case SYS_READ:
         sys_read_exit(ent);
         break;
-    case SYS_OPEN:
-        sys_open_exit(ent);
-        break;
-    case SYS_STAT:
-        sys_stat_exit(ent);
-        break;
     case SYS_FSTAT:
         sys_fstat_exit(ent);
-        break;
-    case SYS_LSTAT:
-        sys_lstat_exit(ent);
         break;
     case SYS_RT_SIGACTION:
         sys_rt_sigaction_exit(ent);
@@ -318,12 +313,6 @@ static int __sys_exit(struct bpf_raw_tracepoint_args *args)
     case SYS_READV:
         sys_readv_exit(ent);
         break;
-    case SYS_ACCESS:
-        sys_access_exit(ent);
-        break;
-    case SYS_PIPE:
-        sys_pipe_exit(ent);
-        break;
     case SYS_MINCORE:
         sys_mincore_exit(ent);
         break;
@@ -336,6 +325,23 @@ static int __sys_exit(struct bpf_raw_tracepoint_args *args)
     case SYS_OPENAT:
         sys_openat_exit(ent);
         break;
+#ifdef __TARGET_ARCH_x86
+    case SYS_OPEN:
+        sys_open_exit(ent);
+        break;
+    case SYS_STAT:
+        sys_stat_exit(ent);
+        break;
+    case SYS_LSTAT:
+        sys_lstat_exit(ent);
+        break;
+    case SYS_ACCESS:
+        sys_access_exit(ent);
+        break;
+    case SYS_PIPE:
+        sys_pipe_exit(ent);
+        break;
+#endif
     default:
         break;
     }

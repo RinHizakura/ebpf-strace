@@ -73,13 +73,16 @@ fn handle_return(id: u64, ret_val: u64) -> (String, String) {
         }
     };
 
-    let aux = if ret_val < 0 {
-        format!(" {}", std::io::Error::from_raw_os_error(-(ret_val as i32)))
-    } else if id == SYS_SELECT && ret_val == 0 {
-        " (Timeout)".to_string()
-    } else {
-        EMPTY_STR.to_owned()
-    };
+    let mut aux = EMPTY_STR.to_owned();
+
+    if ret_val < 0 {
+        aux = format!(" {}", std::io::Error::from_raw_os_error(-(ret_val as i32)))
+    }
+
+    #[cfg(all(target_arch = "x86_64"))]
+    if id == SYS_SELECT && ret_val == 0 {
+        aux = " (Timeout)".to_string()
+    }
 
     (ret, aux)
 }

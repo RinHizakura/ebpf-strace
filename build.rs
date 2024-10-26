@@ -1,7 +1,9 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
+use std::collections::HashMap;
 use std::fs::{create_dir_all, File, OpenOptions};
 use std::io::{BufRead, BufReader, Write};
 use std::path::Path;
+use std::process::{Command, Stdio};
 
 use libbpf_cargo::SkeletonBuilder;
 
@@ -137,53 +139,130 @@ where
     Ok(())
 }
 
-fn main() -> Result<()> {
-    // FIXME: Is it possible to output to env!("OUT_DIR")?
-    std::env::set_var("BPF_OUT_DIR", "bpf/.output");
-
-    let arch = build_target::target_arch().unwrap().to_string();
-    let syscall_src = if arch == "aarch64" {
-        "src/arch/arm64/syscall.tbl"
-    } else {
-        "src/arch/x86_64/syscall.tbl"
-    };
-
-    create_dir_all("bpf/.output")?;
-
-    // Generate the syscall-related file automatically
+fn create_syscall_files(src: &str) -> Result<()> {
     generate(
-        syscall_src,
+        src,
         "bpf/syscall/syscall_tbl.h",
         gen_syscall_tbl_h,
         None::<Box<dyn Fn(&mut File) -> Result<()>>>,
         None::<Box<dyn Fn(&mut File) -> Result<()>>>,
     )?;
     generate(
-        syscall_src,
+        src,
         "bpf/syscall/syscall_nr.h",
         gen_syscall_h,
         Some(gen_syscall_h_prologue),
         Some(gen_syscall_h_epilogue),
     )?;
     generate(
-        syscall_src,
+        src,
         "src/syscall/syscall_tbl.rs",
         gen_syscall_tbl_rs,
         Some(gen_syscall_tbl_rs_prologue),
         Some(gen_syscall_tbl_rs_epilogue),
     )?;
     generate(
-        syscall_src,
+        src,
         "src/syscall/syscall_nr.rs",
         gen_syscall_nr_rs,
         Some(gen_syscall_nr_rs_prologue),
         None::<Box<dyn Fn(&mut File) -> Result<()>>>,
     )?;
 
+    Ok(())
+}
+
+fn create_btf(vmlinx: &str, btf: &str) {
+    if Path::new(&btf).exists() {
+        return;
+    }
+
+    let output = Command::new("pahole")
+        .arg("--btf_encode_detached")
+        .arg(btf)
+        .arg(vmlinx)
+        .stdout(Stdio::piped())
+        .output()
+        .expect("Failed to build vmlinux.h");
+    println!("{}", String::from_utf8(output.stderr).unwrap());
+    assert!(output.status.success());
+}
+
+fn create_vmlinux_h(btf: &str, vmlinux_h: &str) {
+    if Path::new(&vmlinux_h).exists() {
+        return;
+    }
+    let f = File::create(vmlinux_h).expect("failed to open vmlinx.h");
+    let output = Command::new("bpftool")
+        .arg("btf")
+        .arg("dump")
+        .arg("file")
+        .arg(btf)
+        .arg("format")
+        .arg("c")
+        .stdout(f)
+        .output()
+        .expect("Failed to build vmlinux.h");
+    println!("{}", String::from_utf8(output.stderr).unwrap());
+    assert!(output.status.success());
+}
+
+fn main() -> Result<()> {
+    // FIXME: Is it possible to output to env!("OUT_DIR")?
+    std::env::set_var("BPF_OUT_DIR", "bpf/.output");
+    create_dir_all("bpf/.output")?;
+
+    let arch = build_target::target_arch().unwrap().to_string();
+    let outdir = std::env::var_os("OUT_DIR")
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .to_string();
+    let host = std::env::var_os("HOST")
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .to_string();
+
+    /* Create vmlinx.btf */
+    let mut btf = "/sys/kernel/btf/vmlinux".to_string();
+    if !host.contains(&arch) || !Path::new(&btf).exists() {
+        if let Some(v) = std::env::var_os("VMLINUX") {
+            let vmlinux = v.to_str().unwrap().to_string();
+            btf = format!("{outdir}/vmlinux.btf");
+            create_btf(&vmlinux, &btf);
+        } else {
+            return Err(anyhow!("Please specific vmlinux with VMLINUX="));
+        }
+    }
+
+    /* Create vmlinx.h */
+    let vmlinx_h = format!("{outdir}/vmlinux.h");
+    create_vmlinux_h(&btf, &vmlinx_h);
+
+    /* Create the syscall-related files automatically */
+    let syscall_src = format!("src/arch/{arch}/syscall.tbl");
+    create_syscall_files(&syscall_src)?;
+
     let skel = Path::new("bpf/.output/strace.skel.rs");
+    let arch_dict = HashMap::from([
+        ("x86_64".to_string(), "x86"),
+        ("aarch64".to_string(), "arm64"),
+    ]);
+    let arch_flag = arch_dict.get(&arch).unwrap();
+    let bpf_target_flag = format!("-D__TARGET_ARCH_{arch_flag}");
     SkeletonBuilder::new()
         .source(SKEL_SRC)
-        .clang_args(["-I.", "-Wextra", "-Wall", "-Werror"])
+        .clang_args([
+            &bpf_target_flag,
+            "-I.",
+            "-I",
+            &outdir,
+            "-Wextra",
+            "-Wall",
+            "-Werror",
+            "-Wno-unused-function",
+        ])
         .build_and_generate(&skel)?;
 
     println!("cargo:rerun-if-changed={}/{}", syscall_src, SKEL_SRC);
