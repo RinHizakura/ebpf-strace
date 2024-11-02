@@ -51,7 +51,7 @@ $(TEST_OUT)/%.out: %.c
 clean:
 	cargo clean
 	$(RM) $(TEST_OBJ) $(TEST)
-	$(RM) bpf/syscall/syscall_tbl.h
-	$(RM) bpf/syscall/syscall_nr.h
-	$(RM) src/syscall/syscall_tbl.rs
-	$(RM) src/syscall/syscall_nr.rs
+	$(RM) bpf/arch/*/syscall_tbl.h
+	$(RM) bpf/arch/*/syscall_nr.h
+	$(RM) src/arch/*/syscall_tbl.rs
+	$(RM) src/arch/*/syscall_nr.rs

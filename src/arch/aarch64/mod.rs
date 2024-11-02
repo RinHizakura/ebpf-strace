@@ -1,3 +1,6 @@
+pub mod syscall_nr;
+pub mod syscall_tbl;
+
 use std::ffi::c_long;
 
 #[repr(C)]

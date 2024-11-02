@@ -3,7 +3,8 @@ target
 
 vmlinux.h
 bpf/.output
-bpf/syscall/syscall_tbl.h
-bpf/syscall/syscall_nr.h
-src/syscall/syscall_tbl.rs
-src/syscall/syscall_nr.rs
+
+bpf/arch/*/syscall_tbl.h
+bpf/arch/*/syscall_nr.h
+src/arch/*/syscall_tbl.rs
+src/arch/*/syscall_nr.rs

@@ -139,31 +139,31 @@ where
     Ok(())
 }
 
-fn create_syscall_files(src: &str) -> Result<()> {
+fn create_syscall_files(src: &str, arch: &str) -> Result<()> {
     generate(
         src,
-        "bpf/syscall/syscall_tbl.h",
+        &format!("bpf/arch/{arch}/syscall_tbl.h"),
         gen_syscall_tbl_h,
         None::<Box<dyn Fn(&mut File) -> Result<()>>>,
         None::<Box<dyn Fn(&mut File) -> Result<()>>>,
     )?;
     generate(
         src,
-        "bpf/syscall/syscall_nr.h",
+        &format!("bpf/arch/{arch}/syscall_nr.h"),
         gen_syscall_h,
         Some(gen_syscall_h_prologue),
         Some(gen_syscall_h_epilogue),
     )?;
     generate(
         src,
-        "src/syscall/syscall_tbl.rs",
+        &format!("src/arch/{arch}/syscall_tbl.rs"),
         gen_syscall_tbl_rs,
         Some(gen_syscall_tbl_rs_prologue),
         Some(gen_syscall_tbl_rs_epilogue),
     )?;
     generate(
         src,
-        "src/syscall/syscall_nr.rs",
+        &format!("src/arch/{arch}/syscall_nr.rs"),
         gen_syscall_nr_rs,
         Some(gen_syscall_nr_rs_prologue),
         None::<Box<dyn Fn(&mut File) -> Result<()>>>,
@@ -242,7 +242,7 @@ fn main() -> Result<()> {
 
     /* Create the syscall-related files automatically */
     let syscall_src = format!("src/arch/{arch}/syscall.tbl");
-    create_syscall_files(&syscall_src)?;
+    create_syscall_files(&syscall_src, &arch)?;
 
     let skel = Path::new("bpf/.output/strace.skel.rs");
     let arch_dict = HashMap::from([

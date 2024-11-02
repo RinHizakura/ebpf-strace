@@ -11,14 +11,15 @@
 
 #ifdef __TARGET_ARCH_x86
 #include "arch/x86_64/syscall.h"
+#include "arch/x86_64/syscall_nr.h"
 #elif __TARGET_ARCH_arm64
 #include "arch/aarch64/syscall.h"
+#include "arch/aarch64/syscall_nr.h"
 #else
-#error "only x86_64 architecture is supported for ebpf-strace now"
+#error "unsupported architecture on ebpf-strace"
 #endif
 
 #include "msg_ent.h"
-#include "syscall/syscall_nr.h"
 #include "utils.h"
 
 // We limit the iteration of loop by this definition to pass eBPF verifier
@@ -351,7 +352,13 @@ static int __sys_exit(struct bpf_raw_tracepoint_args *args)
     case nr:                                        \
         submit_syscall(ent, sizeof(call##_args_t)); \
         break;
-#include "syscall/syscall_tbl.h"
+#ifdef __TARGET_ARCH_x86
+#include "arch/x86_64/syscall_tbl.h"
+#elif __TARGET_ARCH_arm64
+#include "arch/aarch64/syscall_tbl.h"
+#else
+#error "unsupported architecture on ebpf-strace"
+#endif
 #undef __SYSCALL
     default:
         break;
