@@ -1,12 +1,13 @@
-ARCH =
+ARCH ?=
 
 # AARCH64 build
 ifeq ($(ARCH), aarch64)
 	LINKER = CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER
-	CROSS_COMPILE = aarch64-unknown-linux-gnu
-	EXPORT_PATH = $(LINKER)=$(CROSS_COMPILE)-gcc
-	CARGO_OPT = --target $(CROSS_COMPILE)
-	CC = $(CROSS_COMPILE)-gcc
+	TARGET = aarch64-unknown-linux-gnu
+	CROSS_COMPILE ?= aarch64-unknown-linux-gnu-
+	EXPORT_PATH = $(LINKER)=$(CROSS_COMPILE)gcc
+	CARGO_OPT = --target $(TARGET)
+	CC = $(CROSS_COMPILE)gcc
 endif
 
 # Host build

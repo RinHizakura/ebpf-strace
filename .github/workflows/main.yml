@@ -36,7 +36,7 @@ jobs:
     - name: Install dependencies
       run: |
           sudo apt-get update
-          sudo apt-get install clang llvm libelf1 libelf-dev zlib1g-dev dwarves
+          sudo apt-get install clang llvm libelf1 libelf-dev zlib1g-dev dwarves gcc-aarch64-linux-gnu help2man libtool-bin
           rustup target add aarch64-unknown-linux-gnu
     - name: Install bpftool
       run: |
@@ -44,9 +44,44 @@ jobs:
           pushd bpftool; git submodule update --init
           pushd src; make; sudo make install;
           popd; popd
-    - name: Build
-      run: make ARCH=aarch64
+    - name: Install arm toolchain
+      run: |
+          wget https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+          tar xf arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+          sudo cp -r arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/ /usr/local/aarch64-none-linux-gnu
+          export PATH=$PATH:/usr/local/aarch64-none-linux-gnu/bin/
+    - name: Install arm64 libz
+      run: |
+          git clone https://github.com/madler/zlib.git
+          pushd zlib
+          CHOST=aarch64 CC=aarch64-none-linux-gnu-gcc AR=aarch64-none-linux-gnu-ar ./configure --prefix=/usr/local/aarch64-none-linux-gnu/aarch64-none-linux-gnu
+          make -j$(nproc)
+          sudo make install
+          popd
+    - name: Install arm64 libelf
+      run: |
+          git clone git://sourceware.org/git/elfutils.git
+          pushd elfutils
+          autoreconf -i -f
+          ./configure --host=aarch64-none-linux-gnu --prefix=/usr/local/aarch64-none-linux-gnu/aarch64-none-linux-gnu --enable-maintainer-mode --disable-libdebuginfod --disable-debuginfod
+          pushd lib
+          make -j$(nproc)
+          popd
+          pushd libelf
+          make -j$(nproc)
+          sudo PATH="/usr/local/aarch64-unknon-linux-gnu/bin:${PATH}" make install
+          popd; popd
+    - name: Build arm64 linux
+      run: |
+          wget https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.1.100.tar.xz          tar xvf linux-6.1.100.tar.xz
+          cp .ci/materials/config-arm64 linux-6.1.100/.config
+          pushd linux-6.1.100
+          make ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- -j$(nproc)
+          popd
 
+    - name: Build
+      run: |
+           VMLINUX=linux-6.1.100/vmlinux make ARCH=aarch64 CROSS_COMPILE=/usr/local/aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu- build
 
   host-arm64:
     runs-on: ubuntu-latest
@@ -59,8 +94,8 @@ jobs:
         distro: none
         base_image: "--platform=linux/arm64 arm64v8/ubuntu:22.04"
         install: |
-          apt-get update
-          apt-get install clang llvm libelf1 libelf-dev zlib1g-dev
+          apt-get update -q -y
+          apt-get install -q -y git clang llvm libelf1 libelf-dev zlib1g-dev
         run: |
           git clone https://github.com/libbpf/bpftool.git
           pushd bpftool; git submodule update --init
