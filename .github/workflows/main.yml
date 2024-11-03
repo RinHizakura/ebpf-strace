@@ -22,7 +22,7 @@ jobs:
       run: |
           git clone https://github.com/libbpf/bpftool.git
           pushd bpftool; git submodule update --init
-          pushd src; make; make install;
+          pushd src; make; sudo make install;
           popd; popd
     - name: Build
       run: make
@@ -42,7 +42,7 @@ jobs:
       run: |
           git clone https://github.com/libbpf/bpftool.git
           pushd bpftool; git submodule update --init
-          pushd src; make; make install;
+          pushd src; make; sudo make install;
           popd; popd
     - name: Build
       run: make ARCH=aarch64
@@ -61,9 +61,9 @@ jobs:
         install: |
           apt-get update
           apt-get install clang llvm libelf1 libelf-dev zlib1g-dev
+        run: |
           git clone https://github.com/libbpf/bpftool.git
           pushd bpftool; git submodule update --init
           pushd src; make; make install;
           popd; popd
-        run: |
           make
