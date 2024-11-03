@@ -49,9 +49,9 @@ jobs:
           wget https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
           tar xf arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
           sudo cp -r arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/ /usr/local/aarch64-none-linux-gnu
-          export PATH=$PATH:/usr/local/aarch64-none-linux-gnu/bin/
     - name: Install arm64 libz
       run: |
+          export PATH=$PATH:/usr/local/aarch64-none-linux-gnu/bin/
           git clone https://github.com/madler/zlib.git
           pushd zlib
           CHOST=aarch64 CC=aarch64-none-linux-gnu-gcc AR=aarch64-none-linux-gnu-ar ./configure --prefix=/usr/local/aarch64-none-linux-gnu/aarch64-none-linux-gnu
@@ -60,6 +60,7 @@ jobs:
           popd
     - name: Install arm64 libelf
       run: |
+          export PATH=$PATH:/usr/local/aarch64-none-linux-gnu/bin/
           git clone git://sourceware.org/git/elfutils.git
           pushd elfutils
           autoreconf -i -f
@@ -73,6 +74,7 @@ jobs:
           popd; popd
     - name: Build arm64 linux
       run: |
+          export PATH=$PATH:/usr/local/aarch64-none-linux-gnu/bin/
           wget https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.1.100.tar.xz          tar xvf linux-6.1.100.tar.xz
           cp .ci/materials/config-arm64 linux-6.1.100/.config
           pushd linux-6.1.100
@@ -81,7 +83,8 @@ jobs:
 
     - name: Build
       run: |
-           VMLINUX=linux-6.1.100/vmlinux make ARCH=aarch64 CROSS_COMPILE=/usr/local/aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu- build
+          export PATH=$PATH:/usr/local/aarch64-none-linux-gnu/bin/
+          VMLINUX=linux-6.1.100/vmlinux make ARCH=aarch64 CROSS_COMPILE=/usr/local/aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu- build
 
   host-arm64:
     runs-on: ubuntu-latest
