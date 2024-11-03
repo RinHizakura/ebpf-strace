@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  host-x86:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install dependencies
+      run: |
+          sudo apt-get update
+          sudo apt-get install clang llvm libelf1 libelf-dev zlib1g-dev
+    - name: Install bpftool
+      run: |
+          git clone https://github.com/libbpf/bpftool.git
+          pushd bpftool; git submodule update --init
+          pushd src; make; make install;
+          popd; popd
+    - name: Build
+      run: make
+    - name: Run tests
+      run: .ci/strace-test.sh
+
+  host-x86-cross-arm64:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install dependencies
+      run: |
+          sudo apt-get update
+          sudo apt-get install clang llvm libelf1 libelf-dev zlib1g-dev dwarves
+          rustup target add aarch64-unknown-linux-gnu
+    - name: Install bpftool
+      run: |
+          git clone https://github.com/libbpf/bpftool.git
+          pushd bpftool; git submodule update --init
+          pushd src; make; make install;
+          popd; popd
+    - name: Build
+      run: make ARCH=aarch64
+
+
+  host-arm64:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Run tests on arm64
+      uses: uraimo/run-on-arch-action@v2
+      with:
+        arch: none
+        distro: none
+        base_image: "--platform=linux/arm64 arm64v8/ubuntu:22.04"
+        install: |
+          apt-get update
+          apt-get install clang llvm libelf1 libelf-dev zlib1g-dev
+          git clone https://github.com/libbpf/bpftool.git
+          pushd bpftool; git submodule update --init
+          pushd src; make; make install;
+          popd; popd
+        run: |
+          make

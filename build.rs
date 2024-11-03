@@ -229,8 +229,10 @@ fn main() -> Result<()> {
     if !host.contains(&arch) || !Path::new(&btf).exists() {
         if let Some(v) = std::env::var_os("VMLINUX") {
             let vmlinux = v.to_str().unwrap().to_string();
-            btf = format!("{outdir}/vmlinux.btf");
-            create_btf(&vmlinux, &btf);
+            if vmlinux != btf {
+                btf = format!("{outdir}/vmlinux.btf");
+                create_btf(&vmlinux, &btf);
+            }
         } else {
             return Err(anyhow!("Please specific vmlinux with VMLINUX="));
         }

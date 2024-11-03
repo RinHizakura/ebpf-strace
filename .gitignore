@@ -1,7 +1,6 @@
 build
 target
 
-vmlinux.h
 bpf/.output
 
 bpf/arch/*/syscall_tbl.h

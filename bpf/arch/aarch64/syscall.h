@@ -1,6 +1,10 @@
 #ifndef ARCH_SYSCALL_H
 #define ARCH_SYSCALL_H
 
+#ifndef
+#define PT_REGS_PARM6_CORE_SYSCALL(pt_regs) BPF_CORE_READ(pt_regs, regs[5])
+#endif
+
 /* Ref:
  * https://elixir.bootlin.com/linux/v6.11.6/source/arch/arm64/include/asm/syscall.h
  */
