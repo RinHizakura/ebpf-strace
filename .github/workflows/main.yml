@@ -99,7 +99,7 @@ jobs:
         base_image: "--platform=linux/arm64 arm64v8/ubuntu:22.04"
         install: |
           apt-get update -q -y
-          apt-get install -q -y git clang llvm libelf1 libelf-dev zlib1g-dev
+          apt-get install -q -y git clang llvm libelf1 libelf-dev zlib1g-dev make
         run: |
           git clone https://github.com/libbpf/bpftool.git
           pushd bpftool; git submodule update --init
