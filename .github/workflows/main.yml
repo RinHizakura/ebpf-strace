@@ -46,7 +46,7 @@ jobs:
           popd; popd
     - name: Install arm toolchain
       run: |
-          wget https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
+          wget -q https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
           tar xf arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
           sudo cp -r arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/ /usr/local/aarch64-none-linux-gnu
     - name: Install arm64 libz
@@ -75,7 +75,8 @@ jobs:
     - name: Build arm64 linux
       run: |
           export PATH=$PATH:/usr/local/aarch64-none-linux-gnu/bin/
-          wget https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.1.100.tar.xz          tar xvf linux-6.1.100.tar.xz
+          wget -q https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.1.100.tar.xz
+          tar xvf linux-6.1.100.tar.xz
           cp .ci/materials/config-arm64 linux-6.1.100/.config
           pushd linux-6.1.100
           make ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- -j$(nproc)
