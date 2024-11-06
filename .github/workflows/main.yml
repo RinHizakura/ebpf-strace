@@ -76,7 +76,7 @@ jobs:
       run: |
           export PATH=$PATH:/usr/local/aarch64-none-linux-gnu/bin/
           wget -q https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.1.100.tar.xz
-          tar xvf linux-6.1.100.tar.xz
+          tar xf linux-6.1.100.tar.xz
           cp .ci/materials/config-arm64 linux-6.1.100/.config
           pushd linux-6.1.100
           make ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- -j$(nproc)
