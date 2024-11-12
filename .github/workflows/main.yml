@@ -105,5 +105,5 @@ jobs:
           pushd bpftool; git submodule update --init
           pushd src; make; make install;
           popd; popd
-          curl --proto '=https' --tlsv1.3 https://sh.rustup.rs -sSf | sh
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain none -y
           make
