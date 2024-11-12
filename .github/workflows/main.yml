@@ -94,9 +94,8 @@ jobs:
     - name: Run tests on arm64
       uses: uraimo/run-on-arch-action@v2
       with:
-        arch: none
-        distro: none
-        base_image: "--platform=linux/arm64 arm64v8/ubuntu:22.04"
+        arch: aarch64
+        distro: ubuntu_latest
         install: |
           apt-get update -q -y
           apt-get install -q -y git clang llvm libelf1 libelf-dev zlib1g-dev make pkg-config gcc curl
