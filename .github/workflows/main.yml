@@ -20,7 +20,7 @@ jobs:
           sudo apt-get install clang llvm libelf1 libelf-dev zlib1g-dev
     - name: Install bpftool
       run: |
-          git clone https://github.com/libbpf/bpftool.git
+          git clone -q https://github.com/libbpf/bpftool.git
           pushd bpftool; git submodule update --init
           pushd src; make; sudo make install;
           popd; popd
@@ -40,7 +40,7 @@ jobs:
           rustup target add aarch64-unknown-linux-gnu
     - name: Install bpftool
       run: |
-          git clone https://github.com/libbpf/bpftool.git
+          git clone -q https://github.com/libbpf/bpftool.git
           pushd bpftool; git submodule update --init
           pushd src; make; sudo make install;
           popd; popd
@@ -52,7 +52,7 @@ jobs:
     - name: Install arm64 libz
       run: |
           export PATH=$PATH:/usr/local/aarch64-none-linux-gnu/bin/
-          git clone https://github.com/madler/zlib.git
+          git clone -q https://github.com/madler/zlib.git
           pushd zlib
           CHOST=aarch64 CC=aarch64-none-linux-gnu-gcc AR=aarch64-none-linux-gnu-ar ./configure --prefix=/usr/local/aarch64-none-linux-gnu/aarch64-none-linux-gnu
           make -j$(nproc)
@@ -61,7 +61,7 @@ jobs:
     - name: Install arm64 libelf
       run: |
           export PATH=$PATH:/usr/local/aarch64-none-linux-gnu/bin/
-          git clone git://sourceware.org/git/elfutils.git
+          git clone -q git://sourceware.org/git/elfutils.git
           pushd elfutils
           autoreconf -i -f
           ./configure --host=aarch64-none-linux-gnu --prefix=/usr/local/aarch64-none-linux-gnu/aarch64-none-linux-gnu --enable-maintainer-mode --disable-libdebuginfod --disable-debuginfod
@@ -101,9 +101,10 @@ jobs:
           apt-get update -q -y
           apt-get install -q -y git clang llvm libelf1 libelf-dev zlib1g-dev make pkg-config gcc curl
         run: |
-          git clone https://github.com/libbpf/bpftool.git
+          git clone -q https://github.com/libbpf/bpftool.git
           pushd bpftool; git submodule update --init
           pushd src; make; make install;
           popd; popd
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain none -y
+          . "$HOME/.cargo/env"
           make
