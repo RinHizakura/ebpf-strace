@@ -1,4 +1,6 @@
+#[rustfmt::skip]
 pub mod syscall_nr;
+#[rustfmt::skip]
 pub mod syscall_tbl;
 
 use std::ffi::c_long;
