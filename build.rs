@@ -4,6 +4,7 @@ use std::fs::{create_dir_all, File, OpenOptions};
 use std::io::{BufRead, BufReader, Write};
 use std::path::Path;
 use std::process::{Command, Stdio};
+use which::which;
 
 use libbpf_cargo::SkeletonBuilder;
 
@@ -172,27 +173,36 @@ fn create_syscall_files(src: &str, arch: &str) -> Result<()> {
     Ok(())
 }
 
-fn create_btf(vmlinx: &str, btf: &str) {
+fn create_btf(vmlinx: &str, btf: &str) -> Result<()> {
     if Path::new(&btf).exists() {
-        return;
+        return Ok(());
     }
 
+    let _ = which("pahole")?;
     let output = Command::new("pahole")
         .arg("--btf_encode_detached")
         .arg(btf)
         .arg(vmlinx)
         .stdout(Stdio::piped())
-        .output()
-        .expect("Failed to build vmlinux.h");
+        .output()?;
+
     println!("{}", String::from_utf8(output.stderr).unwrap());
-    assert!(output.status.success());
+
+    if !output.status.success() {
+        return Err(anyhow!("Fail to create vmlinux BTF"));
+    }
+
+    Ok(())
 }
 
-fn create_vmlinux_h(btf: &str, vmlinux_h: &str) {
+fn create_vmlinux_h(btf: &str, vmlinux_h: &str) -> Result<()> {
     if Path::new(&vmlinux_h).exists() {
-        return;
+        return Ok(());
     }
-    let f = File::create(vmlinux_h).expect("failed to open vmlinx.h");
+
+    let f = File::create(vmlinux_h)?;
+
+    let _ = which("bpftool")?;
     let output = Command::new("bpftool")
         .arg("btf")
         .arg("dump")
@@ -201,10 +211,15 @@ fn create_vmlinux_h(btf: &str, vmlinux_h: &str) {
         .arg("format")
         .arg("c")
         .stdout(f)
-        .output()
-        .expect("Failed to build vmlinux.h");
+        .output()?;
+
     println!("{}", String::from_utf8(output.stderr).unwrap());
-    assert!(output.status.success());
+
+    if !output.status.success() {
+        return Err(anyhow!("Fail to create vmlinux BTF"));
+    }
+
+    Ok(())
 }
 
 fn main() -> Result<()> {
@@ -231,7 +246,7 @@ fn main() -> Result<()> {
             let vmlinux = v.to_str().unwrap().to_string();
             if vmlinux != btf {
                 btf = format!("{outdir}/vmlinux.btf");
-                create_btf(&vmlinux, &btf);
+                create_btf(&vmlinux, &btf)?;
             }
         } else {
             return Err(anyhow!("Please specific vmlinux with VMLINUX="));
@@ -240,7 +255,7 @@ fn main() -> Result<()> {
 
     /* Create vmlinx.h */
     let vmlinx_h = format!("{outdir}/vmlinux.h");
-    create_vmlinux_h(&btf, &vmlinx_h);
+    create_vmlinux_h(&btf, &vmlinx_h)?;
 
     /* Create the syscall-related files automatically */
     let syscall_src = format!("src/arch/{arch}/syscall.tbl");
