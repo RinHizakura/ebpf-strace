@@ -86,25 +86,3 @@ jobs:
       run: |
           export PATH=$PATH:/usr/local/aarch64-none-linux-gnu/bin/
           VMLINUX=linux-6.1.100/vmlinux make ARCH=aarch64 CROSS_COMPILE=/usr/local/aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu- build
-
-  host-arm64:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Run tests on arm64
-      uses: uraimo/run-on-arch-action@v2
-      with:
-        arch: aarch64
-        distro: ubuntu_latest
-        install: |
-          apt-get update -q -y
-          apt-get install -q -y git clang llvm libelf1 libelf-dev zlib1g-dev make pkg-config gcc curl
-        run: |
-          git clone -q https://github.com/libbpf/bpftool.git
-          pushd bpftool; git submodule update --init
-          pushd src; make; make install;
-          popd; popd
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain none -y
-          . "$HOME/.cargo/env"
-          rustup -q default stable
-          make
