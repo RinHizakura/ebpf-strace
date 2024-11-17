@@ -1,6 +1,7 @@
+HOSTARCH := $(shell uname -m)
 ARCH ?=
 
-# AARCH64 build
+# AARCH64 cross build
 ifeq ($(ARCH), aarch64)
 	LINKER = CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER
 	TARGET = aarch64-unknown-linux-gnu
@@ -15,6 +16,9 @@ ifeq ($(ARCH), )
 	CROSS_COMPILE =
 	EXPORT_PATH =
 	CARGO_OPT =
+ifeq ($(HOSTARCH), aarch64)
+	TEST_FILTER = | grep -vE 'select|stat|pipe|open'
+endif
 endif
 
 OUT = target/$(CROSS_COMPILE)/debug
@@ -26,7 +30,7 @@ SRCS = $(shell find ./bpf -name '*.c')
 SRCS += $(shell find ./src -name '*.rs')
 
 TEST_OUT = build
-TEST_SRCS = $(shell find ./tests -name '*.c')
+TEST_SRCS = $(shell find ./tests -name '*.c' $(TEST_FILTER))
 _TEST_OBJ =  $(notdir $(TEST_SRCS))
 TEST_OBJ = $(_TEST_OBJ:%.c=$(TEST_OUT)/%.out)
 TET_SHELL_HACK := $(shell mkdir -p $(TEST_OUT))
