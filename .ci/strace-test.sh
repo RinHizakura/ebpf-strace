@@ -4,13 +4,6 @@ BIN="target/debug/ebpf-strace"
 STRACE_LOG="/tmp/strace.log"
 OUTPUT_LOG="/tmp/output.log"
 
-# Run this first to build required binaries
-make &> /dev/null
-if [ $? != 0 ]; then
-   echo "Build project fail, please check"
-   exit $?
-fi
-
 r=$'\r'
 RED='\033[0;31m'
 GREEN='\033[0;32m'
