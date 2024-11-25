@@ -11,7 +11,7 @@ NC='\033[0m' # No Color
 
 RETURN=0
 FAIL_STOP=1
-FILES=$(ls build | grep '.out')
+FILES=$(ls target/debug/tests | grep '.out')
 for FILE in ${FILES}; do
     RSLT=0
     sudo $BIN build/$FILE 2>$STRACE_LOG 1>$OUTPUT_LOG

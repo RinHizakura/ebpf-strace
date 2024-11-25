@@ -1,6 +1,9 @@
 HOSTARCH := $(shell uname -m)
 ARCH ?=
 
+NOTEST = 'TestEveryThing'
+AARCH64_NOTEST = 'select|stat|pipe|open'
+
 # AARCH64 cross build
 ifeq ($(ARCH), aarch64)
 	LINKER = CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER
@@ -9,6 +12,7 @@ ifeq ($(ARCH), aarch64)
 	EXPORT_PATH = $(LINKER)=$(CROSS_COMPILE)gcc
 	CARGO_OPT = --target $(TARGET)
 	CC = $(CROSS_COMPILE)gcc
+	NOTEST = $(AARCH64_NOTEST)
 endif
 
 # Host build
@@ -17,23 +21,23 @@ ifeq ($(ARCH), )
 	EXPORT_PATH =
 	CARGO_OPT =
 ifeq ($(HOSTARCH), aarch64)
-	TEST_FILTER = | grep -vE 'select|stat|pipe|open'
+	NOTEST = $(AARCH64_NOTEST)
 endif
 endif
 
-OUT = target/$(CROSS_COMPILE)/debug
-SHELL_HACK := $(shell mkdir -p $(OUT))
+OUT = target/$(TARGET)/debug
+TEST_OUT = $(OUT)/tests
+SHELL_HACK := $(shell mkdir -p $(TEST_OUT))
+
+GIT_HOOKS := .git/hooks/applied
 
 BIN = $(OUT)/ebpf-strace
-GIT_HOOKS := .git/hooks/applied
-SRCS = $(shell find ./bpf -name '*.c')
-SRCS += $(shell find ./src -name '*.rs')
+SRCS = $(shell find bpf -name '*.c')
+SRCS += $(shell find src -name '*.rs')
 
-TEST_OUT = build
-TEST_SRCS = $(shell find ./tests -name '*.c' $(TEST_FILTER))
+TEST_SRCS := $(shell find tests -name '*.c' | grep -vE $(NOTEST))
 _TEST_OBJ =  $(notdir $(TEST_SRCS))
 TEST_OBJ = $(_TEST_OBJ:%.c=$(TEST_OUT)/%.out)
-TET_SHELL_HACK := $(shell mkdir -p $(TEST_OUT))
 
 CFLAGS = -Wall -Wextra -Werror
 
