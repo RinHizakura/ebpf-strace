@@ -1105,6 +1105,48 @@ typedef struct {
 } futex_waitv_args_t;
 typedef struct {
 } set_mempolicy_home_node_args_t;
+typedef struct {
+} cachestat_args_t;
+typedef struct {
+} fchmodat2_args_t;
+typedef struct {
+} map_shadow_stack_args_t;
+typedef struct {
+} futex_wake_args_t;
+typedef struct {
+} futex_wait_args_t;
+typedef struct {
+} futex_requeue_args_t;
+typedef struct {
+} statmount_args_t;
+typedef struct {
+} listmount_args_t;
+typedef struct {
+} lsm_get_self_attr_args_t;
+typedef struct {
+} lsm_set_self_attr_args_t;
+typedef struct {
+} lsm_list_modules_args_t;
+typedef struct {
+} mseal_args_t;
+typedef struct {
+} setxattrat_args_t;
+typedef struct {
+} getxattrat_args_t;
+typedef struct {
+} listxattrat_args_t;
+typedef struct {
+} removexattrat_args_t;
+typedef struct {
+} open_tree_attr_args_t;
+typedef struct {
+} file_getattr_args_t;
+typedef struct {
+} file_setattr_args_t;
+typedef struct {
+} listns_args_t;
+typedef struct {
+} rseq_slice_yield_args_t;
 
 typedef struct {
     int signo;
