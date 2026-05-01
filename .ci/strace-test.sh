@@ -11,10 +11,12 @@ NC='\033[0m' # No Color
 
 RETURN=0
 FAIL_STOP=1
-FILES=$(ls target/debug/tests | grep '.out')
+OUT_DIR="target/debug/tests"
+FILES=$(ls $OUT_DIR | grep '.out')
 for FILE in ${FILES}; do
     RSLT=0
-    sudo $BIN build/$FILE 2>$STRACE_LOG 1>$OUTPUT_LOG
+    CMD="sudo $BIN $OUT_DIR/$FILE"
+    sudo $CMD 2>$STRACE_LOG 1>$OUTPUT_LOG
 
     echo -n "run test: ${FILE}..."
 

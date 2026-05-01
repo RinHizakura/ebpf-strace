@@ -12,7 +12,7 @@ int main()
         ret = -1;
         goto end;
     }
-    printf("pipe([%d,%d]) = %d\n", pipefd[0], pipefd[1], ret);
+    printf("pipe([%d, %d]) = %d\n", pipefd[0], pipefd[1], ret);
     close(pipefd[0]);
     close(pipefd[1]);
 
