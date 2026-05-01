@@ -1,8 +1,8 @@
-static void sys_poll_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_poll_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    struct pollfd *fds = (struct pollfd *) parms.parm1;
-    u32 nfds = parms.parm2;
-    int timeout = parms.parm3;
+    struct pollfd *fds = (struct pollfd *) parms->parm1;
+    u32 nfds = parms->parm2;
+    int timeout = parms->parm3;
 
     poll_args_t *poll = (poll_args_t *) ent->bytes;
 

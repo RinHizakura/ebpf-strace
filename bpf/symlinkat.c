@@ -1,7 +1,7 @@
-static void sys_symlink_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_symlink_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    char *target = (char *) parms.parm1;
-    char *linkpath = (char *) parms.parm2;
+    char *target = (char *) parms->parm1;
+    char *linkpath = (char *) parms->parm2;
 
     __attribute__((unused)) symlink_args_t *symlink =
         (symlink_args_t *) ent->bytes;

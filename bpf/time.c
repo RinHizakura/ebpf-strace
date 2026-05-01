@@ -1,9 +1,9 @@
 /* nanosleep: req is input timespec, rem is output (only valid on EINTR)
  * Read req at sys_enter directly; defer rem to sys_exit. */
-static void sys_nanosleep_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_nanosleep_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    void *req = (void *) parms.parm1;
-    void *rem = (void *) parms.parm2;
+    void *req = (void *) parms->parm1;
+    void *rem = (void *) parms->parm2;
 
     nanosleep_args_t *nanosleep = (nanosleep_args_t *) ent->bytes;
     nanosleep->is_rem_exist = (rem != NULL);
@@ -29,10 +29,10 @@ static void sys_nanosleep_exit(syscall_ent_t *ent)
 }
 
 static void sys_clock_gettime_enter(syscall_ent_t *ent,
-                                    struct input_parms parms)
+                                    struct input_parms *parms)
 {
-    int clockid = (int) parms.parm1;
-    void *tp = (void *) parms.parm2;
+    int clockid = (int) parms->parm1;
+    void *tp = (void *) parms->parm2;
 
     clock_gettime_args_t *cgt = (clock_gettime_args_t *) ent->bytes;
     cgt->clockid = clockid;
@@ -52,10 +52,11 @@ static void sys_clock_gettime_exit(syscall_ent_t *ent)
         bpf_core_read_user(&cgt->tp, sizeof(cgt->tp), *buf_addr_ptr);
 }
 
-static void sys_clock_getres_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_clock_getres_enter(syscall_ent_t *ent,
+                                   struct input_parms *parms)
 {
-    int clockid = (int) parms.parm1;
-    void *res = (void *) parms.parm2;
+    int clockid = (int) parms->parm1;
+    void *res = (void *) parms->parm2;
 
     clock_getres_args_t *cgr = (clock_getres_args_t *) ent->bytes;
     cgr->clockid = clockid;
@@ -76,9 +77,10 @@ static void sys_clock_getres_exit(syscall_ent_t *ent)
         bpf_core_read_user(&cgr->res, sizeof(cgr->res), *buf_addr_ptr);
 }
 
-static void sys_gettimeofday_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_gettimeofday_enter(syscall_ent_t *ent,
+                                   struct input_parms *parms)
 {
-    void *tv = (void *) parms.parm1;
+    void *tv = (void *) parms->parm1;
 
     gettimeofday_args_t *gtod = (gettimeofday_args_t *) ent->bytes;
     gtod->is_tv_exist = (tv != NULL);

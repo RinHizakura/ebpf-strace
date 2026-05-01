@@ -1,7 +1,7 @@
-static void sys_mkdir_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_mkdir_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    char *path = (char *) parms.parm1;
-    mode_t mode = (mode_t) parms.parm2;
+    char *path = (char *) parms->parm1;
+    mode_t mode = (mode_t) parms->parm2;
 
     mkdir_args_t *mkdir = (mkdir_args_t *) ent->bytes;
     mkdir->mode = mode;
@@ -21,11 +21,11 @@ static void sys_mkdir_exit(syscall_ent_t *ent)
         bpf_core_read_user(mkdir->path, sizeof(mkdir->path), *buf_addr_ptr);
 }
 
-static void sys_mkdirat_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_mkdirat_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    int dirfd = (int) parms.parm1;
-    char *path = (char *) parms.parm2;
-    mode_t mode = (mode_t) parms.parm3;
+    int dirfd = (int) parms->parm1;
+    char *path = (char *) parms->parm2;
+    mode_t mode = (mode_t) parms->parm3;
 
     mkdirat_args_t *mkdirat = (mkdirat_args_t *) ent->bytes;
     mkdirat->dirfd = dirfd;

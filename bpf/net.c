@@ -1,8 +1,8 @@
-static void sys_socket_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_socket_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    int domain = (int) parms.parm1;
-    int type = (int) parms.parm2;
-    int protocol = (int) parms.parm3;
+    int domain = (int) parms->parm1;
+    int type = (int) parms->parm2;
+    int protocol = (int) parms->parm3;
 
     socket_args_t *socket = (socket_args_t *) ent->bytes;
     socket->domain = domain;
@@ -10,11 +10,11 @@ static void sys_socket_enter(syscall_ent_t *ent, struct input_parms parms)
     socket->protocol = protocol;
 }
 
-static void sys_connect_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_connect_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    int sockfd = (int) parms.parm1;
-    void *addr = (void *) parms.parm2;
-    u32 addrlen = (u32) parms.parm3;
+    int sockfd = (int) parms->parm1;
+    void *addr = (void *) parms->parm2;
+    u32 addrlen = (u32) parms->parm3;
 
     connect_args_t *connect = (connect_args_t *) ent->bytes;
     connect->sockfd = sockfd;
@@ -28,11 +28,11 @@ static void sys_connect_enter(syscall_ent_t *ent, struct input_parms parms)
     }
 }
 
-static void sys_accept_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_accept_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    int sockfd = (int) parms.parm1;
-    void *addr = (void *) parms.parm2;
-    void *addrlen_ptr = (void *) parms.parm3;
+    int sockfd = (int) parms->parm1;
+    void *addr = (void *) parms->parm2;
+    void *addrlen_ptr = (void *) parms->parm3;
 
     accept_args_t *accept = (accept_args_t *) ent->bytes;
     accept->sockfd = sockfd;
@@ -67,12 +67,12 @@ static void sys_accept_exit(syscall_ent_t *ent)
     }
 }
 
-static void sys_accept4_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_accept4_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    int sockfd = (int) parms.parm1;
-    void *addr = (void *) parms.parm2;
-    void *addrlen_ptr = (void *) parms.parm3;
-    int flags = (int) parms.parm4;
+    int sockfd = (int) parms->parm1;
+    void *addr = (void *) parms->parm2;
+    void *addrlen_ptr = (void *) parms->parm3;
+    int flags = (int) parms->parm4;
 
     accept4_args_t *accept4 = (accept4_args_t *) ent->bytes;
     accept4->sockfd = sockfd;
@@ -108,14 +108,14 @@ static void sys_accept4_exit(syscall_ent_t *ent)
     }
 }
 
-static void sys_sendto_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_sendto_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    int sockfd = (int) parms.parm1;
-    void *buf = (void *) parms.parm2;
-    size_t len = (size_t) parms.parm3;
-    int flags = (int) parms.parm4;
-    void *dest_addr = (void *) parms.parm5;
-    u32 addrlen = (u32) parms.parm6;
+    int sockfd = (int) parms->parm1;
+    void *buf = (void *) parms->parm2;
+    size_t len = (size_t) parms->parm3;
+    int flags = (int) parms->parm4;
+    void *dest_addr = (void *) parms->parm5;
+    u32 addrlen = (u32) parms->parm6;
 
     sendto_args_t *sendto = (sendto_args_t *) ent->bytes;
     sendto->sockfd = sockfd;
@@ -150,13 +150,13 @@ static void sys_sendto_exit(syscall_ent_t *ent)
     }
 }
 
-static void sys_recvfrom_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_recvfrom_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    int sockfd = (int) parms.parm1;
-    void *buf = (void *) parms.parm2;
-    size_t len = (size_t) parms.parm3;
-    int flags = (int) parms.parm4;
-    void *src_addr = (void *) parms.parm5;
+    int sockfd = (int) parms->parm1;
+    void *buf = (void *) parms->parm2;
+    size_t len = (size_t) parms->parm3;
+    int flags = (int) parms->parm4;
+    void *src_addr = (void *) parms->parm5;
 
     recvfrom_args_t *recvfrom = (recvfrom_args_t *) ent->bytes;
     recvfrom->sockfd = sockfd;

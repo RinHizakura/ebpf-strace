@@ -1,11 +1,11 @@
-static void sys_mmap_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_mmap_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    void *addr = (void *) parms.parm1;
-    size_t length = parms.parm2;
-    int prot = parms.parm3;
-    int flags = parms.parm4;
-    int fd = parms.parm5;
-    off_t offset = parms.parm6;
+    void *addr = (void *) parms->parm1;
+    size_t length = parms->parm2;
+    int prot = parms->parm3;
+    int flags = parms->parm4;
+    int fd = parms->parm5;
+    off_t offset = parms->parm6;
 
     mmap_args_t *mmap = (mmap_args_t *) ent->bytes;
 
@@ -17,11 +17,11 @@ static void sys_mmap_enter(syscall_ent_t *ent, struct input_parms parms)
     mmap->offset = offset;
 }
 
-static void sys_mprotect_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_mprotect_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    void *addr = (void *) parms.parm1;
-    size_t len = parms.parm2;
-    int prot = parms.parm3;
+    void *addr = (void *) parms->parm1;
+    size_t len = parms->parm2;
+    int prot = parms->parm3;
 
     mprotect_args_t *mprotect = (mprotect_args_t *) ent->bytes;
 
@@ -30,31 +30,31 @@ static void sys_mprotect_enter(syscall_ent_t *ent, struct input_parms parms)
     mprotect->prot = prot;
 }
 
-static void sys_munmap_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_munmap_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    void *addr = (void *) parms.parm1;
-    size_t length = parms.parm2;
+    void *addr = (void *) parms->parm1;
+    size_t length = parms->parm2;
 
     munmap_args_t *munmap = (munmap_args_t *) ent->bytes;
     munmap->addr = addr;
     munmap->length = length;
 }
 
-static void sys_brk_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_brk_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    void *addr = (void *) parms.parm1;
+    void *addr = (void *) parms->parm1;
 
     brk_args_t *brk = (brk_args_t *) ent->bytes;
     brk->addr = addr;
 }
 
-static void sys_mremap_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_mremap_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    void *old_address = (void *) parms.parm1;
-    size_t old_size = parms.parm2;
-    size_t new_size = parms.parm3;
-    int flags = parms.parm4;
-    void *new_address = (void *) parms.parm5;
+    void *old_address = (void *) parms->parm1;
+    size_t old_size = parms->parm2;
+    size_t new_size = parms->parm3;
+    int flags = parms->parm4;
+    void *new_address = (void *) parms->parm5;
 
     mremap_args_t *mremap = (mremap_args_t *) ent->bytes;
 
@@ -67,11 +67,11 @@ static void sys_mremap_enter(syscall_ent_t *ent, struct input_parms parms)
     mremap->new_address = new_address;
 }
 
-static void sys_msync_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_msync_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    void *addr = (void *) parms.parm1;
-    size_t length = parms.parm2;
-    int flags = parms.parm3;
+    void *addr = (void *) parms->parm1;
+    size_t length = parms->parm2;
+    int flags = parms->parm3;
 
     msync_args_t *msync = (msync_args_t *) ent->bytes;
 
@@ -80,11 +80,11 @@ static void sys_msync_enter(syscall_ent_t *ent, struct input_parms parms)
     msync->flags = flags;
 }
 
-static void sys_mincore_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_mincore_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    void *addr = (void *) parms.parm1;
-    size_t length = parms.parm2;
-    unsigned char *vec = (unsigned char *) parms.parm3;
+    void *addr = (void *) parms->parm1;
+    size_t length = parms->parm2;
+    unsigned char *vec = (unsigned char *) parms->parm3;
 
     mincore_args_t *mincore = (mincore_args_t *) ent->bytes;
 
@@ -113,11 +113,11 @@ static void sys_mincore_exit(syscall_ent_t *ent)
         bpf_core_read_user(mincore->vec, cpy_count, *buf_addr_ptr);
 }
 
-static void sys_madvise_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_madvise_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    void *addr = (void *) parms.parm1;
-    size_t length = parms.parm2;
-    int advice = parms.parm3;
+    void *addr = (void *) parms->parm1;
+    size_t length = parms->parm2;
+    int advice = parms->parm3;
 
     madvise_args_t *madvise = (madvise_args_t *) ent->bytes;
 
@@ -126,39 +126,39 @@ static void sys_madvise_enter(syscall_ent_t *ent, struct input_parms parms)
     madvise->advice = advice;
 }
 
-static void sys_mlock_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_mlock_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    void *addr = (void *) parms.parm1;
-    size_t len = (size_t) parms.parm2;
+    void *addr = (void *) parms->parm1;
+    size_t len = (size_t) parms->parm2;
 
     mlock_args_t *ml = (mlock_args_t *) ent->bytes;
     ml->addr = addr;
     ml->len = len;
 }
 
-static void sys_munlock_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_munlock_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    void *addr = (void *) parms.parm1;
-    size_t len = (size_t) parms.parm2;
+    void *addr = (void *) parms->parm1;
+    size_t len = (size_t) parms->parm2;
 
     munlock_args_t *ml = (munlock_args_t *) ent->bytes;
     ml->addr = addr;
     ml->len = len;
 }
 
-static void sys_mlockall_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_mlockall_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    int flags = (int) parms.parm1;
+    int flags = (int) parms->parm1;
 
     mlockall_args_t *ml = (mlockall_args_t *) ent->bytes;
     ml->flags = flags;
 }
 
-static void sys_mlock2_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_mlock2_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    void *addr = (void *) parms.parm1;
-    size_t len = (size_t) parms.parm2;
-    int flags = (int) parms.parm3;
+    void *addr = (void *) parms->parm1;
+    size_t len = (size_t) parms->parm2;
+    int flags = (int) parms->parm3;
 
     mlock2_args_t *ml = (mlock2_args_t *) ent->bytes;
     ml->addr = addr;

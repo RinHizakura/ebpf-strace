@@ -1,8 +1,8 @@
-static void sys_bind_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_bind_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    int sockfd = (int) parms.parm1;
-    void *addr = (void *) parms.parm2;
-    u32 addrlen = (u32) parms.parm3;
+    int sockfd = (int) parms->parm1;
+    void *addr = (void *) parms->parm2;
+    u32 addrlen = (u32) parms->parm3;
 
     bind_args_t *bind = (bind_args_t *) ent->bytes;
     bind->sockfd = sockfd;

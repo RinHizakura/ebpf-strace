@@ -1,8 +1,8 @@
-static void sys_chown_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_chown_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    char *path = (char *) parms.parm1;
-    uid_t uid = (uid_t) parms.parm2;
-    gid_t gid = (gid_t) parms.parm3;
+    char *path = (char *) parms->parm1;
+    uid_t uid = (uid_t) parms->parm2;
+    gid_t gid = (gid_t) parms->parm3;
 
     chown_args_t *chown = (chown_args_t *) ent->bytes;
     chown->uid = uid;
@@ -23,11 +23,11 @@ static void sys_chown_exit(syscall_ent_t *ent)
         bpf_core_read_user(chown->path, sizeof(chown->path), *buf_addr_ptr);
 }
 
-static void sys_fchown_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_fchown_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    int fd = (int) parms.parm1;
-    uid_t uid = (uid_t) parms.parm2;
-    gid_t gid = (gid_t) parms.parm3;
+    int fd = (int) parms->parm1;
+    uid_t uid = (uid_t) parms->parm2;
+    gid_t gid = (gid_t) parms->parm3;
 
     fchown_args_t *fchown = (fchown_args_t *) ent->bytes;
     fchown->fd = fd;

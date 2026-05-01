@@ -1,6 +1,6 @@
-static void sys_rmdir_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_rmdir_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    char *path = (char *) parms.parm1;
+    char *path = (char *) parms->parm1;
 
     __attribute__((unused)) rmdir_args_t *rmdir = (rmdir_args_t *) ent->bytes;
 

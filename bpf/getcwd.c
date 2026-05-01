@@ -1,7 +1,7 @@
-static void sys_getcwd_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_getcwd_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    char *buf = (char *) parms.parm1;
-    size_t size = (size_t) parms.parm2;
+    char *buf = (char *) parms->parm1;
+    size_t size = (size_t) parms->parm2;
 
     getcwd_args_t *getcwd = (getcwd_args_t *) ent->bytes;
     getcwd->size = size;

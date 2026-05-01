@@ -1,7 +1,7 @@
-static void sys_rename_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_rename_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    char *old_path = (char *) parms.parm1;
-    char *new_path = (char *) parms.parm2;
+    char *old_path = (char *) parms->parm1;
+    char *new_path = (char *) parms->parm2;
 
     __attribute__((unused)) rename_args_t *rename =
         (rename_args_t *) ent->bytes;
@@ -28,12 +28,12 @@ static void sys_rename_exit(syscall_ent_t *ent)
         bpf_core_read_user(rename->new_path, sizeof(rename->new_path), *buf1);
 }
 
-static void sys_renameat_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_renameat_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    int olddirfd = (int) parms.parm1;
-    char *old_path = (char *) parms.parm2;
-    int newdirfd = (int) parms.parm3;
-    char *new_path = (char *) parms.parm4;
+    int olddirfd = (int) parms->parm1;
+    char *old_path = (char *) parms->parm2;
+    int newdirfd = (int) parms->parm3;
+    char *new_path = (char *) parms->parm4;
 
     renameat_args_t *renameat = (renameat_args_t *) ent->bytes;
     renameat->olddirfd = olddirfd;

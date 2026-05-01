@@ -149,301 +149,301 @@ static int __sys_enter(struct bpf_raw_tracepoint_args *args)
 
     switch (id) {
     case SYS_READ:
-        sys_read_enter(ent, parms);
+        sys_read_enter(ent, &parms);
         break;
     case SYS_WRITE:
-        sys_write_enter(ent, parms);
+        sys_write_enter(ent, &parms);
         break;
     case SYS_CLOSE:
-        sys_close_enter(ent, parms);
+        sys_close_enter(ent, &parms);
         break;
     case SYS_FSTAT:
-        sys_fstat_enter(ent, parms);
+        sys_fstat_enter(ent, &parms);
         break;
     case SYS_LSEEK:
-        sys_lseek_enter(ent, parms);
+        sys_lseek_enter(ent, &parms);
         break;
     case SYS_MMAP:
-        sys_mmap_enter(ent, parms);
+        sys_mmap_enter(ent, &parms);
         break;
     case SYS_MPROTECT:
-        sys_mprotect_enter(ent, parms);
+        sys_mprotect_enter(ent, &parms);
         break;
     case SYS_MUNMAP:
-        sys_munmap_enter(ent, parms);
+        sys_munmap_enter(ent, &parms);
         break;
     case SYS_BRK:
-        sys_brk_enter(ent, parms);
+        sys_brk_enter(ent, &parms);
         break;
     case SYS_RT_SIGACTION:
-        sys_rt_sigaction_enter(ent, parms);
+        sys_rt_sigaction_enter(ent, &parms);
         break;
     case SYS_RT_SIGPROCMASK:
-        sys_rt_sigprocmask_enter(ent, parms);
+        sys_rt_sigprocmask_enter(ent, &parms);
         break;
     case SYS_IOCTL:
-        sys_ioctl_enter(ent, parms);
+        sys_ioctl_enter(ent, &parms);
         break;
     case SYS_PREAD64:
-        sys_pread_enter(ent, parms);
+        sys_pread_enter(ent, &parms);
         break;
     case SYS_PWRITE64:
-        sys_pwrite_enter(ent, parms);
+        sys_pwrite_enter(ent, &parms);
         break;
     case SYS_READV:
-        sys_readv_enter(ent, parms);
+        sys_readv_enter(ent, &parms);
         break;
     case SYS_WRITEV:
-        sys_writev_enter(ent, parms);
+        sys_writev_enter(ent, &parms);
         break;
     case SYS_MREMAP:
-        sys_mremap_enter(ent, parms);
+        sys_mremap_enter(ent, &parms);
         break;
     case SYS_MSYNC:
-        sys_msync_enter(ent, parms);
+        sys_msync_enter(ent, &parms);
         break;
     case SYS_MINCORE:
-        sys_mincore_enter(ent, parms);
+        sys_mincore_enter(ent, &parms);
         break;
     case SYS_MADVISE:
-        sys_madvise_enter(ent, parms);
+        sys_madvise_enter(ent, &parms);
         break;
     case SYS_SHMGET:
-        sys_shmget_enter(ent, parms);
+        sys_shmget_enter(ent, &parms);
         break;
     case SYS_SHMAT:
-        sys_shmat_enter(ent, parms);
+        sys_shmat_enter(ent, &parms);
         break;
     case SYS_SHMCTL:
-        sys_shmctl_enter(ent, parms);
+        sys_shmctl_enter(ent, &parms);
         break;
     case SYS_DUP:
-        sys_dup_enter(ent, parms);
+        sys_dup_enter(ent, &parms);
         break;
     case SYS_NEWFSTATAT:
-        sys_newfstatat_enter(ent, parms);
+        sys_newfstatat_enter(ent, &parms);
         break;
     case SYS_EXECVE:
-        sys_execve_enter(ent, parms);
+        sys_execve_enter(ent, &parms);
         break;
     case SYS_EXIT_GROUP:
-        sys_exit_group_enter(ent, parms);
+        sys_exit_group_enter(ent, &parms);
         break;
     case SYS_OPENAT:
-        sys_openat_enter(ent, parms);
+        sys_openat_enter(ent, &parms);
         break;
     case SYS_KILL:
-        sys_kill_enter(ent, parms);
+        sys_kill_enter(ent, &parms);
         break;
     case SYS_TKILL:
-        sys_tkill_enter(ent, parms);
+        sys_tkill_enter(ent, &parms);
         break;
     case SYS_TGKILL:
-        sys_tgkill_enter(ent, parms);
+        sys_tgkill_enter(ent, &parms);
         break;
     case SYS_WAIT4:
-        sys_wait4_enter(ent, parms);
+        sys_wait4_enter(ent, &parms);
         break;
     case SYS_CLONE:
-        sys_clone_enter(ent, parms);
+        sys_clone_enter(ent, &parms);
         break;
     case SYS_SETUID:
-        sys_setuid_enter(ent, parms);
+        sys_setuid_enter(ent, &parms);
         break;
     case SYS_SETGID:
-        sys_setgid_enter(ent, parms);
+        sys_setgid_enter(ent, &parms);
         break;
     case SYS_SETPGID:
-        sys_setpgid_enter(ent, parms);
+        sys_setpgid_enter(ent, &parms);
         break;
     case SYS_GETPGID:
-        sys_getpgid_enter(ent, parms);
+        sys_getpgid_enter(ent, &parms);
         break;
     case SYS_GETSID:
-        sys_getsid_enter(ent, parms);
+        sys_getsid_enter(ent, &parms);
         break;
     case SYS_PRCTL:
-        sys_prctl_enter(ent, parms);
+        sys_prctl_enter(ent, &parms);
         break;
     case SYS_FSYNC:
-        sys_fsync_enter(ent, parms);
+        sys_fsync_enter(ent, &parms);
         break;
     case SYS_FDATASYNC:
-        sys_fdatasync_enter(ent, parms);
+        sys_fdatasync_enter(ent, &parms);
         break;
     case SYS_FCHDIR:
-        sys_fchdir_enter(ent, parms);
+        sys_fchdir_enter(ent, &parms);
         break;
     case SYS_FCHMOD:
-        sys_fchmod_enter(ent, parms);
+        sys_fchmod_enter(ent, &parms);
         break;
     case SYS_FCHOWN:
-        sys_fchown_enter(ent, parms);
+        sys_fchown_enter(ent, &parms);
         break;
     case SYS_FTRUNCATE:
-        sys_ftruncate_enter(ent, parms);
+        sys_ftruncate_enter(ent, &parms);
         break;
     case SYS_GETDENTS64:
-        sys_getdents64_enter(ent, parms);
+        sys_getdents64_enter(ent, &parms);
         break;
     case SYS_CHDIR:
-        sys_chdir_enter(ent, parms);
+        sys_chdir_enter(ent, &parms);
         break;
     case SYS_GETCWD:
-        sys_getcwd_enter(ent, parms);
+        sys_getcwd_enter(ent, &parms);
         break;
     case SYS_MKDIRAT:
-        sys_mkdirat_enter(ent, parms);
+        sys_mkdirat_enter(ent, &parms);
         break;
     case SYS_UNLINKAT:
-        sys_unlinkat_enter(ent, parms);
+        sys_unlinkat_enter(ent, &parms);
         break;
     case SYS_RENAMEAT:
-        sys_renameat_enter(ent, parms);
+        sys_renameat_enter(ent, &parms);
         break;
     case SYS_SOCKET:
-        sys_socket_enter(ent, parms);
+        sys_socket_enter(ent, &parms);
         break;
     case SYS_SHUTDOWN:
-        sys_shutdown_enter(ent, parms);
+        sys_shutdown_enter(ent, &parms);
         break;
     case SYS_LISTEN:
-        sys_listen_enter(ent, parms);
+        sys_listen_enter(ent, &parms);
         break;
     case SYS_BIND:
-        sys_bind_enter(ent, parms);
+        sys_bind_enter(ent, &parms);
         break;
     case SYS_CONNECT:
-        sys_connect_enter(ent, parms);
+        sys_connect_enter(ent, &parms);
         break;
     case SYS_ACCEPT:
-        sys_accept_enter(ent, parms);
+        sys_accept_enter(ent, &parms);
         break;
     case SYS_ACCEPT4:
-        sys_accept4_enter(ent, parms);
+        sys_accept4_enter(ent, &parms);
         break;
     case SYS_SENDTO:
-        sys_sendto_enter(ent, parms);
+        sys_sendto_enter(ent, &parms);
         break;
     case SYS_RECVFROM:
-        sys_recvfrom_enter(ent, parms);
+        sys_recvfrom_enter(ent, &parms);
         break;
     case SYS_NANOSLEEP:
-        sys_nanosleep_enter(ent, parms);
+        sys_nanosleep_enter(ent, &parms);
         break;
     case SYS_CLOCK_GETTIME:
-        sys_clock_gettime_enter(ent, parms);
+        sys_clock_gettime_enter(ent, &parms);
         break;
     case SYS_CLOCK_GETRES:
-        sys_clock_getres_enter(ent, parms);
+        sys_clock_getres_enter(ent, &parms);
         break;
     case SYS_GETTIMEOFDAY:
-        sys_gettimeofday_enter(ent, parms);
+        sys_gettimeofday_enter(ent, &parms);
         break;
     case SYS_FCNTL:
-        sys_fcntl_enter(ent, parms);
+        sys_fcntl_enter(ent, &parms);
         break;
     case SYS_PIPE2:
-        sys_pipe2_enter(ent, parms);
+        sys_pipe2_enter(ent, &parms);
         break;
     case SYS_DUP3:
-        sys_dup3_enter(ent, parms);
+        sys_dup3_enter(ent, &parms);
         break;
     case SYS_EPOLL_CREATE1:
-        sys_epoll_create1_enter(ent, parms);
+        sys_epoll_create1_enter(ent, &parms);
         break;
     case SYS_EPOLL_CTL:
-        sys_epoll_ctl_enter(ent, parms);
+        sys_epoll_ctl_enter(ent, &parms);
         break;
 #ifdef __TARGET_ARCH_x86
     case SYS_EPOLL_WAIT:
-        sys_epoll_wait_enter(ent, parms);
+        sys_epoll_wait_enter(ent, &parms);
         break;
 #endif
     case SYS_SYNCFS:
-        sys_syncfs_enter(ent, parms);
+        sys_syncfs_enter(ent, &parms);
         break;
     case SYS_CLOSE_RANGE:
-        sys_close_range_enter(ent, parms);
+        sys_close_range_enter(ent, &parms);
         break;
     case SYS_PRLIMIT64:
-        sys_prlimit64_enter(ent, parms);
+        sys_prlimit64_enter(ent, &parms);
         break;
     case SYS_SETRLIMIT:
-        sys_setrlimit_enter(ent, parms);
+        sys_setrlimit_enter(ent, &parms);
         break;
     case SYS_GETRLIMIT:
-        sys_getrlimit_enter(ent, parms);
+        sys_getrlimit_enter(ent, &parms);
         break;
     case SYS_GETRANDOM:
-        sys_getrandom_enter(ent, parms);
+        sys_getrandom_enter(ent, &parms);
         break;
     case SYS_MLOCK:
-        sys_mlock_enter(ent, parms);
+        sys_mlock_enter(ent, &parms);
         break;
     case SYS_MUNLOCK:
-        sys_munlock_enter(ent, parms);
+        sys_munlock_enter(ent, &parms);
         break;
     case SYS_MLOCKALL:
-        sys_mlockall_enter(ent, parms);
+        sys_mlockall_enter(ent, &parms);
         break;
     case SYS_MLOCK2:
-        sys_mlock2_enter(ent, parms);
+        sys_mlock2_enter(ent, &parms);
         break;
     case SYS_TRUNCATE:
-        sys_truncate_enter(ent, parms);
+        sys_truncate_enter(ent, &parms);
         break;
 #ifdef __TARGET_ARCH_x86
     case SYS_OPEN:
-        sys_open_enter(ent, parms);
+        sys_open_enter(ent, &parms);
         break;
     case SYS_MKDIR:
-        sys_mkdir_enter(ent, parms);
+        sys_mkdir_enter(ent, &parms);
         break;
     case SYS_RMDIR:
-        sys_rmdir_enter(ent, parms);
+        sys_rmdir_enter(ent, &parms);
         break;
     case SYS_UNLINK:
-        sys_unlink_enter(ent, parms);
+        sys_unlink_enter(ent, &parms);
         break;
     case SYS_CHMOD:
-        sys_chmod_enter(ent, parms);
+        sys_chmod_enter(ent, &parms);
         break;
     case SYS_CHOWN:
-        sys_chown_enter(ent, parms);
+        sys_chown_enter(ent, &parms);
         break;
     case SYS_RENAME:
-        sys_rename_enter(ent, parms);
+        sys_rename_enter(ent, &parms);
         break;
     case SYS_LINK:
-        sys_link_enter(ent, parms);
+        sys_link_enter(ent, &parms);
         break;
     case SYS_SYMLINK:
-        sys_symlink_enter(ent, parms);
+        sys_symlink_enter(ent, &parms);
         break;
     case SYS_READLINK:
-        sys_readlink_enter(ent, parms);
+        sys_readlink_enter(ent, &parms);
         break;
     case SYS_STAT:
-        sys_stat_enter(ent, parms);
+        sys_stat_enter(ent, &parms);
         break;
     case SYS_LSTAT:
-        sys_lstat_enter(ent, parms);
+        sys_lstat_enter(ent, &parms);
         break;
     case SYS_POLL:
-        sys_poll_enter(ent, parms);
+        sys_poll_enter(ent, &parms);
         break;
     case SYS_ACCESS:
-        sys_access_enter(ent, parms);
+        sys_access_enter(ent, &parms);
         break;
     case SYS_PIPE:
-        sys_pipe_enter(ent, parms);
+        sys_pipe_enter(ent, &parms);
         break;
     case SYS_SELECT:
-        sys_select_enter(ent, parms);
+        sys_select_enter(ent, &parms);
         break;
     case SYS_DUP2:
-        sys_dup2_enter(ent, parms);
+        sys_dup2_enter(ent, &parms);
         break;
 #endif
     default:

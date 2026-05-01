@@ -1,8 +1,8 @@
-static void sys_read_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_read_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    int fd = parms.parm1;
-    void *buf = (void *) parms.parm2;
-    size_t count = parms.parm3;
+    int fd = parms->parm1;
+    void *buf = (void *) parms->parm2;
+    size_t count = parms->parm3;
 
     read_args_t *read = (read_args_t *) ent->bytes;
     read->fd = fd;
@@ -29,11 +29,11 @@ static void sys_read_exit(syscall_ent_t *ent)
         bpf_core_read_user(read->buf, cpy_count, *buf_addr_ptr);
 }
 
-static void sys_write_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_write_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    int fd = parms.parm1;
-    void *buf = (void *) parms.parm2;
-    size_t count = parms.parm3;
+    int fd = parms->parm1;
+    void *buf = (void *) parms->parm2;
+    size_t count = parms->parm3;
 
     write_args_t *write = (write_args_t *) ent->bytes;
     write->fd = fd;
@@ -44,12 +44,12 @@ static void sys_write_enter(syscall_ent_t *ent, struct input_parms parms)
     bpf_core_read_user(write->buf, cpy_count, buf);
 }
 
-static void sys_pread_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_pread_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    int fd = parms.parm1;
-    void *buf = (void *) parms.parm2;
-    size_t count = parms.parm3;
-    off_t offset = parms.parm4;
+    int fd = parms->parm1;
+    void *buf = (void *) parms->parm2;
+    size_t count = parms->parm3;
+    off_t offset = parms->parm4;
 
     pread64_args_t *pread = (pread64_args_t *) ent->bytes;
     pread->fd = fd;
@@ -73,12 +73,12 @@ static void sys_pread_exit(syscall_ent_t *ent)
         bpf_core_read_user(pread->buf, cpy_count, *buf_addr_ptr);
 }
 
-static void sys_pwrite_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_pwrite_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    int fd = parms.parm1;
-    void *buf = (void *) parms.parm2;
-    size_t count = parms.parm3;
-    off_t offset = parms.parm4;
+    int fd = parms->parm1;
+    void *buf = (void *) parms->parm2;
+    size_t count = parms->parm3;
+    off_t offset = parms->parm4;
 
     pwrite64_args_t *pwrite = (pwrite64_args_t *) ent->bytes;
     pwrite->fd = fd;
@@ -90,11 +90,11 @@ static void sys_pwrite_enter(syscall_ent_t *ent, struct input_parms parms)
     bpf_core_read_user(pwrite->buf, cpy_count, buf);
 }
 
-static void sys_readv_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_readv_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    int fd = parms.parm1;
-    struct iovec *iov = (struct iovec *) parms.parm2;
-    int iovcnt = parms.parm3;
+    int fd = parms->parm1;
+    struct iovec *iov = (struct iovec *) parms->parm2;
+    int iovcnt = parms->parm3;
 
     readv_args_t *readv = (readv_args_t *) ent->bytes;
     readv->fd = fd;
@@ -130,11 +130,11 @@ static void sys_readv_exit(syscall_ent_t *ent)
     }
 }
 
-static void sys_writev_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_writev_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    int fd = parms.parm1;
-    struct iovec *iov = (struct iovec *) parms.parm2;
-    int iovcnt = parms.parm3;
+    int fd = parms->parm1;
+    struct iovec *iov = (struct iovec *) parms->parm2;
+    int iovcnt = parms->parm3;
 
     writev_args_t *writev = (writev_args_t *) ent->bytes;
     writev->fd = fd;

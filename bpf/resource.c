@@ -1,9 +1,9 @@
-static void sys_prlimit64_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_prlimit64_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    pid_t pid = (pid_t) parms.parm1;
-    int resource = (int) parms.parm2;
-    void *new_rlim = (void *) parms.parm3;
-    void *old_rlim = (void *) parms.parm4;
+    pid_t pid = (pid_t) parms->parm1;
+    int resource = (int) parms->parm2;
+    void *new_rlim = (void *) parms->parm3;
+    void *old_rlim = (void *) parms->parm4;
 
     prlimit64_args_t *pr = (prlimit64_args_t *) ent->bytes;
     pr->pid = pid;
@@ -29,10 +29,10 @@ static void sys_prlimit64_exit(syscall_ent_t *ent)
         bpf_core_read_user(&pr->old_rlim, sizeof(pr->old_rlim), *buf_addr_ptr);
 }
 
-static void sys_setrlimit_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_setrlimit_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    int resource = (int) parms.parm1;
-    void *rlim = (void *) parms.parm2;
+    int resource = (int) parms->parm1;
+    void *rlim = (void *) parms->parm2;
 
     setrlimit_args_t *sr = (setrlimit_args_t *) ent->bytes;
     sr->resource = resource;
@@ -41,10 +41,10 @@ static void sys_setrlimit_enter(syscall_ent_t *ent, struct input_parms parms)
         bpf_core_read_user(&sr->rlim, sizeof(sr->rlim), rlim);
 }
 
-static void sys_getrlimit_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_getrlimit_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    int resource = (int) parms.parm1;
-    void *rlim = (void *) parms.parm2;
+    int resource = (int) parms->parm1;
+    void *rlim = (void *) parms->parm2;
 
     getrlimit_args_t *gr = (getrlimit_args_t *) ent->bytes;
     gr->resource = resource;

@@ -1,8 +1,8 @@
-static void sys_readlink_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_readlink_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    char *path = (char *) parms.parm1;
-    char *buf = (char *) parms.parm2;
-    size_t bufsiz = (size_t) parms.parm3;
+    char *path = (char *) parms->parm1;
+    char *buf = (char *) parms->parm2;
+    size_t bufsiz = (size_t) parms->parm3;
 
     readlink_args_t *readlink = (readlink_args_t *) ent->bytes;
     readlink->bufsiz = bufsiz;

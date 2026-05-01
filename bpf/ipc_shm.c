@@ -1,8 +1,8 @@
-static void sys_shmget_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_shmget_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    key_t key = parms.parm1;
-    size_t size = parms.parm2;
-    int shmflg = parms.parm3;
+    key_t key = parms->parm1;
+    size_t size = parms->parm2;
+    int shmflg = parms->parm3;
 
     shmget_args_t *shmget = (shmget_args_t *) ent->bytes;
 
@@ -11,11 +11,11 @@ static void sys_shmget_enter(syscall_ent_t *ent, struct input_parms parms)
     shmget->shmflg = shmflg;
 }
 
-static void sys_shmat_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_shmat_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    int shmid = parms.parm1;
-    void *shmaddr = (void *) parms.parm2;
-    int shmflg = parms.parm3;
+    int shmid = parms->parm1;
+    void *shmaddr = (void *) parms->parm2;
+    int shmflg = parms->parm3;
 
     shmat_args_t *shmat = (shmat_args_t *) ent->bytes;
 
@@ -24,11 +24,11 @@ static void sys_shmat_enter(syscall_ent_t *ent, struct input_parms parms)
     shmat->shmflg = shmflg;
 }
 
-static void sys_shmctl_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_shmctl_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    int shmid = parms.parm1;
-    int cmd = parms.parm2;
-    shmid_ds_t *buf = (shmid_ds_t *) parms.parm3;
+    int shmid = parms->parm1;
+    int cmd = parms->parm2;
+    shmid_ds_t *buf = (shmid_ds_t *) parms->parm3;
 
     shmctl_args_t *shmctl = (shmctl_args_t *) ent->bytes;
 

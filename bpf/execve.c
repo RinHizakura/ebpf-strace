@@ -13,11 +13,11 @@ static size_t count_envp_len(char *arr[])
     return idx;
 }
 
-static void sys_execve_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_execve_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    char *pathname = (char *) parms.parm1;
-    char **argv = (void *) parms.parm2;
-    char **envp = (void *) parms.parm3;
+    char *pathname = (char *) parms->parm1;
+    char **argv = (void *) parms->parm2;
+    char **envp = (void *) parms->parm3;
 
     execve_args_t *execve = (execve_args_t *) ent->bytes;
 

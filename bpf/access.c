@@ -1,7 +1,7 @@
-static void sys_access_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_access_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    char *pathname = (char *) parms.parm1;
-    int mode = parms.parm2;
+    char *pathname = (char *) parms->parm1;
+    int mode = parms->parm2;
 
     access_args_t *access = (access_args_t *) ent->bytes;
     access->mode = mode;

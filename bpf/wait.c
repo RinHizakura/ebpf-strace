@@ -1,8 +1,8 @@
-static void sys_wait4_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_wait4_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    pid_t upid = (pid_t) parms.parm1;
-    int *wstatus = (int *) parms.parm2;
-    int options = (int) parms.parm3;
+    pid_t upid = (pid_t) parms->parm1;
+    int *wstatus = (int *) parms->parm2;
+    int options = (int) parms->parm3;
 
     wait4_args_t *wait4 = (wait4_args_t *) ent->bytes;
     wait4->upid = upid;

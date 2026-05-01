@@ -1,7 +1,7 @@
-static void sys_link_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_link_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    char *old_path = (char *) parms.parm1;
-    char *new_path = (char *) parms.parm2;
+    char *old_path = (char *) parms->parm1;
+    char *new_path = (char *) parms->parm2;
 
     __attribute__((unused)) link_args_t *link = (link_args_t *) ent->bytes;
 

@@ -1,6 +1,6 @@
-static void sys_chdir_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_chdir_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    char *path = (char *) parms.parm1;
+    char *path = (char *) parms->parm1;
 
     __attribute__((unused)) chdir_args_t *chdir = (chdir_args_t *) ent->bytes;
 
@@ -19,9 +19,9 @@ static void sys_chdir_exit(syscall_ent_t *ent)
         bpf_core_read_user(chdir->path, sizeof(chdir->path), *buf_addr_ptr);
 }
 
-static void sys_fchdir_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_fchdir_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    int fd = (int) parms.parm1;
+    int fd = (int) parms->parm1;
 
     fchdir_args_t *fchdir = (fchdir_args_t *) ent->bytes;
     fchdir->fd = fd;

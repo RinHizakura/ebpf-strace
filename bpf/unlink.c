@@ -1,6 +1,6 @@
-static void sys_unlink_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_unlink_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    char *path = (char *) parms.parm1;
+    char *path = (char *) parms->parm1;
 
     __attribute__((unused)) unlink_args_t *unlink =
         (unlink_args_t *) ent->bytes;
@@ -20,11 +20,11 @@ static void sys_unlink_exit(syscall_ent_t *ent)
         bpf_core_read_user(unlink->path, sizeof(unlink->path), *buf_addr_ptr);
 }
 
-static void sys_unlinkat_enter(syscall_ent_t *ent, struct input_parms parms)
+static void sys_unlinkat_enter(syscall_ent_t *ent, struct input_parms *parms)
 {
-    int dirfd = (int) parms.parm1;
-    char *path = (char *) parms.parm2;
-    int flags = (int) parms.parm3;
+    int dirfd = (int) parms->parm1;
+    char *path = (char *) parms->parm2;
+    int flags = (int) parms->parm3;
 
     unlinkat_args_t *unlinkat = (unlinkat_args_t *) ent->bytes;
     unlinkat->dirfd = dirfd;
