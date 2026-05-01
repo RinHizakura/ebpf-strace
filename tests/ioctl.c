@@ -14,7 +14,8 @@ int main()
         goto end;
         ret = -1;
     }
-    printf("ioctl(%d, RNDGETENTCNT, %d) = %d\n", random_fd, ent_count, result);
+    printf("ioctl(%d, RNDGETENTCNT, [%d]) = %d\n", random_fd, ent_count,
+           result);
 
 end:
     close(random_fd);

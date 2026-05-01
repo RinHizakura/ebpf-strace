@@ -18,14 +18,14 @@ int main()
         ret = -1;
         goto end;
     }
-    printf("fcntl(%d, F_GETFD, 0x0) = %d\n", fd, flags);
+    printf("fcntl(%d, F_GETFD) = %d\n", fd, flags);
 
     int r = fcntl(fd, F_SETFD, FD_CLOEXEC);
     if (r < 0) {
         ret = -1;
         goto end;
     }
-    printf("fcntl(%d, F_SETFD, 0x1) = %d\n", fd, r);
+    printf("fcntl(%d, F_SETFD, FD_CLOEXEC) = %d\n", fd, r);
 
 end:
     if (fd >= 0)

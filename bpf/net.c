@@ -37,6 +37,10 @@ static void sys_accept_enter(syscall_ent_t *ent, struct input_parms parms)
     accept_args_t *accept = (accept_args_t *) ent->bytes;
     accept->sockfd = sockfd;
     accept->addrlen = 0;
+    accept->initial_addrlen = 0;
+    if (addrlen_ptr)
+        bpf_core_read_user(&accept->initial_addrlen,
+                           sizeof(accept->initial_addrlen), addrlen_ptr);
 
     void **buf0 = bpf_g_buf_addr_lookup_elem(&INDEX_0);
     if (buf0 != NULL)
@@ -74,6 +78,10 @@ static void sys_accept4_enter(syscall_ent_t *ent, struct input_parms parms)
     accept4->sockfd = sockfd;
     accept4->flags = flags;
     accept4->addrlen = 0;
+    accept4->initial_addrlen = 0;
+    if (addrlen_ptr)
+        bpf_core_read_user(&accept4->initial_addrlen,
+                           sizeof(accept4->initial_addrlen), addrlen_ptr);
 
     void **buf0 = bpf_g_buf_addr_lookup_elem(&INDEX_0);
     if (buf0 != NULL)

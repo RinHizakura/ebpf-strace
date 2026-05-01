@@ -56,9 +56,14 @@ pub(super) fn handle_mmap_args(args: &[u8]) -> String {
     let addr = format_addr(mmap.addr);
     let prot = format_flags(mmap.prot as u64, '|', &MMAP_PROT_DESCS, Format::Hex);
     let flags = format_flags(mmap.flags as u64, '|', &MMAP_FLAGS_DESCS, Format::Hex);
+    let offset = if mmap.offset == 0 {
+        "0".to_owned()
+    } else {
+        format!("0x{:x}", mmap.offset)
+    };
     return format!(
-        "{}, {}, {}, {}, {}, 0x{:x}",
-        addr, mmap.length, prot, flags, mmap.fd, mmap.offset
+        "{}, {}, {}, {}, {}, {}",
+        addr, mmap.length, prot, flags, mmap.fd, offset
     );
 }
 

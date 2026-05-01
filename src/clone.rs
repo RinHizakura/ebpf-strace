@@ -9,6 +9,7 @@ use libc::{
 #[repr(C)]
 struct CloneArgs {
     flags: c_ulong,
+    child_stack: c_ulong,
 }
 unsafe impl plain::Plain for CloneArgs {}
 
@@ -40,12 +41,24 @@ const CLONE_FLAGS_DESCS: &[Desc] = &[
 
 pub(super) fn handle_clone_args(args: &[u8]) -> String {
     let clone = get_args::<CloneArgs>(args);
+    let child_stack = if clone.child_stack == 0 {
+        "NULL".to_owned()
+    } else {
+        format!("0x{:x}", clone.child_stack)
+    };
     let signum = (clone.flags & 0xff) as c_int;
-    let signal_str = if signum != 0 {
+    let upper_flags = clone.flags & !0xff;
+    let flags = if upper_flags != 0 {
+        let f = format_flags(upper_flags, '|', CLONE_FLAGS_DESCS, Format::Hex);
+        if signum != 0 {
+            format!("{}|{}", f, format_signum(signum))
+        } else {
+            f
+        }
+    } else if signum != 0 {
         format_signum(signum)
     } else {
         "0".to_owned()
     };
-    let flags = format_flags(clone.flags & !0xff, '|', CLONE_FLAGS_DESCS, Format::Hex);
-    format!("flags={}|{}", flags, signal_str)
+    format!("child_stack={}, flags={}", child_stack, flags)
 }

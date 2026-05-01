@@ -28,6 +28,24 @@ static char *build_fds(int *sets, int set_cnt, fd_set *fds)
     return buf;
 }
 
+static char *format_fds_out(fd_set *fds, int nfds)
+{
+    static char buf2[FDS_BUF_SIZE];
+    int pos = 0;
+    xsnprintf(pos, buf2, FDS_BUF_SIZE, "[");
+    int first = 1;
+    for (int i = 0; i < nfds; i++) {
+        if (FD_ISSET(i, fds)) {
+            if (!first)
+                xsnprintf(pos, buf2, FDS_BUF_SIZE, " ");
+            xsnprintf(pos, buf2, FDS_BUF_SIZE, "%d", i);
+            first = 0;
+        }
+    }
+    xsnprintf(pos, buf2, FDS_BUF_SIZE, "]");
+    return buf2;
+}
+
 static char *build_timeval(long tv_sec, long tv_usec, struct timeval *tv)
 {
 #define TIMEVAL_BUF_SIZE 512
@@ -57,12 +75,16 @@ int main()
 
     int nfds = 3;
     long result = syscall(SYS_select, nfds, &rfds, NULL, NULL, &tv);
-    if (result == -1) {
+    if (result <= 0) {
         ret = -1;
         goto end;
     }
-    printf("select(%d, %s, NULL, NULL, %s) = %ld\n", nfds, fds_str, tv_str,
-           result);
+
+    printf(
+        "select(%d, %s, NULL, NULL, %s) = %ld (in %s, left {tv_sec=%ld, "
+        "tv_usec=%ld})\n",
+        nfds, fds_str, tv_str, result, format_fds_out(&rfds, nfds), tv.tv_sec,
+        tv.tv_usec);
 
 end:
     puts("+++ exited with 0 +++");

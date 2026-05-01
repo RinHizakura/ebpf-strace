@@ -2,7 +2,7 @@ use crate::common::*;
 use libc::{
     pid_t, RLIMIT_AS, RLIMIT_CORE, RLIMIT_CPU, RLIMIT_DATA, RLIMIT_FSIZE, RLIMIT_LOCKS,
     RLIMIT_MEMLOCK, RLIMIT_MSGQUEUE, RLIMIT_NICE, RLIMIT_NOFILE, RLIMIT_NPROC, RLIMIT_RSS,
-    RLIMIT_RTPRIO, RLIMIT_RTTIME, RLIMIT_SIGPENDING, RLIMIT_STACK, RLIM_INFINITY,
+    RLIMIT_RTPRIO, RLIMIT_RTTIME, RLIMIT_SIGPENDING, RLIMIT_STACK,
 };
 
 #[repr(C)]
@@ -12,8 +12,10 @@ struct RlimitTrace {
 }
 
 fn format_rlim_val(v: u64) -> String {
-    if v == RLIM_INFINITY {
-        "RLIM_INFINITY".to_owned()
+    if v == u64::MAX {
+        "RLIM64_INFINITY".to_owned()
+    } else if v > 1024 && v % 1024 == 0 {
+        format!("{}*1024", v / 1024)
     } else {
         v.to_string()
     }

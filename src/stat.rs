@@ -69,11 +69,11 @@ fn format_dev(st_dev: u64) -> String {
     }
 }
 
-fn format_timestamp(millis: i64) -> String {
+fn format_timestamp(secs: i64, nsecs: i64) -> String {
     Local
-        .timestamp_millis_opt(millis)
+        .timestamp_opt(secs, nsecs as u32)
         .unwrap()
-        .format("%FT%T%z")
+        .format("%FT%T%.9f%z")
         .to_string()
 }
 
@@ -114,20 +114,23 @@ fn format_struct_stat(statbuf: &libc::stat) -> String {
     let st_blocks = statbuf.st_blocks;
     let st_size = statbuf.st_size;
     let st_atim = statbuf.st_atime;
+    let st_atim_nsec = statbuf.st_atime_nsec;
     let st_mtim = statbuf.st_mtime;
+    let st_mtim_nsec = statbuf.st_mtime_nsec;
     let st_ctim = statbuf.st_ctime;
+    let st_ctim_nsec = statbuf.st_ctime_nsec;
 
-    let adt = format_timestamp(st_atim * 1000);
-    let mdt = format_timestamp(st_mtim * 1000);
-    let cdt = format_timestamp(st_ctim * 1000);
+    let adt = format_timestamp(st_atim, st_atim_nsec);
+    let mdt = format_timestamp(st_mtim, st_mtim_nsec);
+    let cdt = format_timestamp(st_ctim, st_ctim_nsec);
 
     return format!(
         "{{st_dev={st_dev}, st_ino={st_ino}, st_mode={st_mode}, \
                    st_nlink={st_nlink}, st_uid={st_uid}, st_gid={st_gid}, \
                    st_blksize={st_blksize}, st_blocks={st_blocks}, st_size={st_size}, \
-                   st_atime={st_atim} /* {adt} */, \
-                   st_mtime={st_mtim} /* {mdt} */, \
-                   st_ctime={st_ctim} /* {cdt} */}}"
+                   st_atime={st_atim} /* {adt} */, st_atime_nsec={st_atim_nsec}, \
+                   st_mtime={st_mtim} /* {mdt} */, st_mtime_nsec={st_mtim_nsec}, \
+                   st_ctime={st_ctim} /* {cdt} */, st_ctime_nsec={st_ctim_nsec}}}"
     );
 }
 

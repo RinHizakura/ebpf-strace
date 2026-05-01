@@ -48,7 +48,7 @@ DEFINE_BPF_MAP(g_ent, BPF_MAP_TYPE_ARRAY, u32, syscall_ent_t, 1);
 
 struct {
     __uint(type, BPF_MAP_TYPE_RINGBUF);
-    __uint(max_entries, 4096 * 2);
+    __uint(max_entries, 4096 * 4);
 } msg_ringbuf SEC(".maps");
 
 struct input_parms {
@@ -103,7 +103,7 @@ struct input_parms {
 #include "bpf/unlink.c"
 #include "bpf/wait.c"
 
-static void submit_syscall(syscall_ent_t *ent, size_t args_size)
+static __always_inline void submit_syscall(syscall_ent_t *ent, size_t args_size)
 {
     size_t syscall_ent_size = sizeof(basic_t) + args_size;
     size_t total_size = sizeof(msg_ent_t) + syscall_ent_size;
@@ -115,7 +115,7 @@ static void submit_syscall(syscall_ent_t *ent, size_t args_size)
         return;
     }
     ringbuf_ent->msg_type = MSG_SYSCALL;
-    memcpy(ringbuf_ent->inner, ent, syscall_ent_size);
+    bpf_probe_read_kernel(ringbuf_ent->inner, syscall_ent_size, ent);
     bpf_ringbuf_submit(ringbuf_ent, 0);
 }
 
@@ -588,6 +588,23 @@ static int __sys_exit(struct bpf_raw_tracepoint_args *args)
     case SYS_PRLIMIT64:
         sys_prlimit64_exit(ent);
         break;
+    case SYS_GETRANDOM:
+        sys_getrandom_exit(ent);
+        break;
+    case SYS_GETDENTS64:
+        sys_getdents64_exit(ent);
+        break;
+    case SYS_POLL:
+        sys_poll_exit(ent);
+        break;
+#ifdef __TARGET_ARCH_x86
+    case SYS_EPOLL_WAIT:
+        sys_epoll_wait_exit(ent);
+        break;
+    case SYS_SELECT:
+        sys_select_exit(ent);
+        break;
+#endif
     case SYS_GETRLIMIT:
         sys_getrlimit_exit(ent);
         break;

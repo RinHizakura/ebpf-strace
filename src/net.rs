@@ -116,12 +116,16 @@ pub(super) fn format_sockaddr(addr: &[u8; SOCKADDR_BUF_SIZE], addrlen: u32) -> S
     match family as i32 {
         AF_UNIX => {
             let path = &addr[2..];
-            let s = path
+            let s: String = path
                 .iter()
                 .take_while(|&&b| b != 0)
                 .map(|&b| b as char)
-                .collect::<String>();
-            format!("{{sa_family=AF_UNIX, sun_path=\"{}\"}}", s)
+                .collect();
+            if s.is_empty() {
+                "{sa_family=AF_UNIX}".to_owned()
+            } else {
+                format!("{{sa_family=AF_UNIX, sun_path=\"{}\"}}", s)
+            }
         }
         AF_INET => {
             if addrlen as usize >= 8 {
@@ -191,15 +195,17 @@ struct AcceptArgs {
     sockfd: c_int,
     addr: [c_uchar; SOCKADDR_BUF_SIZE],
     addrlen: socklen_t,
+    initial_addrlen: socklen_t,
 }
 unsafe impl plain::Plain for AcceptArgs {}
 
 pub(super) fn handle_accept_args(args: &[u8]) -> String {
     let a = get_args::<AcceptArgs>(args);
     format!(
-        "{}, {}, [{}]",
+        "{}, {}, [{} => {}]",
         a.sockfd,
         format_sockaddr(&a.addr, a.addrlen),
+        a.initial_addrlen,
         a.addrlen
     )
 }
@@ -209,6 +215,7 @@ struct Accept4Args {
     sockfd: c_int,
     addr: [c_uchar; SOCKADDR_BUF_SIZE],
     addrlen: socklen_t,
+    initial_addrlen: socklen_t,
     flags: c_int,
 }
 unsafe impl plain::Plain for Accept4Args {}
@@ -217,9 +224,10 @@ pub(super) fn handle_accept4_args(args: &[u8]) -> String {
     let a = get_args::<Accept4Args>(args);
     let flags = format_flags(a.flags as u64, '|', ACCEPT4_FLAGS_DESCS, Format::Hex);
     format!(
-        "{}, {}, [{}], {}",
+        "{}, {}, [{} => {}], {}",
         a.sockfd,
         format_sockaddr(&a.addr, a.addrlen),
+        a.initial_addrlen,
         a.addrlen,
         flags
     )

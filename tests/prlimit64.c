@@ -4,8 +4,10 @@
 
 static void fmt_rlim(unsigned long long v, char *buf, size_t sz)
 {
-    if (v == (unsigned long long) RLIM_INFINITY)
-        snprintf(buf, sz, "RLIM_INFINITY");
+    if (v == (unsigned long long) -1)
+        snprintf(buf, sz, "RLIM64_INFINITY");
+    else if (v > 1024 && v % 1024 == 0)
+        snprintf(buf, sz, "%llu*1024", v / 1024);
     else
         snprintf(buf, sz, "%llu", v);
 }

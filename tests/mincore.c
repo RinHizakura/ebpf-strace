@@ -3,7 +3,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
-#define ARR_ENT_SIZE 4
+#include "test_common.h"
 
 #define xsnprintf(pos, buf, sz, format, ...) \
     (pos) += snprintf((buf) + (pos), (sz) - (pos), format, ##__VA_ARGS__);
@@ -21,7 +21,7 @@ static char *format_mincore_vec(unsigned char *vec, size_t pages)
             break;
         }
         if (i)
-            xsnprintf(pos, buf, VEC_BUF_SIZE, ",");
+            xsnprintf(pos, buf, VEC_BUF_SIZE, ", ");
         xsnprintf(pos, buf, VEC_BUF_SIZE, "%u", vec[i] & 1);
     }
     xsnprintf(pos, buf, VEC_BUF_SIZE, "]");

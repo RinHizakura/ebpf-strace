@@ -19,7 +19,8 @@ int main()
 
     int fd9 = dup(9);
     if (fd9 < 0) {
-        printf("dup(9) = %d %s (os error %d)\n", fd9, strerror(errno), errno);
+        printf("dup(9) = %d %s (%s)\n", fd9, errno == EBADF ? "EBADF" : "???",
+               strerror(errno));
     } else {
         printf("dup(9) = %d\n", fd9);
         close(fd9);

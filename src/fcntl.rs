@@ -1,7 +1,7 @@
 use crate::common::*;
 use libc::{
-    F_DUPFD, F_DUPFD_CLOEXEC, F_GETFD, F_GETFL, F_GETLK, F_GETOWN, F_SETFD, F_SETFL, F_SETLK,
-    F_SETLKW, F_SETOWN,
+    FD_CLOEXEC, F_DUPFD, F_DUPFD_CLOEXEC, F_GETFD, F_GETFL, F_GETLK, F_GETOWN, F_SETFD, F_SETFL,
+    F_SETLK, F_SETLKW, F_SETOWN,
 };
 
 const FCNTL_CMD_DESCS: &[Desc] = &[
@@ -18,6 +18,8 @@ const FCNTL_CMD_DESCS: &[Desc] = &[
     desc!(F_SETOWN),
 ];
 
+const FD_FLAG_DESCS: &[Desc] = &[desc!(FD_CLOEXEC)];
+
 #[repr(C)]
 struct FcntlArgs {
     fd: c_int,
@@ -29,5 +31,12 @@ unsafe impl plain::Plain for FcntlArgs {}
 pub(super) fn handle_fcntl_args(args: &[u8]) -> String {
     let f = get_args::<FcntlArgs>(args);
     let cmd = format_value(f.cmd as u64, Some("F_???"), FCNTL_CMD_DESCS, Format::Hex);
-    format!("{}, {}, 0x{:x}", f.fd, cmd, f.arg)
+    match f.cmd {
+        F_GETFD | F_GETFL | F_GETOWN => format!("{}, {}", f.fd, cmd),
+        F_SETFD => {
+            let flags = format_flags(f.arg, '|', FD_FLAG_DESCS, Format::Hex);
+            format!("{}, {}, {}", f.fd, cmd, flags)
+        }
+        _ => format!("{}, {}, 0x{:x}", f.fd, cmd, f.arg),
+    }
 }

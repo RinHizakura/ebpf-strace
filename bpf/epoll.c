@@ -34,6 +34,7 @@ static void sys_epoll_ctl_enter(syscall_ent_t *ent, struct input_parms parms)
 static void sys_epoll_wait_enter(syscall_ent_t *ent, struct input_parms parms)
 {
     int epfd = (int) parms.parm1;
+    void *events = (void *) parms.parm2;
     int maxevents = (int) parms.parm3;
     int timeout = (int) parms.parm4;
 
@@ -41,4 +42,27 @@ static void sys_epoll_wait_enter(syscall_ent_t *ent, struct input_parms parms)
     ew->epfd = epfd;
     ew->maxevents = maxevents;
     ew->timeout = timeout;
+    ew->ev_events = 0;
+    ew->ev_data = 0;
+
+    void **buf0 = bpf_g_buf_addr_lookup_elem(&INDEX_0);
+    if (buf0 != NULL)
+        *buf0 = events;
+}
+
+static void sys_epoll_wait_exit(syscall_ent_t *ent)
+{
+    epoll_wait_args_t *ew = (epoll_wait_args_t *) ent->bytes;
+    long ret = (long) ent->basic.ret;
+    if (ret <= 0)
+        return;
+
+    void **buf0 = bpf_g_buf_addr_lookup_elem(&INDEX_0);
+    if (buf0 != NULL && *buf0 != NULL) {
+        struct epoll_event ev;
+        memset(&ev, 0, sizeof(ev));
+        bpf_core_read_user(&ev, sizeof(ev), *buf0);
+        ew->ev_events = ev.events;
+        ew->ev_data = ev.data;
+    }
 }

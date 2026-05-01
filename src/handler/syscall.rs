@@ -1,4 +1,4 @@
-use crate::common::EMPTY_STR;
+use crate::common::{format_errno, EMPTY_STR};
 use crate::config::CONFIG;
 
 use crate::arch::syscall_nr::*;
@@ -78,7 +78,7 @@ fn handle_args(id: u64, args: &[u8], ret: u64) -> String {
         SYS_FCHMOD => chmod::handle_fchmod_args(args),
         SYS_FCHOWN => fchownat::handle_fchown_args(args),
         SYS_FTRUNCATE => truncate::handle_ftruncate_args(args),
-        SYS_GETDENTS64 => dirent::handle_getdents64_args(args),
+        SYS_GETDENTS64 => dirent::handle_getdents64_args(args, ret as i64),
         SYS_CHDIR => chdir::handle_chdir_args(args),
         SYS_GETCWD => getcwd::handle_getcwd_args(args),
         SYS_MKDIRAT => mkdir::handle_mkdirat_args(args),
@@ -103,13 +103,13 @@ fn handle_args(id: u64, args: &[u8], ret: u64) -> String {
         SYS_EPOLL_CREATE1 => epoll::handle_epoll_create1_args(args),
         SYS_EPOLL_CTL => epoll::handle_epoll_ctl_args(args),
         #[cfg(all(target_arch = "x86_64"))]
-        SYS_EPOLL_WAIT => epoll::handle_epoll_wait_args(args),
+        SYS_EPOLL_WAIT => epoll::handle_epoll_wait_args(args, ret as i64),
         // resource limits
         SYS_PRLIMIT64 => resource::handle_prlimit64_args(args),
         SYS_SETRLIMIT => resource::handle_setrlimit_args(args),
         SYS_GETRLIMIT => resource::handle_getrlimit_args(args),
         // misc
-        SYS_GETRANDOM => getrandom::handle_getrandom_args(args),
+        SYS_GETRANDOM => getrandom::handle_getrandom_args(args, ret as i64),
         // memory locking
         SYS_MLOCK => mem::handle_mlock_args(args),
         SYS_MUNLOCK => mem::handle_munlock_args(args),
@@ -155,6 +155,22 @@ fn handle_args(id: u64, args: &[u8], ret: u64) -> String {
     }
 }
 
+fn handle_return_aux(id: u64, args: &[u8], ret_val: u64) -> String {
+    #[cfg(target_arch = "x86_64")]
+    if id == SYS_POLL {
+        return poll::handle_poll_ret_aux(args, ret_val as i64);
+    }
+    if id == SYS_PRCTL {
+        return prctl::handle_prctl_ret_aux(args, ret_val as i64);
+    }
+    #[cfg(target_arch = "x86_64")]
+    if id == SYS_SELECT {
+        return desc::handle_select_ret_aux(args, ret_val as i64);
+    }
+    let _ = (id, args, ret_val);
+    EMPTY_STR.to_owned()
+}
+
 fn handle_return(id: u64, ret_val: u64) -> (String, String) {
     let ret_val = ret_val as i64;
 
@@ -163,7 +179,7 @@ fn handle_return(id: u64, ret_val: u64) -> (String, String) {
     } else {
         match id {
             SYS_BRK | SYS_MMAP | SYS_MREMAP | SYS_SHMAT => format!("0x{:x}", ret_val),
-            SYS_RT_SIGRETURN | SYS_EXIT_GROUP => "?".to_owned(),
+            SYS_EXIT_GROUP => "?".to_owned(),
             _ => ret_val.to_string(),
         }
     };
@@ -171,7 +187,7 @@ fn handle_return(id: u64, ret_val: u64) -> (String, String) {
     let mut aux = EMPTY_STR.to_owned();
 
     if ret_val < 0 {
-        aux = format!(" {}", std::io::Error::from_raw_os_error(-(ret_val as i32)))
+        aux = format!(" {}", format_errno(-(ret_val as i32)))
     }
 
     #[cfg(all(target_arch = "x86_64"))]
@@ -206,7 +222,8 @@ pub(super) fn syscall_ent_handler(bytes: &[u8]) -> i32 {
     let name = syscall.name;
 
     let args_str = handle_args(id, args, ent.ret);
-    let (ret, aux) = handle_return(id, ent.ret);
+    let (ret, mut aux) = handle_return(id, ent.ret);
+    aux.push_str(&handle_return_aux(id, args, ent.ret));
     let time = handle_time(ent.start_time, ent.end_time);
 
     if id == SYS_EXIT_GROUP {

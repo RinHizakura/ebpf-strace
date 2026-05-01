@@ -96,7 +96,8 @@ fn ioctl_lookup(code: c_ulong) -> String {
 fn random_ioctl(code: c_ulong, arg: c_ulong) -> Option<String> {
     let arg_int = (arg & 0xFFFF_FFFF) as u32 as i32;
     match code {
-        RNDGETENTCNT | RNDADDTOENTCNT => Some(format!("{}", arg_int)),
+        RNDGETENTCNT => Some(format!("[{}]", arg_int)),
+        RNDADDTOENTCNT => Some(format!("{}", arg_int)),
         RNDGETPOOL | RNDADDENTROPY | RNDZAPENTCNT | RNDCLEARPOOL | RNDRESEEDCRNG => None, // TODO: support decoding of other request code
         _ => unreachable!(),
     }

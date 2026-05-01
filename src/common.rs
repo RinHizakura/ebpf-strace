@@ -4,7 +4,7 @@ use crate::arch::*;
 use crate::utils::*;
 pub use std::ffi::{c_int, c_long, c_ulong};
 
-pub const ARR_ENT_SIZE: usize = 4;
+pub const ARR_ENT_SIZE: usize = 108;
 pub const BUF_SIZE: usize = 32;
 pub const NULL_STR: &'static str = "NULL";
 pub const EMPTY_STR: &'static str = "";
@@ -39,21 +39,37 @@ pub(super) fn format_buf(buf: &[u8], count: usize) -> String {
     s.push('"');
     for byte in &buf[0..count] {
         let c = *byte;
-        /* TODO: cover all possible special character */
-        if (c as char).is_ascii_graphic() || (c as char) == ' ' {
-            s.push(c as char);
-        } else if (c as char) == '\n' {
-            s.push_str("\\n");
-        } else if (c as char) == '\t' {
-            s.push_str("\\t");
-        } else {
-            /* Print it as octal(base-8) like what
-             * strace do by default */
-            s.push_str(&format!("\\{:o}", c));
+        match c as char {
+            '\n' => s.push_str("\\n"),
+            '\t' => s.push_str("\\t"),
+            '\r' => s.push_str("\\r"),
+            '\\' => s.push_str("\\\\"),
+            '"' => s.push_str("\\\""),
+            c if c.is_ascii_graphic() || c == ' ' => s.push(c),
+            _ => s.push_str(&format!("\\x{:02x}", byte)),
         }
     }
     s.push_str(&format!("\"{}", extra));
 
+    s
+}
+
+pub(super) fn format_buf_hex(buf: &[u8], count: usize) -> String {
+    let len = buf.len();
+    let extra = if count > len { "..." } else { EMPTY_STR };
+    let count = count.min(len);
+
+    let mut s = String::new();
+    s.push('"');
+    for byte in &buf[0..count] {
+        let c = *byte;
+        match c {
+            b'\\' => s.push_str("\\\\"),
+            b'"' => s.push_str("\\\""),
+            _ => s.push_str(&format!("\\x{:02x}", c)),
+        }
+    }
+    s.push_str(&format!("\"{}", extra));
     s
 }
 
@@ -180,13 +196,16 @@ where
     /* Note that arr_size is not equal to arr.len(). */
     let printed_argc = (arr_size as usize).min(ARR_ENT_SIZE);
     for idx in 0..printed_argc {
+        if idx > 0 {
+            list_str.push_str(", ");
+        }
         list_str.push_str(&formatter(&arr[idx]));
-        list_str.push(',');
     }
-    // Pop out the last ','
-    list_str.pop();
 
     if arr_size > ARR_ENT_SIZE {
+        if printed_argc > 0 {
+            list_str.push_str(", ");
+        }
         list_str.push_str("...");
     }
 
@@ -244,6 +263,154 @@ pub(super) fn format_sigset(sig_mask: &KernlSigset) -> String {
 
 pub(super) fn format_timeval(timeval: &timeval) -> String {
     return format!("{{tv_sec={}, tv_usec={}}}", timeval.tv_sec, timeval.tv_usec);
+}
+
+pub(super) fn format_errno(errno: i32) -> String {
+    let name = match errno {
+        1 => "EPERM",
+        2 => "ENOENT",
+        3 => "ESRCH",
+        4 => "EINTR",
+        5 => "EIO",
+        6 => "ENXIO",
+        7 => "E2BIG",
+        8 => "ENOEXEC",
+        9 => "EBADF",
+        10 => "ECHILD",
+        11 => "EAGAIN",
+        12 => "ENOMEM",
+        13 => "EACCES",
+        14 => "EFAULT",
+        15 => "ENOTBLK",
+        16 => "EBUSY",
+        17 => "EEXIST",
+        18 => "EXDEV",
+        19 => "ENODEV",
+        20 => "ENOTDIR",
+        21 => "EISDIR",
+        22 => "EINVAL",
+        23 => "ENFILE",
+        24 => "EMFILE",
+        25 => "ENOTTY",
+        26 => "ETXTBSY",
+        27 => "EFBIG",
+        28 => "ENOSPC",
+        29 => "ESPIPE",
+        30 => "EROFS",
+        31 => "EMLINK",
+        32 => "EPIPE",
+        33 => "EDOM",
+        34 => "ERANGE",
+        35 => "EDEADLK",
+        36 => "ENAMETOOLONG",
+        37 => "ENOLCK",
+        38 => "ENOSYS",
+        39 => "ENOTEMPTY",
+        40 => "ELOOP",
+        42 => "ENOMSG",
+        43 => "EIDRM",
+        44 => "ECHRNG",
+        45 => "EL2NSYNC",
+        46 => "EL3HLT",
+        47 => "EL3RST",
+        48 => "ELNRNG",
+        49 => "EUNATCH",
+        50 => "ENOCSI",
+        51 => "EL2HLT",
+        52 => "EBADE",
+        53 => "EBADR",
+        54 => "EXFULL",
+        55 => "ENOANO",
+        56 => "EBADRQC",
+        57 => "EBADSLT",
+        59 => "EBFONT",
+        60 => "ENOSTR",
+        61 => "ENODATA",
+        62 => "ETIME",
+        63 => "ENOSR",
+        64 => "ENONET",
+        65 => "ENOPKG",
+        66 => "EREMOTE",
+        67 => "ENOLINK",
+        68 => "EADV",
+        69 => "ESRMNT",
+        70 => "ECOMM",
+        71 => "EPROTO",
+        72 => "EMULTIHOP",
+        73 => "EDOTDOT",
+        74 => "EBADMSG",
+        75 => "EOVERFLOW",
+        76 => "ENOTUNIQ",
+        77 => "EBADFD",
+        78 => "EREMCHG",
+        79 => "ELIBACC",
+        80 => "ELIBBAD",
+        81 => "ELIBSCN",
+        82 => "ELIBMAX",
+        83 => "ELIBEXEC",
+        84 => "EILSEQ",
+        85 => "ERESTART",
+        86 => "ESTRPIPE",
+        87 => "EUSERS",
+        88 => "ENOTSOCK",
+        89 => "EDESTADDRREQ",
+        90 => "EMSGSIZE",
+        91 => "EPROTOTYPE",
+        92 => "ENOPROTOOPT",
+        93 => "EPROTONOSUPPORT",
+        94 => "ESOCKTNOSUPPORT",
+        95 => "EOPNOTSUPP",
+        96 => "EPFNOSUPPORT",
+        97 => "EAFNOSUPPORT",
+        98 => "EADDRINUSE",
+        99 => "EADDRNOTAVAIL",
+        100 => "ENETDOWN",
+        101 => "ENETUNREACH",
+        102 => "ENETRESET",
+        103 => "ECONNABORTED",
+        104 => "ECONNRESET",
+        105 => "ENOBUFS",
+        106 => "EISCONN",
+        107 => "ENOTCONN",
+        108 => "ESHUTDOWN",
+        109 => "ETOOMANYREFS",
+        110 => "ETIMEDOUT",
+        111 => "ECONNREFUSED",
+        112 => "EHOSTDOWN",
+        113 => "EHOSTUNREACH",
+        114 => "EALREADY",
+        115 => "EINPROGRESS",
+        116 => "ESTALE",
+        117 => "EUCLEAN",
+        118 => "ENOTNAM",
+        119 => "ENAVAIL",
+        120 => "EISNAM",
+        121 => "EREMOTEIO",
+        122 => "EDQUOT",
+        123 => "ENOMEDIUM",
+        124 => "EMEDIUMTYPE",
+        125 => "ECANCELED",
+        126 => "ENOKEY",
+        127 => "EKEYEXPIRED",
+        128 => "EKEYREVOKED",
+        129 => "EKEYREJECTED",
+        130 => "EOWNERDEAD",
+        131 => "ENOTRECOVERABLE",
+        132 => "ERFKILL",
+        133 => "EHWPOISON",
+        _ => "",
+    };
+
+    let description = unsafe {
+        let ptr = libc::strerror(errno);
+        std::ffi::CStr::from_ptr(ptr).to_string_lossy().to_string()
+    };
+
+    if name.is_empty() {
+        format!("ERRNO({}) ({})", errno, description)
+    } else {
+        format!("{} ({})", name, description)
+    }
 }
 
 pub fn get_args<T: plain::Plain>(args: &[u8]) -> &T {

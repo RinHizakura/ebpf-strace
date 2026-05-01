@@ -15,9 +15,8 @@ static int map_invalid()
         return -1;
     }
     printf(
-        "mmap(NULL, 0, PROT_NONE, MAP_FILE, 0, 0x0) = -1 Invalid argument (os "
-        "error %d)\n",
-        errno);
+        "mmap(NULL, 0, PROT_NONE, MAP_FILE, 0, 0) = -1 EINVAL (Invalid "
+        "argument)\n");
     return 0;
 }
 

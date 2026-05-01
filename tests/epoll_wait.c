@@ -29,7 +29,10 @@ int main()
         ret = -1;
         goto end;
     }
-    printf("epoll_wait(%d, [], 10, 0) = %d\n", epfd, n);
+    printf(
+        "epoll_wait(%d, [{events=EPOLLIN, data={u32=%u, u64=%u}}], 10, 0) = "
+        "%d\n",
+        epfd, (unsigned) events[0].data.fd, (unsigned) events[0].data.fd, n);
 end:
     if (epfd >= 0)
         close(epfd);

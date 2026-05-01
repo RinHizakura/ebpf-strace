@@ -23,9 +23,10 @@ int main()
         goto end;
     }
     printf(
-        "epoll_ctl(%d, EPOLL_CTL_ADD, %d, {events=EPOLLIN, data={u64=0x%x}}) = "
+        "epoll_ctl(%d, EPOLL_CTL_ADD, %d, {events=EPOLLIN, data={u32=%u, "
+        "u64=%u}}) = "
         "0\n",
-        epfd, pipefd[0], (unsigned) pipefd[0]);
+        epfd, pipefd[0], (unsigned) pipefd[0], (unsigned) pipefd[0]);
 end:
     if (epfd >= 0)
         close(epfd);

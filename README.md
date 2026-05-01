@@ -62,3 +62,47 @@ of `echo hello` with the following command:
 ```
 $ sudo ./ebpf-strace echo hello
 ```
+
+## Testing
+
+The test suite lives in `tests/` — one C program per syscall. Each program
+exercises the syscall and prints its arguments and return value in strace
+format to stdout. The CI script `.ci/strace-test.sh` runs every test binary
+under `ebpf-strace`, then checks that each stdout line appears verbatim in
+ebpf-strace's output.
+
+### Run all tests
+
+Build everything first, then run the full suite:
+
+```
+$ make
+$ .ci/strace-test.sh
+```
+
+A passing run prints `pass` for every test. A failure prints the offending
+line and the relevant ebpf-strace output to help diagnose the mismatch.
+
+### Run a specific syscall
+
+Pass one or more syscall names (without the `.out` suffix) as arguments:
+
+```
+$ .ci/strace-test.sh fstat
+$ .ci/strace-test.sh read write open
+```
+
+### Verify against strace
+
+The `BIN` environment variable controls which tracer is used. Setting it to
+`strace -v` runs the tests against the real strace instead of ebpf-strace,
+which lets you confirm that a test's expected output actually matches what
+strace produces:
+
+```
+$ BIN="strace -v" .ci/strace-test.sh
+$ BIN="strace -v" .ci/strace-test.sh getrandom
+```
+
+`strace -v` disables abbreviation of struct fields so the output is fully
+expanded, matching the verbose format that the tests expect.

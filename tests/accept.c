@@ -43,13 +43,14 @@ int main()
 
     struct sockaddr_un peer;
     socklen_t peerlen = sizeof(peer);
+    socklen_t peerlen_init = peerlen;
     int afd = accept(sfd, (struct sockaddr *) &peer, &peerlen);
     if (afd < 0) {
         ret = -1;
         goto child_wait;
     }
-    printf("accept(%d, {sa_family=AF_UNIX, sun_path=\"\"}, [%u]) = %d\n", sfd,
-           (unsigned) peerlen, afd);
+    printf("accept(%d, {sa_family=AF_UNIX}, [%u => %u]) = %d\n", sfd,
+           (unsigned) peerlen_init, (unsigned) peerlen, afd);
     close(afd);
 
 child_wait:

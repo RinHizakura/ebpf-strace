@@ -50,6 +50,11 @@ struct SelectArgs {
     is_writefds_exist: bool,
     is_exceptfds_exist: bool,
     is_timeout_exist: bool,
+
+    readfds_out: FdSet,
+    timeout_left: timeval,
+    is_readfds_out: bool,
+    is_timeout_left: bool,
 }
 unsafe impl plain::Plain for SelectArgs {}
 
@@ -105,6 +110,29 @@ pub(super) fn handle_select_args(args: &[u8]) -> String {
         "{}, {}, {}, {}, {}",
         nfds, readfds, writefds, exceptfds, timeout
     );
+}
+
+#[cfg(target_arch = "x86_64")]
+pub(super) fn handle_select_ret_aux(args: &[u8], ret: i64) -> String {
+    if ret <= 0 {
+        return String::new();
+    }
+    let select = get_args::<SelectArgs>(args);
+    let mut parts = Vec::new();
+
+    if select.is_readfds_out {
+        parts.push(format!(
+            "in {}",
+            format_fd_set(&select.readfds_out, select.nfds)
+        ));
+    }
+    if select.is_timeout_left {
+        parts.push(format!("left {}", format_timeval(&select.timeout_left)));
+    }
+    if parts.is_empty() {
+        return String::new();
+    }
+    format!(" ({})", parts.join(", "))
 }
 
 #[repr(C)]

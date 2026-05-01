@@ -1,25 +1,16 @@
 #ifndef SYSCALL_ENT_H
 #define SYSCALL_ENT_H
 
-/* Reference:
- * - https://elixir.bootlin.com/linux/latest/source/include/linux/build_bug.h */
 #define static_assert(expr, ...) __static_assert(expr, ##__VA_ARGS__, #expr)
 #define __static_assert(expr, msg, ...) _Static_assert(expr, msg)
 
-#define ARR_ENT_SIZE 4
+#define ARR_ENT_SIZE 108
 #define BUF_SIZE 32
-#define ARGS_SIZE 1024
+#define DIRENT_BUF_SIZE 4096
+#define ARGS_SIZE (DIRENT_BUF_SIZE + 256)
 /* Bytes captured for socket address arguments (covers IPv6 at 28 bytes) */
 #define SOCKADDR_SIZE 28
 
-/* TODO: Decomment the following lines to check the arguments
- * size when all of them are completed.
- *
- * #define __SYSCALL(nr, call)                            \
- *   static_assert(sizeof(call##_args_t) <= ARGS_SIZE);
- * #include "../syscall/syscall_tbl.h"
- * #undef __SYSCALL
- */
 #define MSG_SYSCALL 0
 #define MSG_SIGNAL 1
 typedef struct {
@@ -80,6 +71,7 @@ typedef struct {
     struct pollfd fds[ARR_ENT_SIZE];
     u32 nfds;
     int timeout;
+    short revents[ARR_ENT_SIZE];
 } poll_args_t;
 
 typedef struct {
@@ -215,6 +207,12 @@ typedef struct {
     bool is_writefds_exist;
     bool is_exceptfds_exist;
     bool is_timeout_exist;
+
+    /* post-syscall: kernel updates readfds and timeout in-place */
+    fd_set readfds_out;
+    struct timeval timeout_left;
+    bool is_readfds_out;
+    bool is_timeout_left;
 } select_args_t;
 
 typedef struct {
@@ -309,6 +307,7 @@ typedef struct {
     int sockfd;
     u8 addr[SOCKADDR_SIZE];
     u32 addrlen;
+    u32 initial_addrlen;
 } accept_args_t;
 typedef struct {
     int sockfd;
@@ -357,6 +356,7 @@ typedef struct {
 } getsockopt_args_t;
 typedef struct {
     unsigned long flags;
+    unsigned long child_stack;
 } clone_args_t;
 typedef struct {
 } fork_args_t;
@@ -749,7 +749,9 @@ typedef struct {
 } remap_file_pages_args_t;
 typedef struct {
     int fd;
+    u32 buf_used;
     size_t count;
+    u8 buf[DIRENT_BUF_SIZE];
 } getdents64_args_t;
 typedef struct {
 } set_tid_address_args_t;
@@ -791,6 +793,8 @@ typedef struct {
     int epfd;
     int maxevents;
     int timeout;
+    u32 ev_events;
+    u64 ev_data;
 } epoll_wait_args_t;
 typedef struct {
     int epfd;
@@ -937,6 +941,7 @@ typedef struct {
     int sockfd;
     u8 addr[SOCKADDR_SIZE];
     u32 addrlen;
+    u32 initial_addrlen;
     int flags;
 } accept4_args_t;
 typedef struct {
@@ -1012,6 +1017,7 @@ typedef struct {
 typedef struct {
     size_t buflen;
     unsigned int flags;
+    u8 buf[BUF_SIZE];
 } getrandom_args_t;
 typedef struct {
 } memfd_create_args_t;
@@ -1156,5 +1162,13 @@ typedef struct {
     int signo;
     struct siginfo siginfo;
 } signal_ent_t;
+
+#define __SYSCALL(nr, call) static_assert(sizeof(call##_args_t) <= ARGS_SIZE);
+#ifdef __TARGET_ARCH_x86
+#include "arch/x86_64/syscall_tbl.h"
+#elif defined(__TARGET_ARCH_arm64)
+#include "arch/aarch64/syscall_tbl.h"
+#endif
+#undef __SYSCALL
 
 #endif

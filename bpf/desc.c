@@ -45,6 +45,37 @@ static void sys_select_enter(syscall_ent_t *ent, struct input_parms parms)
     } else {
         select->is_timeout_exist = false;
     }
+
+    select->is_readfds_out = false;
+    select->is_timeout_left = false;
+
+    void **buf0 = bpf_g_buf_addr_lookup_elem(&INDEX_0);
+    void **buf1 = bpf_g_buf_addr_lookup_elem(&INDEX_1);
+    if (buf0)
+        *buf0 = readfds;
+    if (buf1)
+        *buf1 = timeout;
+}
+
+static void sys_select_exit(syscall_ent_t *ent)
+{
+    select_args_t *select = (select_args_t *) ent->bytes;
+    long ret = (long) ent->basic.ret;
+    if (ret <= 0)
+        return;
+
+    void **buf0 = bpf_g_buf_addr_lookup_elem(&INDEX_0);
+    if (buf0 && *buf0) {
+        bpf_core_read_user(&select->readfds_out, sizeof(fd_set), *buf0);
+        select->is_readfds_out = true;
+    }
+
+    void **buf1 = bpf_g_buf_addr_lookup_elem(&INDEX_1);
+    if (buf1 && *buf1) {
+        bpf_core_read_user(&select->timeout_left, sizeof(struct timeval),
+                           *buf1);
+        select->is_timeout_left = true;
+    }
 }
 
 static void sys_pipe_enter(syscall_ent_t *ent, struct input_parms parms)

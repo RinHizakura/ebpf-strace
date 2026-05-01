@@ -12,7 +12,7 @@ int main()
         goto end;
     if (child == 0)
         _exit(0);
-    printf("clone(flags=0|SIGCHLD) = %d\n", child);
+    printf("clone(child_stack=NULL, flags=SIGCHLD) = %d\n", child);
     waitpid(child, NULL, 0);
 end:
     puts("+++ exited with 0 +++");

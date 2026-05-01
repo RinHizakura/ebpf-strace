@@ -56,7 +56,10 @@ pub(super) fn handle_epoll_ctl_args(args: &[u8]) -> String {
     );
     let event = if e.is_event_exist {
         let events = format_flags(e.events as u64, '|', EPOLL_EVENTS_DESCS, Format::Hex);
-        format!("{{events={}, data={{u64=0x{:x}}}}}", events, e.data)
+        format!(
+            "{{events={}, data={{u32={}, u64={}}}}}",
+            events, e.data as u32, e.data
+        )
     } else {
         NULL_STR.to_owned()
     };
@@ -68,10 +71,21 @@ struct EpollWaitArgs {
     epfd: c_int,
     maxevents: c_int,
     timeout: c_int,
+    ev_events: u32,
+    ev_data: u64,
 }
 unsafe impl plain::Plain for EpollWaitArgs {}
 
-pub(super) fn handle_epoll_wait_args(args: &[u8]) -> String {
+pub(super) fn handle_epoll_wait_args(args: &[u8], ret: i64) -> String {
     let e = get_args::<EpollWaitArgs>(args);
-    format!("{}, [], {}, {}", e.epfd, e.maxevents, e.timeout)
+    let events_str = if ret > 0 {
+        let ev_flags = format_flags(e.ev_events as u64, '|', EPOLL_EVENTS_DESCS, Format::Hex);
+        format!(
+            "[{{events={}, data={{u32={}, u64={}}}}}]",
+            ev_flags, e.ev_data as u32, e.ev_data
+        )
+    } else {
+        "[]".to_owned()
+    };
+    format!("{}, {}, {}, {}", e.epfd, events_str, e.maxevents, e.timeout)
 }

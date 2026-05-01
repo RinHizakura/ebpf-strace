@@ -23,8 +23,9 @@ int main()
         ;
 
     /* rt_sigreturn captures the signal mask from the signal frame.
-     * With no blocked signals set, the mask is empty. */
-    printf("rt_sigreturn([]) = ?\n");
+     * With no blocked signals set, the mask is empty. The return value
+     * is whatever was in rax when the signal was delivered (tgkill = 0). */
+    printf("rt_sigreturn({mask=[]}) = 0\n");
 
     puts("+++ exited with 0 +++");
     return 0;

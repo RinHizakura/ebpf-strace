@@ -16,7 +16,9 @@ int main()
     pid_t ret = wait4(-1, &wstatus, 0, NULL);
     if (ret < 0)
         goto end;
-    printf("wait4(-1, [{wstatus=%d}], 0, NULL) = %d\n", wstatus, (int) ret);
+    printf(
+        "wait4(-1, [{WIFEXITED(s) && WEXITSTATUS(s) == %d}], 0, NULL) = %d\n",
+        WEXITSTATUS(wstatus), (int) ret);
 end:
     puts("+++ exited with 0 +++");
     return 0;
