@@ -14,27 +14,53 @@ use std::time::Duration;
 mod common;
 mod access;
 mod arch;
+mod bind;
 mod bump_memlock_rlimit;
+mod chdir;
+mod chmod;
+mod clone;
 mod config;
 mod desc;
+mod dirent;
 mod dup;
+mod epoll;
 mod execve;
 mod exit;
+mod fchownat;
+mod fcntl;
+mod getcwd;
+mod getpid;
+mod getrandom;
 mod handler;
 mod io;
 mod ioctl;
 mod ipc_shm;
+mod link;
+mod listen;
 mod lseek;
 mod mem;
+mod mkdir;
 mod net;
 mod open;
 mod poll;
+mod prctl;
+mod readlink;
+mod renameat;
+mod resource;
+mod rmdir;
 mod rt_sigreturn;
+mod shutdown;
 mod signal;
 mod stat;
+mod symlinkat;
 mod sys;
 mod syscall;
+mod time;
+mod truncate;
+mod uid;
+mod unlink;
 mod utils;
+mod wait;
 
 #[path = "../bpf/.output/strace.skel.rs"]
 #[cfg_attr(rustfmt, rustfmt_skip)]
@@ -100,6 +126,8 @@ fn main() -> Result<()> {
     builder.add(skel_maps.msg_ringbuf(), msg_ent_handler)?;
 
     let syscall_record = builder.build()?;
+
+    println!("Tracing... Press Ctrl-C to end early.");
     while running.load(Ordering::SeqCst) {
         let result = syscall_record.poll(Duration::MAX);
         if let Err(r) = &result {

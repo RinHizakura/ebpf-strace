@@ -46,3 +46,83 @@ static void sys_select_enter(syscall_ent_t *ent, struct input_parms parms)
         select->is_timeout_exist = false;
     }
 }
+
+static void sys_pipe_enter(syscall_ent_t *ent, struct input_parms parms)
+{
+    int *pipefd = (int *) parms.parm1;
+
+    __attribute__((unused)) pipe_args_t *pipe = (pipe_args_t *) ent->bytes;
+
+    void **buf_addr_ptr = bpf_g_buf_addr_lookup_elem(&INDEX_0);
+    if (buf_addr_ptr != NULL)
+        *buf_addr_ptr = pipefd;
+}
+
+static void sys_pipe_exit(syscall_ent_t *ent)
+{
+    pipe_args_t *pipe = (pipe_args_t *) ent->bytes;
+    void **buf_addr_ptr = bpf_g_buf_addr_lookup_elem(&INDEX_0);
+
+    memset(pipe->pipefd, 0, sizeof(pipe->pipefd));
+    if (buf_addr_ptr != NULL)
+        bpf_core_read_user(pipe->pipefd, sizeof(pipe->pipefd), *buf_addr_ptr);
+}
+
+static void sys_pipe2_enter(syscall_ent_t *ent, struct input_parms parms)
+{
+    int *pipefd = (int *) parms.parm1;
+    int flags = (int) parms.parm2;
+
+    pipe2_args_t *pipe2 = (pipe2_args_t *) ent->bytes;
+    pipe2->flags = flags;
+
+    void **buf_addr_ptr = bpf_g_buf_addr_lookup_elem(&INDEX_0);
+    if (buf_addr_ptr != NULL)
+        *buf_addr_ptr = pipefd;
+}
+
+static void sys_pipe2_exit(syscall_ent_t *ent)
+{
+    pipe2_args_t *pipe2 = (pipe2_args_t *) ent->bytes;
+    void **buf_addr_ptr = bpf_g_buf_addr_lookup_elem(&INDEX_0);
+
+    memset(pipe2->pipefd, 0, sizeof(pipe2->pipefd));
+    if (buf_addr_ptr != NULL)
+        bpf_core_read_user(pipe2->pipefd, sizeof(pipe2->pipefd), *buf_addr_ptr);
+}
+
+static void sys_fsync_enter(syscall_ent_t *ent, struct input_parms parms)
+{
+    int fd = (int) parms.parm1;
+
+    fsync_args_t *fsync = (fsync_args_t *) ent->bytes;
+    fsync->fd = fd;
+}
+
+static void sys_fdatasync_enter(syscall_ent_t *ent, struct input_parms parms)
+{
+    int fd = (int) parms.parm1;
+
+    fdatasync_args_t *fdatasync = (fdatasync_args_t *) ent->bytes;
+    fdatasync->fd = fd;
+}
+
+static void sys_syncfs_enter(syscall_ent_t *ent, struct input_parms parms)
+{
+    int fd = (int) parms.parm1;
+
+    syncfs_args_t *syncfs = (syncfs_args_t *) ent->bytes;
+    syncfs->fd = fd;
+}
+
+static void sys_close_range_enter(syscall_ent_t *ent, struct input_parms parms)
+{
+    unsigned int fd = (unsigned int) parms.parm1;
+    unsigned int max_fd = (unsigned int) parms.parm2;
+    unsigned int flags = (unsigned int) parms.parm3;
+
+    close_range_args_t *cr = (close_range_args_t *) ent->bytes;
+    cr->fd = fd;
+    cr->max_fd = max_fd;
+    cr->flags = flags;
+}

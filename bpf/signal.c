@@ -84,3 +84,35 @@ static void sys_rt_sigprocmask_exit(syscall_ent_t *ent)
         }
     }
 }
+
+static void sys_kill_enter(syscall_ent_t *ent, struct input_parms parms)
+{
+    pid_t pid = (pid_t) parms.parm1;
+    int sig = (int) parms.parm2;
+
+    kill_args_t *kill = (kill_args_t *) ent->bytes;
+    kill->pid = pid;
+    kill->sig = sig;
+}
+
+static void sys_tkill_enter(syscall_ent_t *ent, struct input_parms parms)
+{
+    pid_t tid = (pid_t) parms.parm1;
+    int sig = (int) parms.parm2;
+
+    tkill_args_t *tkill = (tkill_args_t *) ent->bytes;
+    tkill->tid = tid;
+    tkill->sig = sig;
+}
+
+static void sys_tgkill_enter(syscall_ent_t *ent, struct input_parms parms)
+{
+    pid_t tgid = (pid_t) parms.parm1;
+    pid_t tid = (pid_t) parms.parm2;
+    int sig = (int) parms.parm3;
+
+    tgkill_args_t *tgkill = (tgkill_args_t *) ent->bytes;
+    tgkill->tgid = tgid;
+    tgkill->tid = tid;
+    tgkill->sig = sig;
+}

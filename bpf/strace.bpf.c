@@ -61,21 +61,47 @@ struct input_parms {
 };
 
 #include "bpf/access.c"
+#include "bpf/bind.c"
+#include "bpf/chdir.c"
+#include "bpf/chmod.c"
+#include "bpf/clone.c"
 #include "bpf/desc.c"
+#include "bpf/dirent.c"
 #include "bpf/dup.c"
+#include "bpf/epoll.c"
 #include "bpf/execve.c"
 #include "bpf/exit.c"
+#include "bpf/fchownat.c"
+#include "bpf/fcntl.c"
+#include "bpf/getcwd.c"
+#include "bpf/getpid.c"
+#include "bpf/getrandom.c"
 #include "bpf/io.c"
 #include "bpf/ioctl.c"
 #include "bpf/ipc_shm.c"
+#include "bpf/link.c"
+#include "bpf/listen.c"
 #include "bpf/lseek.c"
 #include "bpf/mem.c"
+#include "bpf/mkdir.c"
 #include "bpf/net.c"
 #include "bpf/open.c"
 #include "bpf/poll.c"
+#include "bpf/prctl.c"
+#include "bpf/readlink.c"
+#include "bpf/renameat.c"
+#include "bpf/resource.c"
+#include "bpf/rmdir.c"
 #include "bpf/rt_sigreturn.c"
+#include "bpf/shutdown.c"
 #include "bpf/signal.c"
 #include "bpf/stat.c"
+#include "bpf/symlinkat.c"
+#include "bpf/time.c"
+#include "bpf/truncate.c"
+#include "bpf/uid.c"
+#include "bpf/unlink.c"
+#include "bpf/wait.c"
 
 static void submit_syscall(syscall_ent_t *ent, size_t args_size)
 {
@@ -206,9 +232,197 @@ static int __sys_enter(struct bpf_raw_tracepoint_args *args)
     case SYS_OPENAT:
         sys_openat_enter(ent, parms);
         break;
+    case SYS_KILL:
+        sys_kill_enter(ent, parms);
+        break;
+    case SYS_TKILL:
+        sys_tkill_enter(ent, parms);
+        break;
+    case SYS_TGKILL:
+        sys_tgkill_enter(ent, parms);
+        break;
+    case SYS_WAIT4:
+        sys_wait4_enter(ent, parms);
+        break;
+    case SYS_CLONE:
+        sys_clone_enter(ent, parms);
+        break;
+    case SYS_SETUID:
+        sys_setuid_enter(ent, parms);
+        break;
+    case SYS_SETGID:
+        sys_setgid_enter(ent, parms);
+        break;
+    case SYS_SETPGID:
+        sys_setpgid_enter(ent, parms);
+        break;
+    case SYS_GETPGID:
+        sys_getpgid_enter(ent, parms);
+        break;
+    case SYS_GETSID:
+        sys_getsid_enter(ent, parms);
+        break;
+    case SYS_PRCTL:
+        sys_prctl_enter(ent, parms);
+        break;
+    case SYS_FSYNC:
+        sys_fsync_enter(ent, parms);
+        break;
+    case SYS_FDATASYNC:
+        sys_fdatasync_enter(ent, parms);
+        break;
+    case SYS_FCHDIR:
+        sys_fchdir_enter(ent, parms);
+        break;
+    case SYS_FCHMOD:
+        sys_fchmod_enter(ent, parms);
+        break;
+    case SYS_FCHOWN:
+        sys_fchown_enter(ent, parms);
+        break;
+    case SYS_FTRUNCATE:
+        sys_ftruncate_enter(ent, parms);
+        break;
+    case SYS_GETDENTS64:
+        sys_getdents64_enter(ent, parms);
+        break;
+    case SYS_CHDIR:
+        sys_chdir_enter(ent, parms);
+        break;
+    case SYS_GETCWD:
+        sys_getcwd_enter(ent, parms);
+        break;
+    case SYS_MKDIRAT:
+        sys_mkdirat_enter(ent, parms);
+        break;
+    case SYS_UNLINKAT:
+        sys_unlinkat_enter(ent, parms);
+        break;
+    case SYS_RENAMEAT:
+        sys_renameat_enter(ent, parms);
+        break;
+    case SYS_SOCKET:
+        sys_socket_enter(ent, parms);
+        break;
+    case SYS_SHUTDOWN:
+        sys_shutdown_enter(ent, parms);
+        break;
+    case SYS_LISTEN:
+        sys_listen_enter(ent, parms);
+        break;
+    case SYS_BIND:
+        sys_bind_enter(ent, parms);
+        break;
+    case SYS_CONNECT:
+        sys_connect_enter(ent, parms);
+        break;
+    case SYS_ACCEPT:
+        sys_accept_enter(ent, parms);
+        break;
+    case SYS_ACCEPT4:
+        sys_accept4_enter(ent, parms);
+        break;
+    case SYS_SENDTO:
+        sys_sendto_enter(ent, parms);
+        break;
+    case SYS_RECVFROM:
+        sys_recvfrom_enter(ent, parms);
+        break;
+    case SYS_NANOSLEEP:
+        sys_nanosleep_enter(ent, parms);
+        break;
+    case SYS_CLOCK_GETTIME:
+        sys_clock_gettime_enter(ent, parms);
+        break;
+    case SYS_CLOCK_GETRES:
+        sys_clock_getres_enter(ent, parms);
+        break;
+    case SYS_GETTIMEOFDAY:
+        sys_gettimeofday_enter(ent, parms);
+        break;
+    case SYS_FCNTL:
+        sys_fcntl_enter(ent, parms);
+        break;
+    case SYS_PIPE2:
+        sys_pipe2_enter(ent, parms);
+        break;
+    case SYS_DUP3:
+        sys_dup3_enter(ent, parms);
+        break;
+    case SYS_EPOLL_CREATE1:
+        sys_epoll_create1_enter(ent, parms);
+        break;
+    case SYS_EPOLL_CTL:
+        sys_epoll_ctl_enter(ent, parms);
+        break;
+#ifdef __TARGET_ARCH_x86
+    case SYS_EPOLL_WAIT:
+        sys_epoll_wait_enter(ent, parms);
+        break;
+#endif
+    case SYS_SYNCFS:
+        sys_syncfs_enter(ent, parms);
+        break;
+    case SYS_CLOSE_RANGE:
+        sys_close_range_enter(ent, parms);
+        break;
+    case SYS_PRLIMIT64:
+        sys_prlimit64_enter(ent, parms);
+        break;
+    case SYS_SETRLIMIT:
+        sys_setrlimit_enter(ent, parms);
+        break;
+    case SYS_GETRLIMIT:
+        sys_getrlimit_enter(ent, parms);
+        break;
+    case SYS_GETRANDOM:
+        sys_getrandom_enter(ent, parms);
+        break;
+    case SYS_MLOCK:
+        sys_mlock_enter(ent, parms);
+        break;
+    case SYS_MUNLOCK:
+        sys_munlock_enter(ent, parms);
+        break;
+    case SYS_MLOCKALL:
+        sys_mlockall_enter(ent, parms);
+        break;
+    case SYS_MLOCK2:
+        sys_mlock2_enter(ent, parms);
+        break;
+    case SYS_TRUNCATE:
+        sys_truncate_enter(ent, parms);
+        break;
 #ifdef __TARGET_ARCH_x86
     case SYS_OPEN:
         sys_open_enter(ent, parms);
+        break;
+    case SYS_MKDIR:
+        sys_mkdir_enter(ent, parms);
+        break;
+    case SYS_RMDIR:
+        sys_rmdir_enter(ent, parms);
+        break;
+    case SYS_UNLINK:
+        sys_unlink_enter(ent, parms);
+        break;
+    case SYS_CHMOD:
+        sys_chmod_enter(ent, parms);
+        break;
+    case SYS_CHOWN:
+        sys_chown_enter(ent, parms);
+        break;
+    case SYS_RENAME:
+        sys_rename_enter(ent, parms);
+        break;
+    case SYS_LINK:
+        sys_link_enter(ent, parms);
+        break;
+    case SYS_SYMLINK:
+        sys_symlink_enter(ent, parms);
+        break;
+    case SYS_READLINK:
+        sys_readlink_enter(ent, parms);
         break;
     case SYS_STAT:
         sys_stat_enter(ent, parms);
@@ -326,6 +540,54 @@ static int __sys_exit(struct bpf_raw_tracepoint_args *args)
     case SYS_OPENAT:
         sys_openat_exit(ent);
         break;
+    case SYS_WAIT4:
+        sys_wait4_exit(ent);
+        break;
+    case SYS_CHDIR:
+        sys_chdir_exit(ent);
+        break;
+    case SYS_GETCWD:
+        sys_getcwd_exit(ent);
+        break;
+    case SYS_MKDIRAT:
+        sys_mkdirat_exit(ent);
+        break;
+    case SYS_UNLINKAT:
+        sys_unlinkat_exit(ent);
+        break;
+    case SYS_RENAMEAT:
+        sys_renameat_exit(ent);
+        break;
+    case SYS_ACCEPT:
+        sys_accept_exit(ent);
+        break;
+    case SYS_ACCEPT4:
+        sys_accept4_exit(ent);
+        break;
+    case SYS_RECVFROM:
+        sys_recvfrom_exit(ent);
+        break;
+    case SYS_NANOSLEEP:
+        sys_nanosleep_exit(ent);
+        break;
+    case SYS_CLOCK_GETTIME:
+        sys_clock_gettime_exit(ent);
+        break;
+    case SYS_CLOCK_GETRES:
+        sys_clock_getres_exit(ent);
+        break;
+    case SYS_GETTIMEOFDAY:
+        sys_gettimeofday_exit(ent);
+        break;
+    case SYS_PIPE2:
+        sys_pipe2_exit(ent);
+        break;
+    case SYS_PRLIMIT64:
+        sys_prlimit64_exit(ent);
+        break;
+    case SYS_GETRLIMIT:
+        sys_getrlimit_exit(ent);
+        break;
 #ifdef __TARGET_ARCH_x86
     case SYS_OPEN:
         sys_open_exit(ent);
@@ -341,6 +603,38 @@ static int __sys_exit(struct bpf_raw_tracepoint_args *args)
         break;
     case SYS_PIPE:
         sys_pipe_exit(ent);
+        break;
+#endif
+    case SYS_TRUNCATE:
+        sys_truncate_exit(ent);
+        break;
+#ifdef __TARGET_ARCH_x86
+    case SYS_MKDIR:
+        sys_mkdir_exit(ent);
+        break;
+    case SYS_RMDIR:
+        sys_rmdir_exit(ent);
+        break;
+    case SYS_UNLINK:
+        sys_unlink_exit(ent);
+        break;
+    case SYS_CHMOD:
+        sys_chmod_exit(ent);
+        break;
+    case SYS_CHOWN:
+        sys_chown_exit(ent);
+        break;
+    case SYS_RENAME:
+        sys_rename_exit(ent);
+        break;
+    case SYS_LINK:
+        sys_link_exit(ent);
+        break;
+    case SYS_SYMLINK:
+        sys_symlink_exit(ent);
+        break;
+    case SYS_READLINK:
+        sys_readlink_exit(ent);
         break;
 #endif
     default:

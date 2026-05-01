@@ -5,8 +5,10 @@ use crate::arch::syscall_nr::*;
 use crate::arch::syscall_tbl::SYSCALLS;
 
 use crate::{
-    access, desc, dup, execve, exit, io, ioctl, ipc_shm, lseek, mem, net, open, poll, rt_sigreturn,
-    signal, stat,
+    access, bind, chdir, chmod, clone, desc, dirent, dup, epoll, execve, exit, fchownat, fcntl,
+    getcwd, getpid, getrandom, io, ioctl, ipc_shm, link, listen, lseek, mem, mkdir, net, open,
+    poll, prctl, readlink, renameat, resource, rmdir, rt_sigreturn, shutdown, signal, stat,
+    symlinkat, time, truncate, uid, unlink, wait,
 };
 use plain::Plain;
 
@@ -50,6 +52,89 @@ fn handle_args(id: u64, args: &[u8], ret: u64) -> String {
         SYS_EXECVE => execve::handle_execve_args(args),
         SYS_OPENAT => open::handle_openat_args(args),
         SYS_EXIT_GROUP => exit::handle_exit_group_args(args),
+        // signal (kill family)
+        SYS_KILL => signal::handle_kill_args(args),
+        SYS_TKILL => signal::handle_tkill_args(args),
+        SYS_TGKILL => signal::handle_tgkill_args(args),
+        // process management
+        SYS_WAIT4 => wait::handle_wait4_args(args, ret),
+        SYS_CLONE => clone::handle_clone_args(args),
+        SYS_SETUID => uid::handle_setuid_args(args),
+        SYS_SETGID => uid::handle_setgid_args(args),
+        SYS_SETPGID => getpid::handle_setpgid_args(args),
+        SYS_GETPGID => getpid::handle_getpgid_args(args),
+        SYS_GETSID => getpid::handle_getsid_args(args),
+        SYS_PRCTL => prctl::handle_prctl_args(args),
+        // fd / sync
+        SYS_FSYNC => desc::handle_fsync_args(args),
+        SYS_FDATASYNC => desc::handle_fdatasync_args(args),
+        SYS_SYNCFS => desc::handle_syncfs_args(args),
+        SYS_CLOSE_RANGE => desc::handle_close_range_args(args),
+        SYS_PIPE2 => desc::handle_pipe2_args(args),
+        SYS_DUP3 => dup::handle_dup3_args(args),
+        SYS_FCNTL => fcntl::handle_fcntl_args(args),
+        // file ops
+        SYS_FCHDIR => chdir::handle_fchdir_args(args),
+        SYS_FCHMOD => chmod::handle_fchmod_args(args),
+        SYS_FCHOWN => fchownat::handle_fchown_args(args),
+        SYS_FTRUNCATE => truncate::handle_ftruncate_args(args),
+        SYS_GETDENTS64 => dirent::handle_getdents64_args(args),
+        SYS_CHDIR => chdir::handle_chdir_args(args),
+        SYS_GETCWD => getcwd::handle_getcwd_args(args),
+        SYS_MKDIRAT => mkdir::handle_mkdirat_args(args),
+        SYS_UNLINKAT => unlink::handle_unlinkat_args(args),
+        SYS_RENAMEAT => renameat::handle_renameat_args(args),
+        // network
+        SYS_SOCKET => net::handle_socket_args(args),
+        SYS_SHUTDOWN => shutdown::handle_shutdown_args(args),
+        SYS_LISTEN => listen::handle_listen_args(args),
+        SYS_BIND => bind::handle_bind_args(args),
+        SYS_CONNECT => net::handle_connect_args(args),
+        SYS_ACCEPT => net::handle_accept_args(args),
+        SYS_ACCEPT4 => net::handle_accept4_args(args),
+        SYS_SENDTO => net::handle_sendto_args(args),
+        SYS_RECVFROM => net::handle_recvfrom_args(args, ret),
+        // time
+        SYS_NANOSLEEP => time::handle_nanosleep_args(args),
+        SYS_CLOCK_GETTIME => time::handle_clock_gettime_args(args),
+        SYS_CLOCK_GETRES => time::handle_clock_getres_args(args),
+        SYS_GETTIMEOFDAY => time::handle_gettimeofday_args(args),
+        // epoll
+        SYS_EPOLL_CREATE1 => epoll::handle_epoll_create1_args(args),
+        SYS_EPOLL_CTL => epoll::handle_epoll_ctl_args(args),
+        #[cfg(all(target_arch = "x86_64"))]
+        SYS_EPOLL_WAIT => epoll::handle_epoll_wait_args(args),
+        // resource limits
+        SYS_PRLIMIT64 => resource::handle_prlimit64_args(args),
+        SYS_SETRLIMIT => resource::handle_setrlimit_args(args),
+        SYS_GETRLIMIT => resource::handle_getrlimit_args(args),
+        // misc
+        SYS_GETRANDOM => getrandom::handle_getrandom_args(args),
+        // memory locking
+        SYS_MLOCK => mem::handle_mlock_args(args),
+        SYS_MUNLOCK => mem::handle_munlock_args(args),
+        SYS_MLOCKALL => mem::handle_mlockall_args(args),
+        SYS_MLOCK2 => mem::handle_mlock2_args(args),
+        SYS_TRUNCATE => truncate::handle_truncate_args(args),
+        // x86_64-only old syscalls
+        #[cfg(all(target_arch = "x86_64"))]
+        SYS_MKDIR => mkdir::handle_mkdir_args(args),
+        #[cfg(all(target_arch = "x86_64"))]
+        SYS_RMDIR => rmdir::handle_rmdir_args(args),
+        #[cfg(all(target_arch = "x86_64"))]
+        SYS_UNLINK => unlink::handle_unlink_args(args),
+        #[cfg(all(target_arch = "x86_64"))]
+        SYS_CHMOD => chmod::handle_chmod_args(args),
+        #[cfg(all(target_arch = "x86_64"))]
+        SYS_CHOWN => fchownat::handle_chown_args(args),
+        #[cfg(all(target_arch = "x86_64"))]
+        SYS_RENAME => renameat::handle_rename_args(args),
+        #[cfg(all(target_arch = "x86_64"))]
+        SYS_LINK => link::handle_link_args(args),
+        #[cfg(all(target_arch = "x86_64"))]
+        SYS_SYMLINK => symlinkat::handle_symlink_args(args),
+        #[cfg(all(target_arch = "x86_64"))]
+        SYS_READLINK => readlink::handle_readlink_args(args, ret),
         #[cfg(all(target_arch = "x86_64"))]
         SYS_OPEN => open::handle_open_args(args),
         #[cfg(all(target_arch = "x86_64"))]
@@ -61,7 +146,7 @@ fn handle_args(id: u64, args: &[u8], ret: u64) -> String {
         #[cfg(all(target_arch = "x86_64"))]
         SYS_ACCESS => access::handle_access_args(args),
         #[cfg(all(target_arch = "x86_64"))]
-        SYS_PIPE => net::handle_pipe_args(args),
+        SYS_PIPE => desc::handle_pipe_args(args),
         #[cfg(all(target_arch = "x86_64"))]
         SYS_SELECT => desc::handle_select_args(args),
         #[cfg(all(target_arch = "x86_64"))]

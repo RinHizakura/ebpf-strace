@@ -2,6 +2,10 @@ use std::ffi::{c_int, c_uchar};
 
 use libc::*;
 
+const MLOCKALL_FLAGS_DESCS: &[Desc] = &[desc!(MCL_CURRENT), desc!(MCL_FUTURE), desc!(MCL_ONFAULT)];
+
+const MLOCK2_FLAGS_DESCS: &[Desc] = &[desc!(MLOCK_ONFAULT)];
+
 use crate::common::*;
 
 const MMAP_PROT_DESCS: &[Desc] = &[
@@ -223,4 +227,54 @@ pub(super) fn handle_madvise_args(args: &[u8]) -> String {
     );
 
     return format!("{}, {}, {}", addr, length, advice);
+}
+
+#[repr(C)]
+struct MlockArgs {
+    addr: usize,
+    len: usize,
+}
+unsafe impl plain::Plain for MlockArgs {}
+
+pub(super) fn handle_mlock_args(args: &[u8]) -> String {
+    let m = get_args::<MlockArgs>(args);
+    format!("{}, {}", format_addr(m.addr), m.len)
+}
+
+#[repr(C)]
+struct MunlockArgs {
+    addr: usize,
+    len: usize,
+}
+unsafe impl plain::Plain for MunlockArgs {}
+
+pub(super) fn handle_munlock_args(args: &[u8]) -> String {
+    let m = get_args::<MunlockArgs>(args);
+    format!("{}, {}", format_addr(m.addr), m.len)
+}
+
+#[repr(C)]
+struct MlockallArgs {
+    flags: c_int,
+}
+unsafe impl plain::Plain for MlockallArgs {}
+
+pub(super) fn handle_mlockall_args(args: &[u8]) -> String {
+    let m = get_args::<MlockallArgs>(args);
+    let flags = format_flags(m.flags as u64, '|', MLOCKALL_FLAGS_DESCS, Format::Hex);
+    format!("{}", flags)
+}
+
+#[repr(C)]
+struct Mlock2Args {
+    addr: usize,
+    len: usize,
+    flags: c_int,
+}
+unsafe impl plain::Plain for Mlock2Args {}
+
+pub(super) fn handle_mlock2_args(args: &[u8]) -> String {
+    let m = get_args::<Mlock2Args>(args);
+    let flags = format_flags(m.flags as u64, '|', MLOCK2_FLAGS_DESCS, Format::Hex);
+    format!("{}, {}, {}", format_addr(m.addr), m.len, flags)
 }

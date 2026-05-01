@@ -125,3 +125,43 @@ static void sys_madvise_enter(syscall_ent_t *ent, struct input_parms parms)
     madvise->length = length;
     madvise->advice = advice;
 }
+
+static void sys_mlock_enter(syscall_ent_t *ent, struct input_parms parms)
+{
+    void *addr = (void *) parms.parm1;
+    size_t len = (size_t) parms.parm2;
+
+    mlock_args_t *ml = (mlock_args_t *) ent->bytes;
+    ml->addr = addr;
+    ml->len = len;
+}
+
+static void sys_munlock_enter(syscall_ent_t *ent, struct input_parms parms)
+{
+    void *addr = (void *) parms.parm1;
+    size_t len = (size_t) parms.parm2;
+
+    munlock_args_t *ml = (munlock_args_t *) ent->bytes;
+    ml->addr = addr;
+    ml->len = len;
+}
+
+static void sys_mlockall_enter(syscall_ent_t *ent, struct input_parms parms)
+{
+    int flags = (int) parms.parm1;
+
+    mlockall_args_t *ml = (mlockall_args_t *) ent->bytes;
+    ml->flags = flags;
+}
+
+static void sys_mlock2_enter(syscall_ent_t *ent, struct input_parms parms)
+{
+    void *addr = (void *) parms.parm1;
+    size_t len = (size_t) parms.parm2;
+    int flags = (int) parms.parm3;
+
+    mlock2_args_t *ml = (mlock2_args_t *) ent->bytes;
+    ml->addr = addr;
+    ml->len = len;
+    ml->flags = flags;
+}

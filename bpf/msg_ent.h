@@ -9,6 +9,8 @@
 #define ARR_ENT_SIZE 4
 #define BUF_SIZE 32
 #define ARGS_SIZE 1024
+/* Bytes captured for socket address arguments (covers IPv6 at 28 bytes) */
+#define SOCKADDR_SIZE 28
 
 /* TODO: Decomment the following lines to check the arguments
  * size when all of them are completed.
@@ -190,6 +192,18 @@ struct timeval {
     long tv_usec;
 };
 
+/* Portable timespec: avoids vmlinux.h timespec vs timespec64 ambiguity */
+typedef struct {
+    s64 tv_sec;
+    s64 tv_nsec;
+} timespec_trace_t;
+
+/* Portable rlimit: matches struct rlimit on 64-bit Linux */
+typedef struct {
+    u64 rlim_cur;
+    u64 rlim_max;
+} rlimit_trace_t;
+
 typedef struct {
     int nfds;
     fd_set readfds;
@@ -267,6 +281,9 @@ typedef struct {
 typedef struct {
 } pause_args_t;
 typedef struct {
+    timespec_trace_t req;
+    timespec_trace_t rem;
+    bool is_rem_exist;
 } nanosleep_args_t;
 typedef struct {
 } getitimer_args_t;
@@ -279,24 +296,54 @@ typedef struct {
 typedef struct {
 } sendfile_args_t;
 typedef struct {
+    int domain;
+    int type;
+    int protocol;
 } socket_args_t;
 typedef struct {
+    int sockfd;
+    u8 addr[SOCKADDR_SIZE];
+    u32 addrlen;
 } connect_args_t;
 typedef struct {
+    int sockfd;
+    u8 addr[SOCKADDR_SIZE];
+    u32 addrlen;
 } accept_args_t;
 typedef struct {
+    int sockfd;
+    u8 buf[BUF_SIZE];
+    size_t len;
+    int flags;
+    u8 dest_addr[SOCKADDR_SIZE];
+    u32 addrlen;
+    bool is_addr_exist;
 } sendto_args_t;
 typedef struct {
+    int sockfd;
+    u8 buf[BUF_SIZE];
+    size_t len;
+    int flags;
+    u8 src_addr[SOCKADDR_SIZE];
+    u32 src_addrlen;
+    bool is_addr_exist;
 } recvfrom_args_t;
 typedef struct {
 } sendmsg_args_t;
 typedef struct {
 } recvmsg_args_t;
 typedef struct {
+    int sockfd;
+    int how;
 } shutdown_args_t;
 typedef struct {
+    int sockfd;
+    u8 addr[SOCKADDR_SIZE];
+    u32 addrlen;
 } bind_args_t;
 typedef struct {
+    int sockfd;
+    int backlog;
 } listen_args_t;
 typedef struct {
 } getsockname_args_t;
@@ -309,6 +356,7 @@ typedef struct {
 typedef struct {
 } getsockopt_args_t;
 typedef struct {
+    unsigned long flags;
 } clone_args_t;
 typedef struct {
 } fork_args_t;
@@ -326,8 +374,13 @@ typedef struct {
 typedef struct {
 } exit_args_t;
 typedef struct {
+    pid_t upid;
+    int wstatus;
+    int options;
 } wait4_args_t;
 typedef struct {
+    pid_t pid;
+    int sig;
 } kill_args_t;
 typedef struct {
 } uname_args_t;
@@ -348,56 +401,96 @@ typedef struct {
 typedef struct {
 } msgctl_args_t;
 typedef struct {
+    int fd;
+    int cmd;
+    unsigned long arg;
 } fcntl_args_t;
 typedef struct {
 } flock_args_t;
 typedef struct {
+    int fd;
 } fsync_args_t;
 typedef struct {
+    int fd;
 } fdatasync_args_t;
 typedef struct {
+    u8 path[BUF_SIZE];
+    off_t length;
 } truncate_args_t;
 typedef struct {
+    int fd;
+    off_t length;
 } ftruncate_args_t;
 typedef struct {
 } getdents_args_t;
 typedef struct {
+    u8 buf[BUF_SIZE];
+    size_t size;
 } getcwd_args_t;
 typedef struct {
+    u8 path[BUF_SIZE];
 } chdir_args_t;
 typedef struct {
+    int fd;
 } fchdir_args_t;
 typedef struct {
+    u8 old_path[BUF_SIZE];
+    u8 new_path[BUF_SIZE];
 } rename_args_t;
 typedef struct {
+    u8 path[BUF_SIZE];
+    mode_t mode;
 } mkdir_args_t;
 typedef struct {
+    u8 path[BUF_SIZE];
 } rmdir_args_t;
 typedef struct {
 } creat_args_t;
 typedef struct {
+    u8 old_path[BUF_SIZE];
+    u8 new_path[BUF_SIZE];
 } link_args_t;
 typedef struct {
+    u8 path[BUF_SIZE];
 } unlink_args_t;
 typedef struct {
+    u8 target[BUF_SIZE];
+    u8 linkpath[BUF_SIZE];
 } symlink_args_t;
 typedef struct {
+    u8 path[BUF_SIZE];
+    u8 buf[BUF_SIZE];
+    size_t bufsiz;
 } readlink_args_t;
 typedef struct {
+    u8 path[BUF_SIZE];
+    mode_t mode;
 } chmod_args_t;
 typedef struct {
+    int fd;
+    mode_t mode;
 } fchmod_args_t;
 typedef struct {
+    u8 path[BUF_SIZE];
+    uid_t uid;
+    gid_t gid;
 } chown_args_t;
 typedef struct {
+    int fd;
+    uid_t uid;
+    gid_t gid;
 } fchown_args_t;
 typedef struct {
 } lchown_args_t;
 typedef struct {
 } umask_args_t;
 typedef struct {
+    struct timeval tv;
+    bool is_tv_exist;
 } gettimeofday_args_t;
 typedef struct {
+    int resource;
+    rlimit_trace_t rlim;
 } getrlimit_args_t;
 typedef struct {
 } getrusage_args_t;
@@ -414,14 +507,18 @@ typedef struct {
 typedef struct {
 } getgid_args_t;
 typedef struct {
+    uid_t uid;
 } setuid_args_t;
 typedef struct {
+    gid_t gid;
 } setgid_args_t;
 typedef struct {
 } geteuid_args_t;
 typedef struct {
 } getegid_args_t;
 typedef struct {
+    pid_t pid;
+    pid_t pgid;
 } setpgid_args_t;
 typedef struct {
 } getppid_args_t;
@@ -446,12 +543,14 @@ typedef struct {
 typedef struct {
 } getresgid_args_t;
 typedef struct {
+    pid_t pid;
 } getpgid_args_t;
 typedef struct {
 } setfsuid_args_t;
 typedef struct {
 } setfsgid_args_t;
 typedef struct {
+    pid_t pid;
 } getsid_args_t;
 typedef struct {
 } capget_args_t;
@@ -502,10 +601,15 @@ typedef struct {
 typedef struct {
 } sched_rr_get_interval_args_t;
 typedef struct {
+    void *addr;
+    size_t len;
 } mlock_args_t;
 typedef struct {
+    void *addr;
+    size_t len;
 } munlock_args_t;
 typedef struct {
+    int flags;
 } mlockall_args_t;
 typedef struct {
 } munlockall_args_t;
@@ -518,12 +622,16 @@ typedef struct {
 typedef struct {
 } _sysctl_args_t;
 typedef struct {
+    int option;
+    unsigned long arg2;
 } prctl_args_t;
 typedef struct {
 } arch_prctl_args_t;
 typedef struct {
 } adjtimex_args_t;
 typedef struct {
+    int resource;
+    rlimit_trace_t rlim;
 } setrlimit_args_t;
 typedef struct {
 } chroot_args_t;
@@ -604,6 +712,8 @@ typedef struct {
 typedef struct {
 } fremovexattr_args_t;
 typedef struct {
+    pid_t tid;
+    int sig;
 } tkill_args_t;
 typedef struct {
 } time_args_t;
@@ -638,6 +748,8 @@ typedef struct {
 typedef struct {
 } remap_file_pages_args_t;
 typedef struct {
+    int fd;
+    size_t count;
 } getdents64_args_t;
 typedef struct {
 } set_tid_address_args_t;
@@ -660,8 +772,13 @@ typedef struct {
 typedef struct {
 } clock_settime_args_t;
 typedef struct {
+    int clockid;
+    timespec_trace_t tp;
 } clock_gettime_args_t;
 typedef struct {
+    int clockid;
+    timespec_trace_t res;
+    bool is_res_exist;
 } clock_getres_args_t;
 typedef struct {
 } clock_nanosleep_args_t;
@@ -671,10 +788,22 @@ typedef struct {
 } exit_group_args_t;
 
 typedef struct {
+    int epfd;
+    int maxevents;
+    int timeout;
 } epoll_wait_args_t;
 typedef struct {
+    int epfd;
+    int op;
+    int fd;
+    u32 events;
+    u64 data;
+    bool is_event_exist;
 } epoll_ctl_args_t;
 typedef struct {
+    pid_t tgid;
+    pid_t tid;
+    int sig;
 } tgkill_args_t;
 typedef struct {
 } utimes_args_t;
@@ -729,6 +858,9 @@ typedef struct {
 } openat_args_t;
 
 typedef struct {
+    int dirfd;
+    u8 path[BUF_SIZE];
+    mode_t mode;
 } mkdirat_args_t;
 typedef struct {
 } mknodat_args_t;
@@ -745,8 +877,15 @@ typedef struct {
 } newfstatat_args_t;
 
 typedef struct {
+    int dirfd;
+    u8 path[BUF_SIZE];
+    int flags;
 } unlinkat_args_t;
 typedef struct {
+    int olddirfd;
+    u8 old_path[BUF_SIZE];
+    int newdirfd;
+    u8 new_path[BUF_SIZE];
 } renameat_args_t;
 typedef struct {
 } linkat_args_t;
@@ -795,16 +934,26 @@ typedef struct {
 typedef struct {
 } timerfd_gettime_args_t;
 typedef struct {
+    int sockfd;
+    u8 addr[SOCKADDR_SIZE];
+    u32 addrlen;
+    int flags;
 } accept4_args_t;
 typedef struct {
 } signalfd4_args_t;
 typedef struct {
 } eventfd2_args_t;
 typedef struct {
+    int flags;
 } epoll_create1_args_t;
 typedef struct {
+    int oldfd;
+    int newfd;
+    int flags;
 } dup3_args_t;
 typedef struct {
+    int pipefd[2];
+    int flags;
 } pipe2_args_t;
 typedef struct {
 } inotify_init1_args_t;
@@ -823,6 +972,11 @@ typedef struct {
 typedef struct {
 } fanotify_mark_args_t;
 typedef struct {
+    pid_t pid;
+    int resource;
+    rlimit_trace_t new_rlim;
+    rlimit_trace_t old_rlim;
+    bool is_new_exist;
 } prlimit64_args_t;
 typedef struct {
 } name_to_handle_at_args_t;
@@ -831,6 +985,7 @@ typedef struct {
 typedef struct {
 } clock_adjtime_args_t;
 typedef struct {
+    int fd;
 } syncfs_args_t;
 typedef struct {
 } sendmmsg_args_t;
@@ -855,6 +1010,8 @@ typedef struct {
 typedef struct {
 } seccomp_args_t;
 typedef struct {
+    size_t buflen;
+    unsigned int flags;
 } getrandom_args_t;
 typedef struct {
 } memfd_create_args_t;
@@ -869,6 +1026,9 @@ typedef struct {
 typedef struct {
 } membarrier_args_t;
 typedef struct {
+    void *addr;
+    size_t len;
+    int flags;
 } mlock2_args_t;
 typedef struct {
 } copy_file_range_args_t;
@@ -913,6 +1073,9 @@ typedef struct {
 typedef struct {
 } clone3_args_t;
 typedef struct {
+    unsigned int fd;
+    unsigned int max_fd;
+    unsigned int flags;
 } close_range_args_t;
 typedef struct {
 } openat2_args_t;

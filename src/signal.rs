@@ -1,8 +1,8 @@
 use crate::arch::KernlSigset;
 use crate::common::*;
 use libc::{
-    SA_NOCLDSTOP, SA_NOCLDWAIT, SA_NODEFER, SA_ONSTACK, SA_RESETHAND, SA_RESTART, SA_SIGINFO,
-    SIG_BLOCK, SIG_SETMASK, SIG_UNBLOCK,
+    pid_t, SA_NOCLDSTOP, SA_NOCLDWAIT, SA_NODEFER, SA_ONSTACK, SA_RESETHAND, SA_RESTART,
+    SA_SIGINFO, SIG_BLOCK, SIG_SETMASK, SIG_UNBLOCK,
 };
 
 /* FIXME: We define this ourself because it is not contained in
@@ -114,4 +114,46 @@ pub(super) fn handle_rt_sigprocmask_args(args: &[u8]) -> String {
         "{}, {}, {}, {}",
         how, set, oldset, rt_sigprocmask.sigsetsize
     );
+}
+
+#[repr(C)]
+struct KillArgs {
+    pid: pid_t,
+    sig: c_int,
+}
+unsafe impl plain::Plain for KillArgs {}
+
+pub(super) fn handle_kill_args(args: &[u8]) -> String {
+    let kill = get_args::<KillArgs>(args);
+    format!("{}, {}", kill.pid, format_signum(kill.sig))
+}
+
+#[repr(C)]
+struct TkillArgs {
+    tid: pid_t,
+    sig: c_int,
+}
+unsafe impl plain::Plain for TkillArgs {}
+
+pub(super) fn handle_tkill_args(args: &[u8]) -> String {
+    let tkill = get_args::<TkillArgs>(args);
+    format!("{}, {}", tkill.tid, format_signum(tkill.sig))
+}
+
+#[repr(C)]
+struct TgkillArgs {
+    tgid: pid_t,
+    tid: pid_t,
+    sig: c_int,
+}
+unsafe impl plain::Plain for TgkillArgs {}
+
+pub(super) fn handle_tgkill_args(args: &[u8]) -> String {
+    let tgkill = get_args::<TgkillArgs>(args);
+    format!(
+        "{}, {}, {}",
+        tgkill.tgid,
+        tgkill.tid,
+        format_signum(tgkill.sig)
+    )
 }
