@@ -10,7 +10,7 @@ GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
 RETURN=0
-FAIL_STOP=1
+FAIL_STOP=0
 OUT_DIR="target/debug/tests"
 
 if [ $# -gt 0 ]; then
@@ -29,6 +29,7 @@ fi
 
 TOTAL=$(echo ${FILES} | wc -w)
 TEST_NUM=0
+PASS=0
 
 for FILE in ${FILES}; do
     RSLT=0
@@ -63,8 +64,11 @@ for FILE in ${FILES}; do
         fi
     else
         echo -e "${r}[$TEST_NUM/$TOTAL] run test: ${FILE}... ${GREEN}pass${NC}"
+        PASS=$((PASS+1))
     fi
 
 done
+
+echo "pass rate: ${PASS}/${TOTAL}"
 
 exit $RETURN
