@@ -12,7 +12,21 @@ NC='\033[0m' # No Color
 RETURN=0
 FAIL_STOP=1
 OUT_DIR="target/debug/tests"
-FILES=$(ls $OUT_DIR | grep '.out')
+
+if [ $# -gt 0 ]; then
+    FILES=""
+    for name in "$@"; do
+        f="${name}.out"
+        if [ ! -f "$OUT_DIR/$f" ]; then
+            echo "error: test not found: $OUT_DIR/$f"
+            exit 1
+        fi
+        FILES="$FILES $f"
+    done
+else
+    FILES=$(ls $OUT_DIR | grep '.out')
+fi
+
 for FILE in ${FILES}; do
     RSLT=0
     CMD="sudo $BIN $OUT_DIR/$FILE"
