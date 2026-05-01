@@ -116,11 +116,9 @@ static void sys_sendto_enter(syscall_ent_t *ent, struct input_parms parms)
     sendto->addrlen = addrlen;
     sendto->is_addr_exist = (dest_addr != NULL);
 
-    memset(sendto->buf, 0, sizeof(sendto->buf));
-    if (buf) {
-        size_t cpy_len = len > sizeof(sendto->buf) ? sizeof(sendto->buf) : len;
-        bpf_core_read_user(sendto->buf, cpy_len, buf);
-    }
+    void **buf0 = bpf_g_buf_addr_lookup_elem(&INDEX_0);
+    if (buf0 != NULL)
+        *buf0 = buf;
 
     memset(sendto->dest_addr, 0, sizeof(sendto->dest_addr));
     if (dest_addr) {
@@ -128,6 +126,19 @@ static void sys_sendto_enter(syscall_ent_t *ent, struct input_parms parms)
                        ? sizeof(sendto->dest_addr)
                        : addrlen;
         bpf_core_read_user(sendto->dest_addr, alen, dest_addr);
+    }
+}
+
+static void sys_sendto_exit(syscall_ent_t *ent)
+{
+    sendto_args_t *sendto = (sendto_args_t *) ent->bytes;
+    void **buf0 = bpf_g_buf_addr_lookup_elem(&INDEX_0);
+
+    memset(sendto->buf, 0, sizeof(sendto->buf));
+    if (buf0 != NULL && *buf0 != NULL) {
+        u32 cpy_len = sendto->len > sizeof(sendto->buf) ? sizeof(sendto->buf)
+                                                        : (u32) sendto->len;
+        bpf_core_read_user(sendto->buf, cpy_len, *buf0);
     }
 }
 

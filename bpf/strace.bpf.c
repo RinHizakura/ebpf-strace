@@ -564,6 +564,9 @@ static int __sys_exit(struct bpf_raw_tracepoint_args *args)
     case SYS_ACCEPT4:
         sys_accept4_exit(ent);
         break;
+    case SYS_SENDTO:
+        sys_sendto_exit(ent);
+        break;
     case SYS_RECVFROM:
         sys_recvfrom_exit(ent);
         break;

@@ -59,6 +59,55 @@ fn format_sock_type(t: c_int) -> String {
     }
 }
 
+fn format_ipv6(bytes: &[u8]) -> String {
+    let groups: Vec<u16> = (0..8)
+        .map(|i| u16::from_be_bytes([bytes[2 * i], bytes[2 * i + 1]]))
+        .collect();
+
+    // Find the longest consecutive run of zeros (must be >= 2 groups to compress).
+    let mut best = (0usize, 0usize);
+    let mut cur = (0usize, 0usize);
+    for (i, &g) in groups.iter().enumerate() {
+        if g == 0 {
+            if cur.1 == 0 {
+                cur.0 = i;
+            }
+            cur.1 += 1;
+            if cur.1 > best.1 {
+                best = cur;
+            }
+        } else {
+            cur.1 = 0;
+        }
+    }
+
+    if best.1 < 2 {
+        return groups
+            .iter()
+            .map(|g| format!("{:x}", g))
+            .collect::<Vec<_>>()
+            .join(":");
+    }
+
+    let end = best.0 + best.1;
+    let left = groups[..best.0]
+        .iter()
+        .map(|g| format!("{:x}", g))
+        .collect::<Vec<_>>()
+        .join(":");
+    let right = groups[end..]
+        .iter()
+        .map(|g| format!("{:x}", g))
+        .collect::<Vec<_>>()
+        .join(":");
+    match (best.0, end) {
+        (0, 8) => "::".to_owned(),
+        (0, _) => format!("::{}", right),
+        (_, 8) => format!("{}::", left),
+        _ => format!("{}::{}", left, right),
+    }
+}
+
 pub(super) fn format_sockaddr(addr: &[u8; SOCKADDR_BUF_SIZE], addrlen: u32) -> String {
     if addrlen < 2 {
         return "{}".to_owned();
@@ -79,7 +128,7 @@ pub(super) fn format_sockaddr(addr: &[u8; SOCKADDR_BUF_SIZE], addrlen: u32) -> S
                 let port = u16::from_be_bytes([addr[2], addr[3]]);
                 let ip = format!("{}.{}.{}.{}", addr[4], addr[5], addr[6], addr[7]);
                 format!(
-                    "{{sa_family=AF_INET, sin_port=htons({}), sin_addr=\"{}\"}}",
+                    "{{sa_family=AF_INET, sin_port=htons({}), sin_addr=inet_addr(\"{}\")}}",
                     port, ip
                 )
             } else {
@@ -87,16 +136,14 @@ pub(super) fn format_sockaddr(addr: &[u8; SOCKADDR_BUF_SIZE], addrlen: u32) -> S
             }
         }
         AF_INET6 => {
-            if addrlen as usize >= 24 {
+            if addrlen as usize >= 28 {
                 let port = u16::from_be_bytes([addr[2], addr[3]]);
-                let ip = (8..24)
-                    .step_by(2)
-                    .map(|i| format!("{:02x}{:02x}", addr[i], addr[i + 1]))
-                    .collect::<Vec<_>>()
-                    .join(":");
+                let flowinfo = u32::from_be_bytes([addr[4], addr[5], addr[6], addr[7]]);
+                let ip = format_ipv6(&addr[8..24]);
+                let scope_id = u32::from_ne_bytes([addr[24], addr[25], addr[26], addr[27]]);
                 format!(
-                    "{{sa_family=AF_INET6, sin6_port=htons({}), sin6_addr=\"{}\"}}",
-                    port, ip
+                    "{{sa_family=AF_INET6, sin6_port=htons({}), sin6_flowinfo=htonl({}), inet_pton(AF_INET6, \"{}\", &sin6_addr), sin6_scope_id={}}}",
+                    port, flowinfo, ip, scope_id
                 )
             } else {
                 "{sa_family=AF_INET6, ...}".to_owned()
