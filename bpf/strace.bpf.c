@@ -26,9 +26,25 @@
 #define LOOP_MAX 1024
 
 pid_t select_pid = 0;
+/* dev/inode of the loader's PID namespace (/proc/self/ns/pid). Populated
+ * from userspace before any tracepoint fires. They let the BPF program
+ * resolve PIDs in the loader's namespace via bpf_get_ns_current_pid_tgid,
+ * which is required when the loader runs in a nested PID namespace (e.g.
+ * WSL2 systemd-mode), where bpf_get_current_pid_tgid() returns the
+ * root-namespace PID and never matches what fork() returned in userspace. */
+u64 ns_dev = 0;
+u64 ns_ino = 0;
 /* The key to access the single entry BPF_MAP in array type. */
 u32 INDEX_0 = 0;
 u32 INDEX_1 = 1;
+
+static __always_inline pid_t loader_ns_tgid(void)
+{
+    struct bpf_pidns_info nsdata = {};
+    if (bpf_get_ns_current_pid_tgid(ns_dev, ns_ino, &nsdata, sizeof(nsdata)))
+        return 0;
+    return nsdata.tgid;
+}
 
 /* FIXME: For some reason, we may not able to read the content under the
  * address at sys_enter. To solve the problem, we store the address first
@@ -474,10 +490,10 @@ static int __sys_enter(struct bpf_raw_tracepoint_args *args)
 SEC("raw_tracepoint/sys_enter")
 int sys_enter(struct bpf_raw_tracepoint_args *args)
 {
-    /* We'll only hook the pid which is specified by BPF loader.
-     * Note that the return value of "bpf_get_current_pid_tgid" will
-     * be "(u64) task->tgid << 32 | task->pid" */
-    pid_t cur_pid = (bpf_get_current_pid_tgid() >> 32);
+    /* We'll only hook the pid which is specified by BPF loader. The PID
+     * is resolved in the loader's PID namespace so the comparison works
+     * even when the loader runs inside a nested namespace. */
+    pid_t cur_pid = loader_ns_tgid();
     if (select_pid == 0 || select_pid != cur_pid)
         return 0;
 
@@ -687,7 +703,7 @@ int sys_exit(struct bpf_raw_tracepoint_args *args)
     // Get the syscall end time at the very early start as possible
     u64 end_time = bpf_ktime_get_ns();
 
-    pid_t cur_pid = (bpf_get_current_pid_tgid() >> 32);
+    pid_t cur_pid = loader_ns_tgid();
     if (select_pid == 0 || select_pid != cur_pid)
         return 0;
 
@@ -711,7 +727,7 @@ int sys_exit(struct bpf_raw_tracepoint_args *args)
 SEC("raw_tracepoint/signal_deliver")
 int signal_deliver(struct bpf_raw_tracepoint_args *args)
 {
-    pid_t cur_pid = (bpf_get_current_pid_tgid() >> 32);
+    pid_t cur_pid = loader_ns_tgid();
     if (select_pid == 0 || select_pid != cur_pid)
         return 0;
 

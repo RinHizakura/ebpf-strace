@@ -98,6 +98,20 @@ fn main() -> Result<()> {
         return Err(anyhow!("Command cannot be empty"));
     }
 
+    /* Tell the BPF program which PID namespace fork() will return PIDs in,
+     * so it can resolve task PIDs the same way. Without this, on hosts that
+     * place us in a nested PID namespace (e.g. WSL2 systemd-mode) the BPF
+     * filter would compare against root-namespace PIDs and reject every
+     * event from the traced child. */
+    let pid_ns_meta = std::fs::metadata("/proc/self/ns/pid")
+        .map_err(|e| anyhow!("stat /proc/self/ns/pid: {}", e))?;
+    use std::os::unix::fs::MetadataExt;
+    unsafe {
+        let bss = &mut *skel.bss_mut_raw();
+        bss.ns_dev = pid_ns_meta.dev();
+        bss.ns_ino = pid_ns_meta.ino();
+    }
+
     let child_pid = match fork() {
         0 => {
             let pid = getpid();
