@@ -164,7 +164,7 @@
 | 157  | prctl                      | ✓      | ✓      |
 | 158  | arch\_prctl                | ✗      | ✗      |
 | 159  | adjtimex                   | ✗      | ✗      |
-| 160  | setrlimit                  | ✓      | ✓      |
+| 160  | setrlimit                  | ✓      | ✗      |
 | 161  | chroot                     | ✗      | ✗      |
 | 162  | sync                       | ✗      | ✗      |
 | 163  | acct                       | ✗      | ✗      |
@@ -558,7 +558,7 @@
 | 161  | sethostname                | ✗      | ✗      |
 | 162  | setdomainname              | ✗      | ✗      |
 | 163  | getrlimit                  | ✓      | ✓      |
-| 164  | setrlimit                  | ✓      | ✓      |
+| 164  | setrlimit                  | ✓      | ✗      |
 | 165  | getrusage                  | ✗      | ✗      |
 | 166  | umask                      | ✗      | ✗      |
 | 167  | prctl                      | ✓      | ✓      |
