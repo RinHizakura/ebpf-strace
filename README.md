@@ -8,9 +8,12 @@ The `ebpf-strace` is an experimental tool to trace system calls like
 [ptrace](https://man7.org/linux/man-pages/man2/ptrace.2.html).
 
 The tool can be run on x86_64 or aarch64, but most of the
-validation only done on x86_64 currently. Besides, only a few syscalls's
-arguments can be traced. Please feel free to report for any unusual output
-or implement arguments tracing for more system calls.
+validation only done on x86_64 currently. Besides, not every syscalls's
+arguments can be traced.
+
+## Syscall Support
+
+See [Documents/support.md](Documents/support.md) for the full syscall support and test coverage tables.
 
 ## Usage
 
@@ -43,7 +46,7 @@ $ make
 To know the detail for how to use ebpf-strace, you can try `-h` for the direction.
 
 ```
-$ sudo ./ebpf -h
+$ sudo ./ebpf-strace -h
 Usage: ebpf-strace [OPTIONS] [CMD]...
 
 Arguments:
