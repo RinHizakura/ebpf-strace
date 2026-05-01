@@ -127,7 +127,6 @@ fn main() -> Result<()> {
 
     let syscall_record = builder.build()?;
 
-    println!("Tracing... Press Ctrl-C to end early.");
     while running.load(Ordering::SeqCst) {
         let result = syscall_record.poll(Duration::MAX);
         if let Err(r) = &result {
