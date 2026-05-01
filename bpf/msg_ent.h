@@ -1147,6 +1147,10 @@ typedef struct {
 } listns_args_t;
 typedef struct {
 } rseq_slice_yield_args_t;
+typedef struct {
+} uretprobe_args_t;
+typedef struct {
+} uprobe_args_t;
 
 typedef struct {
     int signo;
