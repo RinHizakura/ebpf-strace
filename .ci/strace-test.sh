@@ -10,7 +10,7 @@ GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
 RETURN=0
-FAIL_STOP=0
+FAIL_STOP=${FAIL_STOP:-0}
 OUT_DIR="target/debug/tests"
 
 if [ $# -gt 0 ]; then
@@ -36,6 +36,9 @@ for FILE in ${FILES}; do
     TEST_NUM=$((TEST_NUM+1))
     CMD="sudo $BIN $OUT_DIR/$FILE"
     sudo $CMD 2>$STRACE_LOG 1>$OUTPUT_LOG
+
+    # Normalize the strace log by removing extra spaces around '=' in
+    # syscall arguments.
     sed -i 's/)[[:blank:]]*=[[:blank:]]/) = /g' $STRACE_LOG
 
     echo -n "[$TEST_NUM/$TOTAL] run test: ${FILE}..."
