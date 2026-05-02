@@ -42,8 +42,7 @@ for FILE in ${FILES}; do
 
     n=1
     while read -r line; do
-        normalized=$(echo "$line" | sed 's/)[[:blank:]]*=[[:blank:]]/) = /g')
-        rslt=`grep -Fx -- "$normalized" $STRACE_LOG`
+        rslt=`grep -Fx -- "$line" $STRACE_LOG`
         if [ "$rslt" = "" ] ; then
             RSLT=1
             break
