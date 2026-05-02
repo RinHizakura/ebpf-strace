@@ -15,7 +15,7 @@ int main()
         ret = -1;
         goto end;
     }
-    struct epoll_event ev;
+    struct epoll_event ev = {0};
     ev.events = EPOLLIN;
     ev.data.fd = pipefd[0];
     if (epoll_ctl(epfd, EPOLL_CTL_ADD, pipefd[0], &ev) < 0) {
