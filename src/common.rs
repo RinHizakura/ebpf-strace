@@ -4,8 +4,8 @@ use crate::arch::*;
 use crate::utils::*;
 pub use std::ffi::{c_int, c_long, c_ulong};
 
-pub const ARR_ENT_SIZE: usize = 108;
-pub const BUF_SIZE: usize = 32;
+pub const ARR_ENT_SIZE: usize = 31;
+pub const BUF_SIZE: usize = 128;
 pub const NULL_STR: &'static str = "NULL";
 pub const EMPTY_STR: &'static str = "";
 

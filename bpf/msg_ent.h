@@ -4,8 +4,8 @@
 #define static_assert(expr, ...) __static_assert(expr, ##__VA_ARGS__, #expr)
 #define __static_assert(expr, msg, ...) _Static_assert(expr, msg)
 
-#define ARR_ENT_SIZE 108
-#define BUF_SIZE 32
+#define ARR_ENT_SIZE 31
+#define BUF_SIZE 128
 #define DIRENT_BUF_SIZE 4096
 #define ARGS_SIZE (DIRENT_BUF_SIZE + 256)
 /* Bytes captured for socket address arguments (covers IPv6 at 28 bytes) */
