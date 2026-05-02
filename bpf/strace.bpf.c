@@ -34,11 +34,12 @@ pid_t select_pid = 0;
  * root-namespace PID and never matches what fork() returned in userspace. */
 u64 ns_dev = 0;
 u64 ns_ino = 0;
+
 /* The key to access the single entry BPF_MAP in array type. */
 u32 INDEX_0 = 0;
 u32 INDEX_1 = 1;
 
-static __always_inline pid_t loader_ns_tgid(void)
+static __always_inline pid_t traced_ns_tgid(void)
 {
     struct bpf_pidns_info nsdata = {};
     if (bpf_get_ns_current_pid_tgid(ns_dev, ns_ino, &nsdata, sizeof(nsdata)))
@@ -493,8 +494,7 @@ int sys_enter(struct bpf_raw_tracepoint_args *args)
     /* We'll only hook the pid which is specified by BPF loader. The PID
      * is resolved in the loader's PID namespace so the comparison works
      * even when the loader runs inside a nested namespace. */
-    pid_t cur_pid = loader_ns_tgid();
-    if (select_pid == 0 || select_pid != cur_pid)
+    if (select_pid == 0 || select_pid != traced_ns_tgid())
         return 0;
 
     /* Reference to the TP_PROTO macro for sys_enter under
@@ -703,8 +703,7 @@ int sys_exit(struct bpf_raw_tracepoint_args *args)
     // Get the syscall end time at the very early start as possible
     u64 end_time = bpf_ktime_get_ns();
 
-    pid_t cur_pid = loader_ns_tgid();
-    if (select_pid == 0 || select_pid != cur_pid)
+    if (select_pid == 0 || select_pid != traced_ns_tgid())
         return 0;
 
     struct pt_regs *pt_regs = (struct pt_regs *) args->args[0];
@@ -727,8 +726,7 @@ int sys_exit(struct bpf_raw_tracepoint_args *args)
 SEC("raw_tracepoint/signal_deliver")
 int signal_deliver(struct bpf_raw_tracepoint_args *args)
 {
-    pid_t cur_pid = loader_ns_tgid();
-    if (select_pid == 0 || select_pid != cur_pid)
+    if (select_pid == 0 || select_pid != traced_ns_tgid())
         return 0;
 
     size_t total_size = sizeof(msg_ent_t) + sizeof(signal_ent_t);
