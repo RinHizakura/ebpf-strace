@@ -7,7 +7,7 @@
 #define ARR_ENT_SIZE 31
 #define BUF_SIZE 128
 #define DIRENT_BUF_SIZE 4096
-#define ARGS_SIZE (DIRENT_BUF_SIZE + 256)
+#define ARGS_SIZE 8192
 /* Bytes captured for socket address arguments (covers IPv6 at 28 bytes) */
 #define SOCKADDR_SIZE 28
 
