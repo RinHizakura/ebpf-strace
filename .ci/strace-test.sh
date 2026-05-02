@@ -57,7 +57,7 @@ for FILE in ${FILES}; do
         echo -e "${r}[$TEST_NUM/$TOTAL] run test: ${FILE}... ${RED}fail${NC}"
         syscall="${FILE%.out}"
         echo "Fail at line $n:"
-        echo "  expected: $normalized"
+        echo "  expected: $line"
         echo "  strace log (grep $syscall):"
         grep "^$syscall" $STRACE_LOG | sed 's/^/    /'
         RETURN=1
