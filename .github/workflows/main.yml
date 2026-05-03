@@ -44,45 +44,12 @@ jobs:
           pushd bpftool; git submodule update --init
           pushd src; make; sudo make install;
           popd; popd
-    - name: Install arm toolchain
-      run: |
-          wget -q https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
-          tar xf arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
-          sudo cp -r arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/ /usr/local/aarch64-none-linux-gnu
-    - name: Install arm64 libz
-      run: |
-          export PATH=$PATH:/usr/local/aarch64-none-linux-gnu/bin/
-          git clone -q https://github.com/madler/zlib.git
-          pushd zlib
-          CHOST=aarch64 CC=aarch64-none-linux-gnu-gcc AR=aarch64-none-linux-gnu-ar ./configure --prefix=/usr/local/aarch64-none-linux-gnu/aarch64-none-linux-gnu
-          make -j$(nproc)
-          sudo make install
-          popd
-    - name: Install arm64 libelf
-      run: |
-          export PATH=$PATH:/usr/local/aarch64-none-linux-gnu/bin/
-          git clone -q git://sourceware.org/git/elfutils.git
-          pushd elfutils
-          autoreconf -i -f
-          ./configure --host=aarch64-none-linux-gnu --prefix=/usr/local/aarch64-none-linux-gnu/aarch64-none-linux-gnu --enable-maintainer-mode --disable-libdebuginfod --disable-debuginfod
-          pushd lib
-          make -j$(nproc)
-          popd
-          pushd libelf
-          make -j$(nproc)
-          sudo PATH="/usr/local/aarch64-unknon-linux-gnu/bin:${PATH}" make install
-          popd; popd
-    - name: Build arm64 linux
-      run: |
-          export PATH=$PATH:/usr/local/aarch64-none-linux-gnu/bin/
-          wget -q https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.1.100.tar.xz
-          tar xf linux-6.1.100.tar.xz
-          cp .ci/materials/config-arm64 linux-6.1.100/.config
-          pushd linux-6.1.100
-          make ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- -j$(nproc)
-          popd
+    - name: Install arm64 toolchains
+      env:
+          KERNEL_VER: 7.0.1
+      run: .ci/install-arm64-toolchains.sh
 
     - name: Build
       run: |
           export PATH=$PATH:/usr/local/aarch64-none-linux-gnu/bin/
-          VMLINUX=linux-6.1.100/vmlinux make ARCH=aarch64 CROSS_COMPILE=/usr/local/aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu- build
+          VMLINUX=linux-7.0.1/vmlinux make ARCH=aarch64 CROSS_COMPILE=aarch64-none-linux-gnu- build
