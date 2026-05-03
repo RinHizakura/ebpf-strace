@@ -17,6 +17,8 @@ ARM_DIR=arm-gnu-toolchain-${ARM_TOOLCHAIN_VER}-x86_64-aarch64-none-linux-gnu
 ARM_TARBALL=${ARM_DIR}.tar.xz
 ARM_URL=https://developer.arm.com/-/media/Files/downloads/gnu/${ARM_TOOLCHAIN_VER}/binrel/${ARM_TARBALL}
 
+export PATH="$PATH:$TOOLCHAIN_DIR/bin"
+
 step() { printf '\n=== %s ===\n' "$1"; }
 
 step "Arm GNU toolchain ($TOOLCHAIN_DIR)"
