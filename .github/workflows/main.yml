@@ -45,11 +45,15 @@ jobs:
           pushd src; make; sudo make install;
           popd; popd
     - name: Install arm64 toolchains
-      env:
-          KERNEL_VER: 7.0.1
       run: .ci/install-arm64-toolchains.sh
 
-    - name: Build
+    - name: Build arm64 kernel
+      env:
+          KERNEL_VER: 7.0.1
+      run: .ci/build-arm64-linux.sh
+
+
+    - name: Build arm64 ebpf-strace
       run: |
           export PATH=$PATH:/usr/local/aarch64-none-linux-gnu/bin/
           VMLINUX=linux-7.0.1/vmlinux make ARCH=aarch64 CROSS_COMPILE=aarch64-none-linux-gnu- build
