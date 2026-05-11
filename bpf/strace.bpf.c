@@ -372,11 +372,6 @@ static int __sys_enter(struct bpf_raw_tracepoint_args *args)
     case SYS_EPOLL_CTL:
         sys_epoll_ctl_enter(ent, &parms);
         break;
-#ifdef __TARGET_ARCH_x86
-    case SYS_EPOLL_WAIT:
-        sys_epoll_wait_enter(ent, &parms);
-        break;
-#endif
     case SYS_SYNCFS:
         sys_syncfs_enter(ent, &parms);
         break;
@@ -411,6 +406,9 @@ static int __sys_enter(struct bpf_raw_tracepoint_args *args)
         sys_truncate_enter(ent, &parms);
         break;
 #ifdef __TARGET_ARCH_x86
+    case SYS_EPOLL_WAIT:
+        sys_epoll_wait_enter(ent, &parms);
+        break;
     case SYS_OPEN:
         sys_open_enter(ent, &parms);
         break;
@@ -610,21 +608,22 @@ static int __sys_exit(struct bpf_raw_tracepoint_args *args)
     case SYS_GETDENTS64:
         sys_getdents64_exit(ent);
         break;
+    case SYS_GETRLIMIT:
+        sys_getrlimit_exit(ent);
+        break;
+    case SYS_TRUNCATE:
+        sys_truncate_exit(ent);
+        break;
+#ifdef __TARGET_ARCH_x86
     case SYS_POLL:
         sys_poll_exit(ent);
         break;
-#ifdef __TARGET_ARCH_x86
     case SYS_EPOLL_WAIT:
         sys_epoll_wait_exit(ent);
         break;
     case SYS_SELECT:
         sys_select_exit(ent);
         break;
-#endif
-    case SYS_GETRLIMIT:
-        sys_getrlimit_exit(ent);
-        break;
-#ifdef __TARGET_ARCH_x86
     case SYS_OPEN:
         sys_open_exit(ent);
         break;
@@ -640,11 +639,6 @@ static int __sys_exit(struct bpf_raw_tracepoint_args *args)
     case SYS_PIPE:
         sys_pipe_exit(ent);
         break;
-#endif
-    case SYS_TRUNCATE:
-        sys_truncate_exit(ent);
-        break;
-#ifdef __TARGET_ARCH_x86
     case SYS_MKDIR:
         sys_mkdir_exit(ent);
         break;

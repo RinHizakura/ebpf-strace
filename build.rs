@@ -279,6 +279,7 @@ fn main() -> Result<()> {
             "-Wall",
             "-Werror",
             "-Wno-unused-function",
+            "-Wno-missing-declarations",
         ])
         .build_and_generate(&skel)?;
 
