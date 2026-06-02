@@ -18,16 +18,13 @@
 #   .ci/strace-test-arm64-vm.sh openat read     # run specific tests
 #
 # Env knobs:
-#   KERNEL_VER   kernel directory suffix, default 7.0.1
-#   BUILD_DIR    where kernel + chroot live, default build
-#   ROOTFS_DIR   chroot location, default $BUILD_DIR/arm64-chroot
+#   KERNEL_IMG   aarch64 kernel image, default build/linux-7.0.1/arch/arm64/boot/Image
+#   ROOTFS_DIR   chroot location, default build/arm64-chroot
 #
 set -euo pipefail
 
-KERNEL_VER=${KERNEL_VER:-7.0.1}
-BUILD_DIR=${BUILD_DIR:-build}
-KERNEL_IMG="${BUILD_DIR}/linux-${KERNEL_VER}/arch/arm64/boot/Image"
-ROOTFS_DIR=${ROOTFS_DIR:-$BUILD_DIR/arm64-chroot}
+KERNEL_IMG=${KERNEL_IMG:-build/linux-7.0.1/arch/arm64/boot/Image}
+ROOTFS_DIR=${ROOTFS_DIR:-build/arm64-chroot}
 PROJECT_DIR=$(cd "$(dirname "$0")/.." && pwd)
 GUEST_MOUNT=/mnt/proj
 
