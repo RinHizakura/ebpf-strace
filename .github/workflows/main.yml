@@ -36,7 +36,9 @@ jobs:
     - name: Install dependencies
       run: |
           sudo apt-get update
-          sudo apt-get install clang llvm libelf1 libelf-dev zlib1g-dev dwarves gcc-aarch64-linux-gnu help2man libtool-bin autopoint
+          sudo apt-get install clang llvm libelf1 libelf-dev zlib1g-dev dwarves gcc-aarch64-linux-gnu help2man libtool-bin autopoint qemu-system-arm
+          pip3 install --user virtme-ng
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           rustup target add aarch64-unknown-linux-gnu
     - name: Install bpftool
       run: |
@@ -53,7 +55,13 @@ jobs:
       run: .ci/build-arm64-linux.sh
 
 
-    - name: Build arm64 ebpf-strace
+    - name: Build arm64 ebpf-strace and tests
       run: |
           export PATH=$PATH:/usr/local/aarch64-none-linux-gnu/bin/
-          VMLINUX=linux-7.0.1/vmlinux make ARCH=aarch64 CROSS_COMPILE=aarch64-none-linux-gnu- build
+          VMLINUX=build/linux-7.0.1/vmlinux make ARCH=aarch64 CROSS_COMPILE=aarch64-none-linux-gnu-
+
+    - name: Build arm64 rootfs
+      run: .ci/build-arm64-rootfs.sh
+
+    - name: Run arm64 tests under vng
+      run: .ci/strace-test-arm64-vm.sh

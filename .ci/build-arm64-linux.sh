@@ -12,18 +12,21 @@ set -euox pipefail
 TOOLCHAIN_DIR=/usr/local/aarch64-none-linux-gnu
 KERNEL_VER=${KERNEL_VER:-7.0.1}
 KERNEL_MAJOR=${KERNEL_VER%%.*}
-KERNEL_DIR=linux-${KERNEL_VER}
-KERNEL_TARBALL=${KERNEL_DIR}.tar.xz
-KERNEL_URL=https://cdn.kernel.org/pub/linux/kernel/v${KERNEL_MAJOR}.x/${KERNEL_TARBALL}
+BUILD_DIR=${BUILD_DIR:-build}
+KERNEL_DIR=${BUILD_DIR}/linux-${KERNEL_VER}
+KERNEL_TARBALL=${BUILD_DIR}/linux-${KERNEL_VER}.tar.xz
+KERNEL_URL=https://cdn.kernel.org/pub/linux/kernel/v${KERNEL_MAJOR}.x/linux-${KERNEL_VER}.tar.xz
 
 export PATH="$PATH:$TOOLCHAIN_DIR/bin"
 
 step() { printf '\n=== %s ===\n' "$1"; }
 
+mkdir -p "$BUILD_DIR"
+
 step "arm64 kernel ${KERNEL_VER} (vmlinux for BTF)"
 if [ ! -f "$KERNEL_DIR/vmlinux" ]; then
-    [ -f "$KERNEL_TARBALL" ] || wget -q "$KERNEL_URL"
-    [ -d "$KERNEL_DIR" ]     || tar xf "$KERNEL_TARBALL"
+    [ -f "$KERNEL_TARBALL" ] || wget -q -O "$KERNEL_TARBALL" "$KERNEL_URL"
+    [ -d "$KERNEL_DIR" ]     || tar xf "$KERNEL_TARBALL" -C "$BUILD_DIR"
     cp .ci/materials/config-arm64 "$KERNEL_DIR/.config"
 fi
 

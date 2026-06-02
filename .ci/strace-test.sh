@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-STRACE_LOG="/tmp/strace.log"
-OUTPUT_LOG="/tmp/output.log"
+STRACE_LOG=${STRACE_LOG:-"/tmp/strace.log"}
+OUTPUT_LOG=${OUTPUT_LOG:-"/tmp/output.log"}
 BIN=${BIN:-"target/debug/ebpf-strace"}
 
 r=$'\r'
@@ -11,7 +11,7 @@ NC='\033[0m' # No Color
 
 RETURN=0
 FAIL_STOP=${FAIL_STOP:-0}
-OUT_DIR="target/debug/tests"
+OUT_DIR=${OUT_DIR:-"target/debug/tests"}
 
 if [ $# -gt 0 ]; then
     FILES=""
