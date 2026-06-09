@@ -1,18 +1,3 @@
-/* The arm64 vmlinux.h generated from BTF for this kernel does not carry
- * struct epoll_event, even though the kernel UAPI defines it. BTF only
- * preserves types reachable from anchored kernel symbols, and on arm64
- * pahole pruned this one (the kernel only touches it through __user
- * pointers). Declare it manually here so SYS_EPOLL_CTL keeps working.
- *
- * Layout note: EPOLL_PACKED is applied only on x86_64 — on arm64 the
- * struct is naturally aligned (12B on x86_64 packed vs 16B on arm64). */
-#ifdef __TARGET_ARCH_arm64
-struct epoll_event {
-    u32 events;
-    u64 data;
-};
-#endif
-
 static void sys_epoll_create1_enter(syscall_ent_t *ent,
                                     struct input_parms *parms)
 {
